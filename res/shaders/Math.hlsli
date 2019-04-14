@@ -1,0 +1,698 @@
+//-----------------------------------------------------------------------------
+// File : Math.hlsli
+// Desc : Math Utility.
+// Copyright(c) Project Asura. All right reserved.
+//-----------------------------------------------------------------------------
+#ifndef MATH_HLSLI
+#define MATH_HLSLI
+
+//-----------------------------------------------------------------------------
+// Constant Values.
+//-----------------------------------------------------------------------------
+static const float F_PI     = 3.1415926535897932384626433832795f;
+static const float F_1DIVPI = 0.31830988618379067153776752674503f;
+
+
+//-----------------------------------------------------------------------------
+//      2乗計算を行います.
+//-----------------------------------------------------------------------------
+float Sq(float x)
+{ return x * x; }
+
+//-----------------------------------------------------------------------------
+//      最大コンポーネントの値を取得します.
+//-----------------------------------------------------------------------------
+float Max3(float3 value)
+{ return max(value.x, max(value.y, value.z)); }
+
+//-----------------------------------------------------------------------------
+//      最大コンポーネントの値を取得します.
+//-----------------------------------------------------------------------------
+float Max4(float4 value)
+{ return max(value.x, max(value.y, max(value.z, value.w))); }
+
+//-----------------------------------------------------------------------------
+//      最小コンポーネントの値を取得します.
+//-----------------------------------------------------------------------------
+float Min3(float3 value)
+{ return min(value.x, min(value.y, value.z)); }
+
+//-----------------------------------------------------------------------------
+//      最小コンポーネントの値を取得します.
+//-----------------------------------------------------------------------------
+float Min4(float4 value)
+{ return min(value.x, min(value.y, min(value.z, value.w))); }
+
+//-----------------------------------------------------------------------------
+//      RGBE形式に圧縮します.
+//-----------------------------------------------------------------------------
+float4 EncodeHDR(float3 value)
+{
+    value = 65536.0f;
+    float3 exponent  = clamp(ceil(log2(value)), -128.0f, 127.0f);
+    float  component = Max3(exponent);
+    float  range     = exp2(component);
+    float3 mantissa  = saturate(value / range);
+    return float4(mantissa, (component + 128.0f) / 256.0f);
+}
+
+//-----------------------------------------------------------------------------
+//      RGBE形式を展開します.
+//-----------------------------------------------------------------------------
+float3 DecodeHDR(float4 value)
+{
+    float  exponent = value.a * 256.0f - 128.0f;
+    float3 mantissa = value.rgb;
+    return exp2(exponent) * mantissa * 65536.0f;
+}
+
+//-----------------------------------------------------------------------------
+//      接線空間からワールド空間に変換します.
+//-----------------------------------------------------------------------------
+float3 FromTangentSpaceToWorld(float3 value, float3 T, float3 B, float3 N)
+{ return normalize(value.x * T + value.y * B + value.z * N); }
+
+//-----------------------------------------------------------------------------
+//      八面体ラップ処理を行います.
+//-----------------------------------------------------------------------------
+float2 OctWrap(float2 v)
+{ return (1.0f - abs(v.yx)) * (v.xy >= 0.0f ? 1.0f : -1.0f); }
+
+//-----------------------------------------------------------------------------
+//      法線ベクトルをパッキングします.
+//-----------------------------------------------------------------------------
+float2 PackNormal(float3 normal)
+{
+    // Octahedron normal vector encoding.
+    // https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
+    float3 n = normal / (abs(normal.x) + abs(normal.y) + abs(normal.z));
+    n.xy = (n.z >= 0.0f) ? n.xy : OctWrap(n.xy);
+    return n.xy * 0.5f + 0.5f;
+}
+
+//-----------------------------------------------------------------------------
+//      法線ベクトルをアンパッキングします.
+//-----------------------------------------------------------------------------
+float3 UnpackNormal(float2 packed)
+{
+    // Octahedron normal vector encoding.
+    // https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
+    float2 encoded = packed * 2.0f - 1.0f;
+    float3 n = float3(encoded.x, encoded.y, 1.0f - abs(encoded.x) - abs(encoded.y));
+    float  t = saturate(-n.z);
+    n.xy += (n.xy >= 0.0f) ? -t : t;
+    return normalize(n);
+}
+
+//-----------------------------------------------------------------------------
+//      ハードウェアから出力された非線形深度を線形深度に変換します.
+//-----------------------------------------------------------------------------
+float ToLinearDepth(float hardware_depth, float near_clip, float far_clip)
+{ return near_clip / (hardware_depth * (near_clip - far_clip) + far_clip); }
+
+//-----------------------------------------------------------------------------
+//      UVからビュー空間位置を求めます.
+//-----------------------------------------------------------------------------
+float3 UVToViewPos(float2 uv, float linear_depth, float3 param)
+{
+     // paramはCPU側で以下を計算して渡されたものです.
+     // param.z = far_clip;
+     // param.y = param.z / proj._22;
+     // param.x = param.y * proj._22 / proj._11;
+     // ※ proj._22 = 1.0f / tanf(fovy * 0.5f);
+     // ※ proj._11 = 1.0f / (tanf(fovy * 0.5f) * aspectRatio);
+     float2 st = uv * float2(2.0f, -2.0f) - float2(1.0f, -1.0f);
+     float3 view_dir = float3(st.x * param.x, st.y * param.y, -param.z);
+     return linear_depth * view_dir;
+}
+
+//-----------------------------------------------------------------------------
+//      最小となる差分値を求めます.
+//-----------------------------------------------------------------------------
+float3 MinDiff(float3 p, float3 r, float3 l)
+{
+    float3 v1 = r - p;
+    float3 v2 = p - l;
+    return (dot(v1, v1) < dot(v2, v2)) ? v1 : v2;
+}
+
+//-----------------------------------------------------------------------------
+//      法線ベクトルを再構築します.
+//-----------------------------------------------------------------------------
+float3 ToNormal(float3 p0, float3 pr, float3 pl, float3 pt, float3 pb)
+{ 
+    // p0 : 中心位置.
+    // pr : p0 + (1, 0);
+    // pl : p0 - (1, 0);
+    // pt : p0 + (0, 1);
+    // pb : p0 - (0, 1);
+    return normalize(cross(MinDiff(p0, pr, pl), MinDiff(p0, pt, pb)));
+}
+
+//-----------------------------------------------------------------------------
+//      接線空間を圧縮します.
+//      ※データを格納する際は DXGI_FORMAT_R10G10B10A2_UINTを使用してください.
+//-----------------------------------------------------------------------------
+uint4 EncodeTBN
+(
+    in float3   normal,                 // 法線ベクトル.
+    in float3   tangent,                // 接線ベクトル.
+    in uint     binomralHandedeness     // 従法線の向き(通常は1，向きを逆にしたい場合は0).
+)
+{
+    // octahedron normal vector encoding
+    uint2 encodedNormal = uint2(PackNormal(normal) * 1023.0f);
+
+    // find largest component of tangent
+    float3 tangentAbs = abs(tangent);
+    float  maxComp    = Max3(tangentAbs);
+
+    float3 refVector;
+    uint   compIndex;
+    if (maxComp == tangentAbs.x)
+    {
+        refVector = float3(1.0f, 0.0f, 0.0f);
+        compIndex = 0;
+    }
+    else if (maxComp == tangentAbs.y)
+    {
+        refVector = float3(0.0f, 1.0f, 0.0f);
+        compIndex = 1;
+    }
+    else
+    {
+        refVector = float3(0.0f, 0.0f, 1.0f);
+        compIndex = 2;
+    }
+
+    // compute cosAngle and handedness of tangent.
+    float3 orthoA = normalize(cross(normal, refVector));
+    float3 orthoB = cross(normal, orthoA);
+    uint cosAngle = uint((dot(tangent, orthoA) * 0.5f + 0.5f) * 255.0f);
+    uint tangentHandedness = (dot(tangent, orthoB) > 0.0001f) ? 1 : 0;
+
+    return uint4(encodedNormal, (cosAngle << 2u) | compIndex, tangentHandedness | binomralHandedeness);
+}
+
+//-----------------------------------------------------------------------------
+//      圧縮した接線空間を展開します.
+//      ※入力データはDXGI_FORMAT_R10G10B10A2_UINTに格納されているものとします.
+//-----------------------------------------------------------------------------
+void DecodeTBN
+(
+    in  uint4   encodedTBN,     // 圧縮している接線空間.
+    out float3  normal,         // 法線ベクトル.
+    out float3  tangent,        // 接線ベクトル.
+    out float3  binormal        // 従法線ベクトル.
+)
+{
+    // octahedron normal vector decoding.
+    normal = UnpackNormal(encodedTBN.xy / 1023.0f);
+
+    // get reference vector
+    float3 refVector;
+    uint compIndex = (encodedTBN.z & 0x3);
+    if (compIndex == 0)
+    {
+        refVector = float3(1.0f, 0.0f, 0.0f);
+    }
+    else if (compIndex == 1)
+    {
+        refVector = float3(0.0f, 1.0f, 0.0f);
+    }
+    else
+    {
+        refVector = float3(0.0f, 0.0f, 1.0f);
+    }
+
+    // decode tangent
+    uint cosAngleUint = ((encodedTBN.z >> 2u) & 0xff);
+    float cosAngle = (cosAngleUint / 255.0f) * 2.0f - 1.0f;
+    float sinAngle = sqrt(saturate(1.0f - (cosAngle * cosAngle)));
+
+    sinAngle = ((encodedTBN.w & 0x2) == 0) ? -sinAngle : sinAngle;
+    float3 orthoA = normalize(cross(normal, refVector));
+    float3 orthoB = cross(normal, orthoA);
+    tangent = (cosAngle * orthoA) + (sinAngle * orthoB);
+
+    // decode binormal
+    binormal = cross(normal, tangent);
+    binormal = ((encodedTBN.w & 0x1) == 0) ? binormal : -binormal;
+}
+
+//-----------------------------------------------------------------------------
+//      浮動小数を8bitデータに変換します.
+//-----------------------------------------------------------------------------
+uint ToUint8(float value)
+{ return clamp(uint(value * 255.0f + 0.5f), 0, 255); }
+
+//-----------------------------------------------------------------------------
+//      8bitデータを浮動小数を変換します.
+//-----------------------------------------------------------------------------
+float FromUint8(uint value)
+{ return saturate(float(value) / 255.0f); }
+
+//-----------------------------------------------------------------------------
+//      浮動小数2個を16ビットデータに変換します.
+//-----------------------------------------------------------------------------
+uint ToUint8x2(float value0, float value1)
+{
+    uint hi = ToUint8(value0);
+    uint lo = ToUint8(value1);
+    return (hi << 8 | lo);
+}
+
+//-----------------------------------------------------------------------------
+//      上位8ビットにデータをシフトします.
+//-----------------------------------------------------------------------------
+uint ToUint8Hi(float value)
+{ return ToUint8(value) << 8; }
+
+//-----------------------------------------------------------------------------
+//      16ビットデータを浮動小数2個に変換します.
+//-----------------------------------------------------------------------------
+float2 FromUint8x2(uint value)
+{
+    float hi = FromUint8((value >> 8) & 0xff);
+    float lo = FromUint8((value) & 0xff);
+    return float2(hi, lo);
+}
+
+//-----------------------------------------------------------------------------
+//      16ビットデータの上位8ビットを浮動小数に変換します.
+//-----------------------------------------------------------------------------
+float FromUint8Hi(uint value)
+{ return FromUint8((value >> 8) & 0xff); }
+
+//-----------------------------------------------------------------------------
+//      16ビットデータの下位8ビットを浮動小数に変換します.
+//-----------------------------------------------------------------------------
+float FromUint8Low(uint value)
+{ return FromUint8((value) & 0xff); }
+
+//-----------------------------------------------------------------------------
+//      Hammersleyサンプリング.
+//-----------------------------------------------------------------------------
+float2 Hammersley(uint i, uint N)
+{
+    // Shader Model 5以上が必要.
+    float ri = reversebits(i) * 2.3283064365386963e-10f;
+    return float2(float(i) / float(N), ri);
+//#if 0
+//    // Shader Model 5未満.
+//    uint bits = (bits << 16u) | (bits >> 16u);
+//    uint bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+//    uint bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+//    uint bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+//    uint bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+//    float ri = float(bits) * 2.3283064365386963e-10f;
+//    return float2(float(i) / float(N), ri);
+//#endif
+}
+
+//-----------------------------------------------------------------------------
+//      法線マップを合成します.
+//-----------------------------------------------------------------------------
+float3 BlendNormal(float3 n1, float3 n2)
+{
+    float3 t = n1 * float3( 2.0f,  2.0f, 2.0f) + float3(-1.0f, -1.0f,  0.0f);
+    float3 u = n2 * float3(-2.0f, -2.0f, 2.0f) + float3( 1.0f,  1.0f, -1.0f);
+    float3 r = t * dot(t, u) - u * t.z;
+    return normalize(r);
+}
+
+//-----------------------------------------------------------------------------
+//      ベント反射ベクトルを計算します.
+//-----------------------------------------------------------------------------
+float3 BentReflection(float3 T, float3 B, float3 N, float3 V, float anisotropy)
+{
+    float3 anisotropicDirection = (anisotropy >= 0.0) ? B : T;
+    float3 anisotropicTangent   = cross(anisotropicDirection, V);
+    float3 anisotropicNormal    = cross(anisotropicTangent, anisotropicDirection);
+    float3 bentNormal           = normalize(lerp(N, anisotropicNormal, anisotropy));
+    return reflect(V, bentNormal);
+}
+
+//-----------------------------------------------------------------------------
+//      余弦の値から正弦を求めます.
+//-----------------------------------------------------------------------------
+float ToSin(float cosine)
+{ return sqrt(1.0f - cosine * cosine); }
+
+//-----------------------------------------------------------------------------
+//      接線をシフトします.
+//-----------------------------------------------------------------------------
+float3 ShiftTangent(float3 T, float3 N, float shiftAngle)
+{
+    // ShaderX 3の式ではなく，数学的に正しく回転を扱う式に変更.
+    float cosTX = cos(shiftAngle);
+    float sinTX = sqrt(1.0f - cosTX * cosTX);
+    float cosTN = dot(T, N);
+    float sinTN = sqrt(1.0f - cosTN * cosTN);
+    float3 X = (cosTX * sinTN - cosTN * sinTX) * T + sinTN * sinTX * N;
+    return normalize(X);
+}
+
+//-----------------------------------------------------------------------------
+//      疑似油膜表現.
+//-----------------------------------------------------------------------------
+float3 FakeFilm(float3 V, float3 N, float mask, float thickness, float ior)
+{
+    // 高木康行, "モンスターハンター：ワールド アーティストによるシェーダ作成", CEDEC 2018.
+    float cos0 = abs(dot(V, N));
+
+    cos0 *= mask;
+    float  tr = cos0 * thickness - ior;
+    float3 n_color = (cos((tr * 35.0) * float3(0.71,0.87,1.0)) * -0.5) + 0.5;
+    n_color = lerp(n_color, float3(0.5, 0.5, 0.5), tr);
+    n_color *= n_color*2.0f;
+    return n_color;
+}
+
+//-----------------------------------------------------------------------------
+//      ヒートマップの色を取得します.
+//-----------------------------------------------------------------------------
+float3 HeatMap(float v) 
+{
+    float3 r = v * 2.1f - float3(1.8f, 1.14f, 0.3f);
+    return 1.0f - r * r;
+}
+
+//-----------------------------------------------------------------------------
+//      三角ノイズを計算します.
+//-----------------------------------------------------------------------------
+float TriangleNoise(float2 n, float time)
+{
+    // triangle noise, in [-1.0..1.0[ range
+    float v = 0.07 * frac(time);
+    n += float2(v, v);
+    n  = frac(n * float2(5.3987, 5.4421));
+    n += dot(n.yx, n.xy + float2(21.5351, 14.3137));
+
+    float xy = n.x * n.y;
+    // compute in [0..2[ and remap to [-1.0..1.0[
+    return frac(xy * 95.4307) + frac(xy * 75.04961) - 1.0;
+}
+
+//-----------------------------------------------------------------------------
+//      グラディエントノイズを計算します.
+//-----------------------------------------------------------------------------
+float InterleavedGradientNoise(const float2 n)
+{ return frac(52.982919 * frac(dot(float2(0.06711, 0.00584), n))); }
+
+//-----------------------------------------------------------------------------
+//      Jimenezによるディザーを計算します.
+//-----------------------------------------------------------------------------
+float4 DitherJimenez(float2 uv, float time, float4 rgba)
+{
+    // Jimenez 2014, "Next Generation Post-Processing in Call of Duty"
+    float noise = InterleavedGradientNoise(uv.xy + time);
+    // remap from [0..1[ to [-1..1[
+    noise = (noise * 2.0) - 1.0;
+    return float4(rgba.rgb + noise / 255.0, rgba.a);
+}
+
+//------------------------------------------------------------------------------
+//      Gjølによるディザーを計算します.
+//------------------------------------------------------------------------------
+float4 DitherTriangleNoise(float4 rgba, float2 uv, float2 screenSize, float time)
+{
+    // Gjøl 2016, "Banding in Games: A Noisy Rant"
+    return rgba + TriangleNoise(uv * screenSize, time) / 255.0;
+}
+
+//-----------------------------------------------------------------------------
+//      GjølによるRGBディザーを計算します.
+//-----------------------------------------------------------------------------
+float4 DitherTriangleNoiseRGB(float4 rgba, float2 uv, float2 screenSize, float time)
+{
+    // Gjøl 2016, "Banding in Games: A Noisy Rant"
+    float2 st = uv * screenSize;
+    float3 dither = float3(
+            TriangleNoise(st, time),
+            TriangleNoise(st + 0.1337, time),
+            TriangleNoise(st + 0.3141, time)) / 255.0;
+    return float4(rgba.rgb + dither, rgba.a + dither.x);
+}
+
+//-----------------------------------------------------------------------------
+//      球面調和関数の係数から放射照度を求めます.
+//-----------------------------------------------------------------------------
+float3 IrradianceSH3(float3 n, float4 sh[9])
+{
+    // 3-Band.
+    return sh[0].rgb
+         + sh[1].rgb * (n.y)
+         + sh[2].rgb * (n.z)
+         + sh[3].rgb * (n.x)
+         + sh[4].rgb * (n.y * n.x)
+         + sh[5].rgb * (n.y * n.z)
+         + sh[6].rgb * (3.0f * n.z * n.z - 1.0f)
+         + sh[7].rgb * (n.z * n.x)
+         + sh[8].rgb * (n.x * n.x - n.y * n.y);
+}
+
+//-----------------------------------------------------------------------------
+//      接線を再計算します.
+//-----------------------------------------------------------------------------
+float3 RecalcTangent(float3 normalMappedN, float3 T)
+{
+    // Johon Isidoro, Chris Brenman, "Per-Pixel Strand Based Anisotropic Lighting",
+    // Direct3D ShaderX Vertex and Pixel Shader Tips and Tricks, pp.376-382, Wordware Publishing Inc.
+    return normalize(T - dot(T, normalMappedN) * normalMappedN);
+}
+
+float Random(float2 value)
+{ return frac(sin(dot(value.xy, float2(12.9898, 78.233))) * 43758.5453); }
+
+float GoldNoise(float2 value, float time)
+{
+    const float F_PHI    = 1.61803398874989484820459 * 0.1;
+    const float F_SQ2    = 1.41421356237309504880169 * 10000.0;
+
+    return frac(tan(distance(value * (time + F_PHI), float2(F_PHI, F_PI))) * F_SQ2);
+}
+
+float InvErrorFunction(float x)
+{
+    float y = log(1.0f - x * x);
+    float z = 2.0f / (F_PI * 0.14f);
+    return sqrt(sqrt(z * z - y * 1.0f / 0.14f) - z) * sign(x);
+}
+
+float GaussianNoise(float2 value, float time)
+{
+    float t = frac(time);
+    float x = Random(value + 0.07f * t);
+    return InvErrorFunction(x * 2.0f - 1.0f) * 0.15f + 0.5f;
+}
+
+float ValueNoise(float2 p)
+{
+    float2 i = floor(p);
+    float2 f = frac(p);
+    
+    float2 s = smoothstep(0.0, 1.0, f);
+    float nx0 = lerp(Random(i + float2(0.0, 0.0)), Random(i + float2(1.0, 0.0)), s.x);
+    float nx1 = lerp(Random(i + float2(0.0, 1.0)), Random(i + float2(1.0, 1.0)), s.x);
+    return lerp(nx0, nx1, s.y);
+}
+
+float BitsTo01(uint bits)
+{
+    uint div = 0xffffffff;
+    return bits * (1.0 / float(div));
+}
+
+uint Rotl32(uint var, uint hops)
+{
+    return (var << hops) | (var >> (32 - hops));
+}
+
+void Bjmix(inout uint a, inout uint b, inout uint c)
+{
+    a -= c;  a ^= Rotl32(c, 4);  c += b;
+    b -= a;  b ^= Rotl32(a, 6);  a += c;
+    c -= b;  c ^= Rotl32(b, 8);  b += a;
+    a -= c;  a ^= Rotl32(c, 16);  c += b;
+    b -= a;  b ^= Rotl32(a, 19);  a += c;
+    c -= b;  c ^= Rotl32(b, 4);  b += a;
+}
+
+uint Bjfinal(uint a, uint b, uint c)
+{
+    c ^= b; c -= Rotl32(b, 14);
+    a ^= c; a -= Rotl32(c, 11);
+    b ^= a; b -= Rotl32(a, 25);
+    c ^= b; c -= Rotl32(b, 16);
+    a ^= c; a -= Rotl32(c, 4);
+    b ^= a; b -= Rotl32(a, 14);
+    c ^= b; c -= Rotl32(b, 24);
+    return c;
+}
+
+uint Inthash(uint4 k)
+{
+    int N = 4;
+
+    uint len = N;
+    uint a = 0xdeadbeef + (len << 2) + 13;
+    uint b = 0xdeadbeef + (len << 2) + 13;
+    uint c = 0xdeadbeef + (len << 2) + 13;
+
+    a += k[0];
+    b += k[1];
+    c += k[2];
+    Bjmix(a, b, c);
+
+    a += k[3];
+    c = Bjfinal(a, b, c);
+
+    return c;
+}
+
+float3 Hash3(uint4 k)
+{
+    int N = 4;
+    float3 result;
+    k[N - 1] = 0;   result.x = BitsTo01(Inthash(k));
+    k[N - 1] = 1;   result.y = BitsTo01(Inthash(k));
+    k[N - 1] = 2;   result.z = BitsTo01(Inthash(k));
+    return result;
+}
+
+float3 CellNoise(float3 p)
+{
+    uint4 iv;
+    iv[0] = uint(floor(p.x));
+    iv[1] = uint(floor(p.y));
+    iv[2] = uint(floor(p.z));
+    return Hash3(iv);
+}
+
+void Flakes
+(
+    float2      uv,
+    float       scale,
+    float       variance,
+    float       size,
+    float       orientation,
+    out float3  normal,
+    out float   alpha
+)
+{
+    float safe_flake_size_variance = clamp(variance, 0.1, 1.0);
+
+    const float3 cellCenters[9] = {
+        float3( 0.5,  0.5, 0.0),
+        float3( 1.5,  0.5, 0.0),
+        float3( 1.5,  1.5, 0.0),
+        float3( 0.5,  1.5, 0.0),
+        float3(-0.5,  1.5, 0.0),
+        float3(-0.5,  0.5, 0.0),
+        float3(-0.5, -0.5, 0.0),
+        float3( 0.5, -0.5, 0.0),
+        float3( 1.5, -0.5, 0.0)
+    };
+
+    float3 position = float3(uv, 0.0);
+    position = scale * position;
+
+    float3 base = floor(position);
+
+    float3 nearestCell = float3(0.0, 0.0, 1.0);
+    int nearestCellIndex = -1;
+
+    [unroll]
+    for (int i = 0; i < 9; ++i)
+    {
+        float3 cellCenter = base + cellCenters[i];
+
+        float3 centerOffset = CellNoise(cellCenter) * 2.0 - 1.0;
+        centerOffset[2] *= safe_flake_size_variance;
+        centerOffset = normalize(centerOffset);
+
+        cellCenter += 0.5 * centerOffset;
+        float cellDistance = distance(position, cellCenter);
+
+        if (cellDistance < size && cellCenter[2] < nearestCell[2])
+        {
+            nearestCell = cellCenter;
+            nearestCellIndex = i;
+        }
+    }
+
+    normal = float3(0.5, 0.5, 1.0);
+    alpha  = 0.0;
+
+    float3 I = float3(0, 0, 1);
+
+    if (nearestCellIndex != -1)
+    {
+        float3 randomNormal = CellNoise(base + cellCenters[nearestCellIndex] + float3(0.0, 0.0, 1.5));
+        randomNormal = 2.0 * randomNormal - 1.0;
+        randomNormal = faceforward(randomNormal, I, randomNormal);
+        randomNormal = normalize(lerp(randomNormal, float3(0.0, 0.0, 1.0), orientation));
+
+        normal = float3(0.5 * randomNormal[0] + 0.5, -0.5 * randomNormal[1] + 0.5, randomNormal[2]);
+        alpha  = 1.0;
+    }
+}
+
+float Overlay(float v0, float v1)
+{ return v0 * (v0 + 2.f * v1 * (1.f - v0)); }
+
+float3 Overlay(float3 v0, float3 v1)
+{ return v0 * (v0 + 2.f.xxx * v1 * (1.f.xxx - v0)); }
+
+float Sum(float3 v)
+{ return v.x + v.y + v.z; }
+
+float3 TextureNoTile
+(
+    Texture2D       randomMap,
+    SamplerState    randomSmp,
+    Texture2D       colorMap,
+    SamplerState    colorSmp,
+    float2          uv, 
+    float           v
+)
+{
+    // http://www.iquilezles.org/www/articles/texturerepetition/texturerepetition.htm
+
+    float k = randomMap.Sample(randomSmp, 0.005 * uv).x; // cheap (cache friendly) lookup
+
+    float2 duvdx = ddx_fine(uv);
+    float2 duvdy = ddy_fine(uv);
+    
+    float l = k * 8.0;
+    float i = floor( l );
+    float f = frac( l );
+    
+    float2 offa = sin(float2(3.0f, 7.0f) * (i + 0.0)); // can replace with any other hash
+    float2 offb = sin(float2(3.0f, 7.0f) * (i + 1.0)); // can replace with any other hash
+
+    float3 cola = colorMap.SampleGrad(colorSmp, uv + v * offa, duvdx, duvdy ).xyz;
+    float3 colb = colorMap.SampleGrad(colorSmp, uv + v * offb, duvdx, duvdy ).xyz;
+
+    return lerp( cola, colb, smoothstep(0.2, 0.8, f - 0.1 * Sum(cola-colb)) );
+}
+
+//-----------------------------------------------------------------------------
+//      UVアニメーションを行います.
+//-----------------------------------------------------------------------------
+float2 UVAnimation(float2 uv, float2 scale, float2 offset, float rotate)
+{
+    float2 st = uv * scale;
+    float s, c;
+    sincos(rotate, s, c);
+
+    float2 temp = st;
+    st.x = temp.x * c - temp.y * s;
+    st.y = temp.x * s + temp.y * c;
+    st += offset;
+    return st;
+}
+
+
+#endif//MATH_HLSLI
