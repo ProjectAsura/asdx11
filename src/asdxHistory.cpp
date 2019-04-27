@@ -203,6 +203,8 @@ bool HistoryMgr::IsInit() const
 //-----------------------------------------------------------------------------
 bool HistoryMgr::Init(int capacity)
 {
+    std::lock_guard<std::recursive_mutex> gurad(m_Mutex);
+
     if (m_Init)
     { return false; }
 
@@ -222,6 +224,8 @@ bool HistoryMgr::Init(int capacity)
 //-----------------------------------------------------------------------------
 void HistoryMgr::Term()
 {
+    std::lock_guard<std::recursive_mutex> gurad(m_Mutex);
+
     auto itr = std::begin(m_Histories);
     while(itr != std::end(m_Histories))
     {
@@ -275,6 +279,8 @@ bool HistoryMgr::IsEmpty() const
 //-----------------------------------------------------------------------------
 void HistoryMgr::Add(IHistory* item, bool redo)
 {
+    std::lock_guard<std::recursive_mutex> gurad(m_Mutex);
+
     assert(m_Init == true);
     assert(item != nullptr);
 
@@ -306,6 +312,8 @@ void HistoryMgr::Add(IHistory* item, bool redo)
 //-----------------------------------------------------------------------------
 void HistoryMgr::Clear()
 {
+    std::lock_guard<std::recursive_mutex> gurad(m_Mutex);
+
     auto itr = std::begin(m_Histories);
     while(itr != std::end(m_Histories))
     {
@@ -324,6 +332,8 @@ void HistoryMgr::Clear()
 //-----------------------------------------------------------------------------
 void HistoryMgr::Redo()
 {
+    std::lock_guard<std::recursive_mutex> gurad(m_Mutex);
+
     assert(m_Init == true);
     m_Histories[m_Current]->Redo();
     ++m_Current;
@@ -335,6 +345,8 @@ void HistoryMgr::Redo()
 //-----------------------------------------------------------------------------
 void HistoryMgr::Undo()
 {
+    std::lock_guard<std::recursive_mutex> gurad(m_Mutex);
+
     assert(m_Init == true);
     --m_Current;
     m_Histories[m_Current]->Undo();

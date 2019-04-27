@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------------
-// File : asdxStopWatch.h
-// Desc : Stop Watch.
+// File : asdxParamHistory.h
+// Desc : Parameter History
 // Copyright(c) Project Asura. All right reserved.
 //-----------------------------------------------------------------------------
 #pragma once
@@ -8,16 +8,16 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <cstdint>
-#include <Windows.h>
+#include <asdxHistory.h>
 
 
 namespace asdx {
 
 ///////////////////////////////////////////////////////////////////////////////
-// StopWatch class
+// ParamHistory
 ///////////////////////////////////////////////////////////////////////////////
-class StopWatch
+template<typename T>
+class ParamHistory : public asdx::IHistory
 {
     //=========================================================================
     // list of friend classes and methods.
@@ -37,52 +37,42 @@ public:
     //-------------------------------------------------------------------------
     //! @brief      コンストラクタです.
     //-------------------------------------------------------------------------
-    StopWatch()
-    : m_Start   ()
-    , m_End     ()
-    {
-        LARGE_INTEGER freq;
-        QueryPerformanceFrequency(&freq);
-        m_InvTicksPerSec = 1.0 / double(freq.QuadPart);
-    }
+    ParamHistory(T* target, const T& value)
+    : m_pTarget (target)
+    , m_Curr    (value)
+    , m_Prev    (*target)
+    { /* DO_NOTHING */ }
+
+    ParamHistory(T* target, const T& nextValue, const T& prevValue)
+    : m_pTarget (target)
+    , m_Curr    (nextValue)
+    , m_Prev    (prevValue)
+    { /* DO_NOTHING */ }
 
     //-------------------------------------------------------------------------
-    //! @brief      開始点を記録します.
+    //! @brief      やり直します.
     //-------------------------------------------------------------------------
-    void Start()
-    { QueryPerformanceCounter(&m_Start); }
+    void Redo() override
+    { *m_pTarget = m_Curr; }
 
     //-------------------------------------------------------------------------
-    //! @brief      終了点を記録します.
+    //! @brief      元に戻します.
     //-------------------------------------------------------------------------
-    void End()
-    { QueryPerformanceCounter(&m_End); }
-
-    //-------------------------------------------------------------------------
-    //! @brief      経過時間を秒単位で取得します.
-    //-------------------------------------------------------------------------
-    double GetElapsedSec() const
-    { return (m_End.QuadPart - m_Start.QuadPart) * m_InvTicksPerSec; }
-
-    //-------------------------------------------------------------------------
-    //! @brief      経過時間をミリ秒単位で取得します.
-    //-------------------------------------------------------------------------
-    double GetElapsedMsec() const 
-    { return GetElapsedSec() * 1000.0f; }
+    void Undo() override
+    { *m_pTarget = m_Prev; }
 
 private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    LARGE_INTEGER   m_Start;
-    LARGE_INTEGER   m_End;
-    double          m_InvTicksPerSec;
+    T*      m_pTarget;  //!< 変更対象.
+    T       m_Prev;     //!< 変更前の値.
+    T       m_Curr;     //!< 変更後の値.
 
     //=========================================================================
     // private methods.
     //=========================================================================
     /* NOTHING */
 };
-
 
 } // namespace asdx

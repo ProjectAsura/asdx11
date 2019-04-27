@@ -11,6 +11,7 @@
 #include <list>
 #include <vector>
 #include <functional>
+#include <mutex>
 
 
 namespace asdx {
@@ -127,6 +128,7 @@ private:
     int                     m_Current;
     int                     m_Capacity;
     bool                    m_Init;
+    std::recursive_mutex    m_Mutex;
 };
 
 

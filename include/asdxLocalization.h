@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------------
-// File : asdxStopWatch.h
-// Desc : Stop Watch.
+// File : asdxLocalization.h
+// Desc : Localization Infomation.
 // Copyright(c) Project Asura. All right reserved.
 //-----------------------------------------------------------------------------
 #pragma once
@@ -8,19 +8,30 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <cstdint>
-#include <Windows.h>
+#include <string>
 
 
 namespace asdx {
 
 ///////////////////////////////////////////////////////////////////////////////
-// StopWatch class
+// LANGUAGE_TYPE enum
 ///////////////////////////////////////////////////////////////////////////////
-class StopWatch
+enum LANGUAGE_TYPE
+{
+    LANGUAGE_JP,        //!< 日本語.
+    LANGUAGE_EN,        //!< 英語.
+
+    LANGUAGE_MAX,
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Localization class
+///////////////////////////////////////////////////////////////////////////////
+class Localization
 {
     //=========================================================================
-    // list of friend classes and methods.
+    // list of friend classes
     //=========================================================================
     /* NOTHING */
 
@@ -28,61 +39,61 @@ public:
     //=========================================================================
     // public variables.
     //=========================================================================
-    /* NOTHING */
+    static int CurrentLanguage;     // 現在の言語.
 
     //=========================================================================
     // public methods.
     //=========================================================================
 
     //-------------------------------------------------------------------------
-    //! @brief      コンストラクタです.
+    //! @brief      コンストラクタ.
     //-------------------------------------------------------------------------
-    StopWatch()
-    : m_Start   ()
-    , m_End     ()
+    Localization(const char* jp, const char* en)
     {
-        LARGE_INTEGER freq;
-        QueryPerformanceFrequency(&freq);
-        m_InvTicksPerSec = 1.0 / double(freq.QuadPart);
+        m_Tag[LANGUAGE_JP] = jp;
+        m_Tag[LANGUAGE_EN] = en;
     }
 
     //-------------------------------------------------------------------------
-    //! @brief      開始点を記録します.
+    //! @brief      const char* へのキャスト.
     //-------------------------------------------------------------------------
-    void Start()
-    { QueryPerformanceCounter(&m_Start); }
+    operator const char* () const
+    { return m_Tag[CurrentLanguage].c_str(); }
 
     //-------------------------------------------------------------------------
-    //! @brief      終了点を記録します.
+    //! @brief      文字列取得.
     //-------------------------------------------------------------------------
-    void End()
-    { QueryPerformanceCounter(&m_End); }
+    const char* c_str() const
+    { return m_Tag[CurrentLanguage].c_str(); }
+
+    //--------------------------------------------------------------------------
+    //! @brief      std::string型取得.
+    //--------------------------------------------------------------------------
+    std::string std_str() const
+    { return m_Tag[CurrentLanguage]; }
 
     //-------------------------------------------------------------------------
-    //! @brief      経過時間を秒単位で取得します.
+    //! @brief      const std::string& へのキャスト.
     //-------------------------------------------------------------------------
-    double GetElapsedSec() const
-    { return (m_End.QuadPart - m_Start.QuadPart) * m_InvTicksPerSec; }
+    operator const std::string& () const
+    { return m_Tag[CurrentLanguage];  }
 
     //-------------------------------------------------------------------------
-    //! @brief      経過時間をミリ秒単位で取得します.
+    //! @brief      言語を指定して文字列を取得します.
     //-------------------------------------------------------------------------
-    double GetElapsedMsec() const 
-    { return GetElapsedSec() * 1000.0f; }
+    const std::string& Get(LANGUAGE_TYPE type) const
+    { return m_Tag[type]; }
 
 private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    LARGE_INTEGER   m_Start;
-    LARGE_INTEGER   m_End;
-    double          m_InvTicksPerSec;
+    std::string     m_Tag[LANGUAGE_MAX];
 
     //=========================================================================
     // private methods.
     //=========================================================================
     /* NOTHING */
 };
-
 
 } // namespace asdx

@@ -489,4 +489,45 @@ std::vector<std::wstring> Split(const std::wstring& input, wchar_t delimiter)
     return result;
 }
 
+//-----------------------------------------------------------------------------
+//      外部プロセスを実行します.
+//-----------------------------------------------------------------------------
+bool RunProcess(const char* cmd, bool wait)
+{
+    STARTUPINFOA        startup_info = {};
+    PROCESS_INFORMATION process_info = {};
+
+    DWORD flag = NORMAL_PRIORITY_CLASS;
+    startup_info.cb = sizeof(STARTUPINFOA);
+
+    // 成功すると0以外, 失敗すると0が返る.
+    auto ret = CreateProcessA(
+        nullptr,
+        const_cast<char*>(cmd), // 実害はないはず...
+        nullptr,
+        nullptr,
+        FALSE,
+        flag,
+        nullptr,
+        nullptr,
+        &startup_info,
+        &process_info);
+
+    if (ret == 0)
+    {
+        //ELOGA("Error : プロセス起動に失敗. コマンド = %s", cmd);
+        CloseHandle(process_info.hProcess);
+        CloseHandle(process_info.hThread);
+        return false;
+    }
+
+    if (wait)
+    { WaitForSingleObject(process_info.hProcess, INFINITE); }
+
+    CloseHandle(process_info.hProcess);
+    CloseHandle(process_info.hThread);
+
+    return true;
+}
+
 } // namespace asdx

@@ -179,6 +179,15 @@ private:
   #endif//defined(DEBUG) || defined(_DEBUG)
 #endif//DLOGW
 
+
+#ifndef VLOGA
+#define VLOGA( fmt, ... )      asdx::SystemLogger::GetInstance().LogA( asdx::LogLevel::Verbose, fmt "\n", ##__VA_ARGS__ )
+#endif//VLOGA
+
+#ifndef VLOGW
+#define VLOGW( fmt, ... )      asdx::SystemLogger::GetInstance().LogW( asdx::LogLevel::Verbose, ASDX_WIDE(fmt) ASDX_WIDE("\n"), ##__VA_ARGS__ )
+#endif//VLOGW
+
 #ifndef ILOGA
 #define ILOGA( fmt, ... )      asdx::SystemLogger::GetInstance().LogA( asdx::LogLevel::Info, fmt "\n", ##__VA_ARGS__ )
 #endif//ILOGA
@@ -188,7 +197,7 @@ private:
 #endif//ILOGW
 
 #ifndef WLOGA
-#define WLOGA( fmt, ... )       asdx::SystemLogger::GetInstance().LogW( asdx::LogLevel::Warning, fmt "\n", ##__VA_ARGS__ )
+#define WLOGA( fmt, ... )       asdx::SystemLogger::GetInstance().LogA( asdx::LogLevel::Warning, fmt "\n", ##__VA_ARGS__ )
 #endif//WLOGA
 
 #ifndef WLOGW
@@ -204,11 +213,13 @@ private:
 #endif//ELOGW
 
 #if defined(UNICODE) || defined(_UNICODE)
+    #define VLOG        VLOGW
     #define DLOG        DLOGW
     #define ILOG        ILOGW
     #define WLOG        WLOGW
     #define ELOG        ELOGW
 #else
+    #define VLOG        VLOGA 
     #define DLOG        DLOGA
     #define ILOG        ILOGA
     #define WLOG        WLOGA 

@@ -259,4 +259,12 @@ std::vector<std::string> Split( const std::string& value, char delimiter );
 //-------------------------------------------------------------------------------------------------
 std::vector<std::wstring> Split(  const std::wstring& value, wchar_t delimiter );
 
+//-------------------------------------------------------------------------------------------------
+//! @brief      外部プロセスを実行します.
+//!
+//! @param[in]      cmd     コマンドライン.
+//! @param[in]      wait    待機する場合は true.
+//-------------------------------------------------------------------------------------------------
+bool RunProcess(const char* cmd, bool wait = true);
+
 } // namespacec asdx

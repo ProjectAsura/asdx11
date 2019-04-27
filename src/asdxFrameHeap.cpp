@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------------
-// File : FrameHeap.cpp
+// File : asdxFrameHeap.cpp
 // Desc : Frame Heap.
 // Copyright(c) Project Asura. All right reserved.
 //-----------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <new>
-#include <FrameHeap.h>
+#include <asdxFrameHeap.h>
 #include <asdxLogger.h>
 
 

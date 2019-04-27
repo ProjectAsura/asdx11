@@ -1,5 +1,5 @@
 ﻿//-------------------------------------------------------------------------------------------------
-// File : Gui.cpp
+// File : asdxGuiMgr.cpp
 // Desc : Gui Manager.
 // Copyright(c) Project Asura. All right reserved.
 //-------------------------------------------------------------------------------------------------
@@ -7,7 +7,7 @@
 //-------------------------------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------------------------------
-#include <GuiMgr.h>
+#include <asdxGuiMgr.h>
 #include <d3dcompiler.h>
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -30,7 +30,7 @@ struct TransformBuffer
 //      描画処理を行います.
 //-------------------------------------------------------------------------------------------------
 void DrawFunc( ImDrawData* draw_data )
-{ GuiMgr::GetInstance().OnDraw( draw_data ); }
+{ asdx::GuiMgr::GetInstance().OnDraw( draw_data ); }
 
 static const ImWchar glyphRangesJapanese[] = {
     0x0020, 0x007E, 0x00A2, 0x00A3, 0x00A7, 0x00A8, 0x00AC, 0x00AC, 0x00B0, 0x00B1, 0x00B4, 0x00B4, 0x00B6, 0x00B6, 0x00D7, 0x00D7, 
@@ -551,9 +551,11 @@ static const ImWchar glyphRangesJapanese[] = {
     0xFF0E, 0xFF3B, 0xFF3D, 0xFF5D, 0xFF61, 0xFF9F, 0xFFE3, 0xFFE3, 0xFFE5, 0xFFE5, 0xFFFF, 0xFFFF, 0, 
 };
 
+//-----------------------------------------------------------------------------
+//      クリップボードテキストを取得します.
+//-----------------------------------------------------------------------------
 const char* GetClipboardText(void*)
 {
-
     static char* buf_local = NULL;
     if (buf_local)
     {
@@ -576,6 +578,9 @@ const char* GetClipboardText(void*)
     return buf_local;
 }
 
+//-----------------------------------------------------------------------------
+//      クリップボードテキストを設定します.
+//-----------------------------------------------------------------------------
 void SetClipboardText(void*, const char* text)
 {
     if (!OpenClipboard(NULL))
@@ -629,18 +634,17 @@ bool GuiMgr::Init
     ID3D11DeviceContext*    pContext,
     HWND                    hWnd,
     uint32_t                width,
-    uint32_t                height,
-    const char*             fontPath,
+    uint32_t                height
 )
 {
-    m_pDevice  = pDevice;
+    m_pDevice = pDevice;
     m_pContext = pContext;
 
     auto& io = ImGui::GetIO();
 
     {
         std::string path;
-        if (asdx::SearchFilePathA(fontPath, path))
+        if (asdx::SearchFilePathA("../res/fonts/07やさしさゴシック.ttf", path))
         {
             auto utf8_path = asdx::ToStringUTF8(path);
             io.Fonts->AddFontFromFileTTF(utf8_path.c_str(), 12.0f, nullptr, glyphRangesJapanese);
@@ -676,11 +680,11 @@ bool GuiMgr::Init
         viewDesc.Texture2D.MipLevels = desc.MipLevels;
         viewDesc.Texture2D.MostDetailedMip = 0;
 
-        hr = m_pDevice->CreateShaderResourceView( m_pTexture.Get(), &viewDesc, m_pSRV.GetAddress() );
+        hr = m_pDevice->CreateShaderResourceView( m_pTexture.GetPtr(), &viewDesc, m_pSRV.GetAddress() );
         if ( FAILED( hr ) )
         { return false; }
 
-        io.Fonts->TexID = reinterpret_cast<void*>( m_pSRV.Get() );
+        io.Fonts->TexID = reinterpret_cast<void*>( m_pSRV.GetPtr() );
     }
 
     {
@@ -728,7 +732,7 @@ bool GuiMgr::Init
                return output;\
             }";
 
-        Microsoft::WRL::ComPtr<ID3DBlob> pBlob;
+        RefPtr<ID3DBlob> pBlob;
         D3DCompile( vsCode, strlen( vsCode ), NULL, NULL, NULL, "main", "vs_4_0", 0, 0, pBlob.GetAddress(), NULL );
 
         if ( !pBlob )
@@ -780,7 +784,7 @@ bool GuiMgr::Init
                 return out_col; \
             }";
 
-        Microsoft::WRL::ComPtr<ID3DBlob> pBlob;
+        RefPtr<ID3DBlob> pBlob;
         D3DCompile( psCode, strlen( psCode ), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, pBlob.GetAddress(), NULL );
 
         if ( !pBlob )
@@ -962,20 +966,20 @@ bool GuiMgr::Init
 //-------------------------------------------------------------------------------------------------
 void GuiMgr::Term()
 {
-    m_pVB     .Reset();
-    m_pIB     .Reset();
-    m_pCB     .Reset();
-    m_pSmp    .Reset();
+    m_pVB.Reset();
+    m_pIB.Reset();
+    m_pCB.Reset();
+    m_pSmp.Reset();
     m_pTexture.Reset();
-    m_pSRV    .Reset();
-    m_pRS     .Reset();
-    m_pBS     .Reset();
-    m_pDSS    .Reset();
-    m_pIL     .Reset();
-    m_pVS     .Reset();
-    m_pPS     .Reset();
+    m_pSRV.Reset();
+    m_pRS.Reset();
+    m_pBS.Reset();
+    m_pDSS.Reset();
+    m_pIL.Reset();
+    m_pVS.Reset();
+    m_pPS.Reset();
     m_pContext.Reset();
-    m_pDevice .Reset();
+    m_pDevice.Reset();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1051,14 +1055,14 @@ void GuiMgr::OnDraw( ImDrawData* pDrawData )
 
     D3D11_MAPPED_SUBRESOURCE resVB;
     D3D11_MAPPED_SUBRESOURCE resIB;
-    auto ret = m_pContext->Map( m_pVB.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resVB );
+    auto ret = m_pContext->Map( m_pVB.GetPtr(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resVB );
     if ( FAILED( ret ) )
     { return; }
 
-    ret = m_pContext->Map( m_pIB.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resIB );
+    ret = m_pContext->Map( m_pIB.GetPtr(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resIB );
     if ( FAILED( ret ) )
     {
-        m_pContext->Unmap( m_pVB.Get(), 0 );
+        m_pContext->Unmap( m_pVB.GetPtr(), 0 );
         return;
     }
 
@@ -1074,8 +1078,8 @@ void GuiMgr::OnDraw( ImDrawData* pDrawData )
         pDstIdx += pCmdList->IdxBuffer.size();
     }
 
-    m_pContext->Unmap( m_pVB.Get(), 0 );
-    m_pContext->Unmap( m_pIB.Get(), 0 );
+    m_pContext->Unmap( m_pVB.GetPtr(), 0 );
+    m_pContext->Unmap( m_pIB.GetPtr(), 0 );
 
     {
         float L = 0.0f;
@@ -1090,7 +1094,7 @@ void GuiMgr::OnDraw( ImDrawData* pDrawData )
             { ( R + L ) / ( L - R ),  ( T + B ) / ( B - T ),    0.5f,       1.0f },
         };
 
-        m_pContext->UpdateSubresource( m_pCB.Get(), 0, nullptr, mvp, 0, 0 );
+        m_pContext->UpdateSubresource( m_pCB.GetPtr(), 0, nullptr, mvp, 0, 0 );
     }
 
     {
@@ -1109,19 +1113,19 @@ void GuiMgr::OnDraw( ImDrawData* pDrawData )
         uint32_t stride = sizeof( ImDrawVert );
         uint32_t offset = 0;
 
-        m_pContext->IASetInputLayout( m_pIL.Get() );
+        m_pContext->IASetInputLayout( m_pIL.GetPtr() );
         m_pContext->IASetVertexBuffers( 0, 1, m_pVB.GetAddress(), &stride, &offset );
-        m_pContext->IASetIndexBuffer( m_pIB.Get(), sizeof( ImDrawIdx ) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0 );
+        m_pContext->IASetIndexBuffer( m_pIB.GetPtr(), sizeof( ImDrawIdx ) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0 );
         m_pContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-        m_pContext->VSSetShader( m_pVS.Get(), nullptr, 0 );
+        m_pContext->VSSetShader( m_pVS.GetPtr(), nullptr, 0 );
         m_pContext->VSSetConstantBuffers( 0, 1, m_pCB.GetAddress() );
-        m_pContext->PSSetShader( m_pPS.Get(), nullptr, 0 );
+        m_pContext->PSSetShader( m_pPS.GetPtr(), nullptr, 0 );
         m_pContext->PSSetSamplers( 0, 1, m_pSmp.GetAddress() );
 
         const float blend_factor[ 4 ] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        m_pContext->OMSetBlendState( m_pBS.Get(), blend_factor, 0xffffffff );
-        m_pContext->OMSetDepthStencilState( m_pDSS.Get(), 0 );
-        m_pContext->RSSetState( m_pRS.Get() );
+        m_pContext->OMSetBlendState( m_pBS.GetPtr(), blend_factor, 0xffffffff );
+        m_pContext->OMSetDepthStencilState( m_pDSS.GetPtr(), 0 );
+        m_pContext->RSSetState( m_pRS.GetPtr() );
     }
 
     {

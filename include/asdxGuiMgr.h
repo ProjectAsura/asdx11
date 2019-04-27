@@ -13,6 +13,7 @@
 #include <d3d11.h>
 #include <asdxRef.h>
 
+
 //-------------------------------------------------------------------------------------------------
 // Forward Declarations.
 //-------------------------------------------------------------------------------------------------
@@ -47,7 +48,7 @@ public:
     // public methods.
     //=============================================================================================
     static GuiMgr& GetInstance();
-    bool Init( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND hWnd, uint32_t width, uint32_t height const char* fontPath );
+    bool Init( ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND hWnd, uint32_t width, uint32_t height );
     void Term();
     void Update( uint32_t width, uint32_t height );
     void Draw();
