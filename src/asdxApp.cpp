@@ -154,6 +154,36 @@ inline int ComputeIntersectionArea
          * asdx::Max(0, asdx::Min(ay2, by2) - asdx::Max(ay1, by1));
 }
 
+template<typename T>
+void SafeDelete(T*& ptr)
+{
+    if (ptr != nullptr)
+    {
+        delete ptr;
+        ptr = nullptr;
+    }
+}
+
+template<typename T>
+void SafeDeleteArray(T*& ptr)
+{
+    if (ptr != nullptr)
+    {
+        delete[] ptr;
+        ptr = nullptr;
+    }
+}
+
+template<typename T>
+void SafeRelease(T*& ptr)
+{
+    if (ptr != nullptr)
+    {
+        ptr->Release();
+        ptr = nullptr;
+    }
+}
+
 } // namespace /* anonymous */
 
 
@@ -806,7 +836,6 @@ bool Application::InitD3D()
             DLOG( "Error : ID3D11Device::CreateRasterizerState() Failed." );
             return false;
         }
-        SetDebugObjectName( m_pRS.GetPtr(), "asdx::App::m_pRS" );
 
         // デバイスコンテキストにラスタライザーステートを設定.
         m_pDeviceContext->RSSetState( m_pRS.GetPtr() );
@@ -1214,7 +1243,7 @@ void Application::MouseEvent( const MouseEventArgs& param )
 //-------------------------------------------------------------------------------------------------
 //      ドロップイベント処理.
 //--------------------------------------------------------------------------------------------------
-void Application::DropEvent( const char16** dropFiles, uint32_t fileNum )
+void Application::DropEvent( const wchar_t** dropFiles, uint32_t fileNum )
 {
     OnDrop( dropFiles, fileNum );
 }
@@ -1671,7 +1700,7 @@ void Application::OnTyping( uint32_t )
 //-------------------------------------------------------------------------------------------------
 //      ドロップ時の処理.
 //--------------------------------------------------------------------------------------------------
-void Application::OnDrop( const char16**, uint32_t )
+void Application::OnDrop( const wchar_t**, uint32_t )
 { /* DO_NOTHING */ }
 
 //-------------------------------------------------------------------------------------------------

@@ -11,7 +11,6 @@
 #include <d3dcompiler.h>
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <ImGuizmo.h>
 #include <asdxMisc.h>
 #include <codecvt>
 
@@ -942,9 +941,9 @@ bool GuiMgr::Init
         style.Colors[ ImGuiCol_ResizeGrip ]             = ImVec4( 0.000000f, 0.000000f, 0.000000f, 0.400000f );
         style.Colors[ ImGuiCol_ResizeGripHovered ]      = ImVec4( 0.260000f, 0.590000f, 0.980000f, 0.536000f );
         style.Colors[ ImGuiCol_ResizeGripActive ]       = ImVec4( 0.260000f, 0.590000f, 0.980000f, 0.760000f );
-        style.Colors[ ImGuiCol_CloseButton ]            = ImVec4( 0.410000f, 0.410000f, 0.410000f, 0.400000f );
-        style.Colors[ ImGuiCol_CloseButtonHovered ]     = ImVec4( 0.980000f, 0.390000f, 0.360000f, 1.000000f );
-        style.Colors[ ImGuiCol_CloseButtonActive ]      = ImVec4( 0.980000f, 0.390000f, 0.360000f, 1.000000f );
+        //style.Colors[ ImGuiCol_CloseButton ]            = ImVec4( 0.410000f, 0.410000f, 0.410000f, 0.400000f );
+        //style.Colors[ ImGuiCol_CloseButtonHovered ]     = ImVec4( 0.980000f, 0.390000f, 0.360000f, 1.000000f );
+        //style.Colors[ ImGuiCol_CloseButtonActive ]      = ImVec4( 0.980000f, 0.390000f, 0.360000f, 1.000000f );
         style.Colors[ ImGuiCol_PlotLines ]              = ImVec4( 0.610000f, 0.610000f, 0.610000f, 1.000000f );
         style.Colors[ ImGuiCol_PlotLinesHovered ]       = ImVec4( 1.000000f, 0.430000f, 0.350000f, 1.000000f );
         style.Colors[ ImGuiCol_PlotHistogram ]          = ImVec4( 0.900000f, 0.700000f, 0.000000f, 1.000000f );
@@ -1000,8 +999,6 @@ void GuiMgr::Update( uint32_t width, uint32_t height )
     io.KeyAlt        = ( GetKeyState( VK_MENU )    & 0x8000 ) != 0;
 
     ImGui::NewFrame();
-    ImGuizmo::SetOrthographic(false);
-    ImGuizmo::BeginFrame();
 
     m_LastTime = time;
 }

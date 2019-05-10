@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <list>
 
 
 #ifdef ASDX_AUTO_LINK

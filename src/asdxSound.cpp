@@ -18,7 +18,7 @@ namespace /* anonymous */ {
 //-------------------------------------------------------------------------------------------------
 //      エラーを表示します.
 //-------------------------------------------------------------------------------------------------
-void ShowError( u32 ret )
+void ShowError( uint32_t ret )
 {
     if ( ret == 0 )
         return;
@@ -50,7 +50,7 @@ SndMgr::SndMgr()
 //-------------------------------------------------------------------------------------------------
 SndMgr::~SndMgr()
 {
-    for( std::map<u32, Status>::iterator itr = m_Status.begin(); itr != m_Status.end(); )
+    for( auto itr = m_Status.begin(); itr != m_Status.end(); )
     {
         mciSendCommandW( itr->first, MCI_CLOSE, 0, 0 );
         m_UserIds.erase(itr->second.DeviceId);
@@ -67,7 +67,7 @@ SndMgr& SndMgr::GetInstance()
 //-------------------------------------------------------------------------------------------------
 //      サウンドデータを登録します.
 //-------------------------------------------------------------------------------------------------
-bool SndMgr::Open( u32 id, const char16* filename )
+bool SndMgr::Open( uint32_t id, const wchar_t* filename )
 {
     if ( filename == nullptr )
     { return false; }
@@ -79,7 +79,7 @@ bool SndMgr::Open( u32 id, const char16* filename )
     MCI_OPEN_PARMS param;
     param.lpstrElementName = filename;
 
-    auto ext = GetExt( filename );
+    auto ext = GetExtW( filename );
     if ( ext == L"wave" || ext == L"wav" )
     {
         param.lpstrDeviceType = (LPCWSTR)MCI_DEVTYPE_WAVEFORM_AUDIO;
@@ -119,7 +119,7 @@ bool SndMgr::Open( u32 id, const char16* filename )
 //-------------------------------------------------------------------------------------------------
 //      サウンドデータの登録を解除します.
 //-------------------------------------------------------------------------------------------------
-void SndMgr::Close( u32 id )
+void SndMgr::Close( uint32_t id )
 {
     if ( m_Status.find(id) == m_Status.end() )
     { return; }
@@ -134,7 +134,7 @@ void SndMgr::Close( u32 id )
 //-------------------------------------------------------------------------------------------------
 //      サウンドデータを再生します.
 //-------------------------------------------------------------------------------------------------
-void SndMgr::Play( u32 id, s32 loopCount )
+void SndMgr::Play( uint32_t id, int loopCount )
 {
     if ( m_Status.find(id) == m_Status.end() )
     { return; }
@@ -156,7 +156,7 @@ void SndMgr::Play( u32 id, s32 loopCount )
 //-------------------------------------------------------------------------------------------------
 //      サウンドデータを停止します.
 //-------------------------------------------------------------------------------------------------
-void SndMgr::Stop( u32 id )
+void SndMgr::Stop( uint32_t id )
 {
     if ( m_Status.find(id) == m_Status.end() )
     { return; }
@@ -175,7 +175,7 @@ void SndMgr::Stop( u32 id )
 //-------------------------------------------------------------------------------------------------
 //      サウンドデータを一時停止します.
 //-------------------------------------------------------------------------------------------------
-void SndMgr::Pause( u32 id )
+void SndMgr::Pause( uint32_t id )
 {
     if ( m_Status.find(id) == m_Status.end() )
     { return; }
@@ -190,7 +190,7 @@ void SndMgr::Pause( u32 id )
 //-------------------------------------------------------------------------------------------------
 //      一時停止したサウンドデータの再生を再開します.
 //-------------------------------------------------------------------------------------------------
-void SndMgr::Resume( u32 id )
+void SndMgr::Resume( uint32_t id )
 {
     if ( m_Status.find(id) == m_Status.end() )
     { return; }
@@ -205,7 +205,7 @@ void SndMgr::Resume( u32 id )
 //-------------------------------------------------------------------------------------------------
 //      状態を取得します.
 //-------------------------------------------------------------------------------------------------
-SndState SndMgr::GetState( u32 id )
+SndState SndMgr::GetState( uint32_t id )
 {
     if ( m_Status.find(id) == m_Status.end() )
     { return SndState::Error; }
@@ -222,7 +222,7 @@ void SndMgr::SetHandle( HWND handle )
 //-------------------------------------------------------------------------------------------------
 //      コールバック関数です.
 //-------------------------------------------------------------------------------------------------
-void SndMgr::OnNofity( u32 id, u32 param )
+void SndMgr::OnNofity( uint32_t id, uint32_t param )
 {
     if ( m_UserIds.find(id) == m_UserIds.end() )
     { return; }
