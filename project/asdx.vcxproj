@@ -51,6 +51,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
@@ -63,6 +64,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -75,12 +77,10 @@
     <ClCompile Include="..\src\asdxCamera.cpp" />
     <ClCompile Include="..\src\asdxCameraUtil.cpp" />
     <ClCompile Include="..\src\asdxConstantBuffer.cpp" />
-    <ClCompile Include="..\src\asdxEditParam.cpp" />
     <ClCompile Include="..\src\asdxFileWatcher.cpp" />
     <ClCompile Include="..\src\asdxFlatDoc.cpp" />
     <ClCompile Include="..\src\asdxFont.cpp" />
     <ClCompile Include="..\src\asdxFrameHeap.cpp" />
-    <ClCompile Include="..\src\asdxGuiMgr.cpp" />
     <ClCompile Include="..\src\asdxHash.cpp" />
     <ClCompile Include="..\src\asdxHistory.cpp" />
     <ClCompile Include="..\src\asdxIndexBuffer.cpp" />
@@ -100,7 +100,6 @@
     <ClCompile Include="..\src\asdxSound.cpp" />
     <ClCompile Include="..\src\asdxSprite.cpp" />
     <ClCompile Include="..\src\asdxStructuredBuffer.cpp" />
-    <ClCompile Include="..\src\asdxTablet.cpp" />
     <ClCompile Include="..\src\asdxTarget.cpp" />
     <ClCompile Include="..\src\asdxTcpConnector.cpp" />
     <ClCompile Include="..\src\asdxTexture.cpp" />
@@ -111,12 +110,10 @@
     <ClInclude Include="..\include\asdxCamera.h" />
     <ClInclude Include="..\include\asdxCameraUtil.h" />
     <ClInclude Include="..\include\asdxConstantBuffer.h" />
-    <ClInclude Include="..\include\asdxEditParam.h" />
     <ClInclude Include="..\include\asdxFileWatcher.h" />
     <ClInclude Include="..\include\asdxFlatDoc.h" />
     <ClInclude Include="..\include\asdxFont.h" />
     <ClInclude Include="..\include\asdxFrameHeap.h" />
-    <ClInclude Include="..\include\asdxGuiMgr.h" />
     <ClInclude Include="..\include\asdxHash.h" />
     <ClInclude Include="..\include\asdxHid.h" />
     <ClInclude Include="..\include\asdxHistory.h" />
@@ -140,7 +137,6 @@
     <ClInclude Include="..\include\asdxStepTimer.h" />
     <ClInclude Include="..\include\asdxStopWatch.h" />
     <ClInclude Include="..\include\asdxStructuredBuffer.h" />
-    <ClInclude Include="..\include\asdxTablet.h" />
     <ClInclude Include="..\include\asdxTarget.h" />
     <ClInclude Include="..\include\asdxTcpConnector.h" />
     <ClInclude Include="..\include\asdxTexture.h" />
