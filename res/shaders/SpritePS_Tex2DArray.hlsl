@@ -19,7 +19,7 @@ Texture2DArray     TextureMap : register( t0 );
 //-------------------------------------------------------------------------------------------------
 //! @brief      ピクセルシェーダメインエントリーポイントです.
 //-------------------------------------------------------------------------------------------------
-PSOutput PSFunc( VSOutput input )
+PSOutput main( VSOutput input )
 {
     PSOutput output = (PSOutput)0;
 

@@ -8,6 +8,8 @@
 // Includes
 //-------------------------------------------------------------------------------------------------
 #include <asdxGuiMgr.h>
+
+#ifdef ASDX_ENABLE_IMGUI
 #include <d3dcompiler.h>
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -1238,3 +1240,5 @@ void GuiMgr::OnTyping( uint32_t code )
 }
 
 } // namespace asdx
+
+#endif//ASDX_ENABLE_IMGUI

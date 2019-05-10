@@ -15,12 +15,12 @@
 
 namespace {
 
-#include "../res/shaders/Compiled/SpriteVS_VSFunc.inc"
-#include "../res/shaders/Compiled/SpritePS_Color_PSFunc.inc"
-#include "../res/shaders/Compiled/SpritePS_Tex2D_PSFunc.inc"
-#include "../res/shaders/Compiled/SpritePS_Tex2DArray_PSFunc.inc"
-#include "../res/shaders/Compiled/SpritePS_Tex3D_PSFunc.inc"
-#include "../res/shaders/Compiled/SpritePS_TexCube_PSFunc.inc"
+#include "../res/shaders/Compiled/SpriteVS.inc"
+#include "../res/shaders/Compiled/SpritePS_Color.inc"
+#include "../res/shaders/Compiled/SpritePS_Tex2D.inc"
+#include "../res/shaders/Compiled/SpritePS_Tex2DArray.inc"
+#include "../res/shaders/Compiled/SpritePS_Tex3D.inc"
+#include "../res/shaders/Compiled/SpritePS_TexCube.inc"
 
 } // namespace
 
@@ -152,7 +152,7 @@ bool Sprite::Init
     // 頂点シェーダの生成.
     {
         // 頂点シェーダ生成.
-        hr = pDevice->CreateVertexShader( SpriteVS_VSFunc, sizeof( SpriteVS_VSFunc ), nullptr, m_pVS.GetAddress() );
+        hr = pDevice->CreateVertexShader( SpriteVS, sizeof( SpriteVS ), nullptr, m_pVS.GetAddress() );
         if ( FAILED( hr ) )
         {
             // エラーログ出力.
@@ -166,7 +166,7 @@ bool Sprite::Init
         //SetDebugObjectName( m_pVS.GetPtr(), "asdx::Sprite::m_pVS" );
 
         // 入力レイアウトを生成.
-        hr = pDevice->CreateInputLayout( Sprite::InputElements, Sprite::InputElementCount, SpriteVS_VSFunc, sizeof( SpriteVS_VSFunc ), m_pIL.GetAddress() );
+        hr = pDevice->CreateInputLayout( Sprite::InputElements, Sprite::InputElementCount, SpriteVS, sizeof( SpriteVS ), m_pIL.GetAddress() );
         if ( FAILED( hr ) )
         {
             // エラーログ出力.
@@ -181,7 +181,7 @@ bool Sprite::Init
 
     {
         // ピクセルシェーダ生成.
-        hr = pDevice->CreatePixelShader( SpritePS_Color_PSFunc, sizeof( SpritePS_Color_PSFunc ), nullptr, m_pPSColor.GetAddress() );
+        hr = pDevice->CreatePixelShader( SpritePS_Color, sizeof( SpritePS_Color ), nullptr, m_pPSColor.GetAddress() );
         if ( FAILED( hr ) )
         {
             ELOG( "Error : ID3D11Device::CreatePixelShader() Failed." );
@@ -195,7 +195,7 @@ bool Sprite::Init
 
     {
         // ピクセルシェーダ生成.
-        hr = pDevice->CreatePixelShader( SpritePS_Tex2D_PSFunc, sizeof( SpritePS_Tex2D_PSFunc ), nullptr, m_pPSTex2D.GetAddress() );
+        hr = pDevice->CreatePixelShader( SpritePS_Tex2D, sizeof( SpritePS_Tex2D ), nullptr, m_pPSTex2D.GetAddress() );
         if ( FAILED( hr ) )
         {
             ELOG( "Error : ID3D11Device::CreatePixelShader() Failed." );
@@ -209,7 +209,7 @@ bool Sprite::Init
 
     {
         // ピクセルシェーダ生成.
-        hr = pDevice->CreatePixelShader( SpritePS_Tex2DArray_PSFunc, sizeof( SpritePS_Tex2DArray_PSFunc ), nullptr, m_pPSTex2DArray.GetAddress() );
+        hr = pDevice->CreatePixelShader( SpritePS_Tex2DArray, sizeof( SpritePS_Tex2DArray ), nullptr, m_pPSTex2DArray.GetAddress() );
         if ( FAILED( hr ) )
         {
             ELOG( "Error : ID3D11Device::CreatePixelShader() Failed." );
@@ -223,7 +223,7 @@ bool Sprite::Init
 
     {
         // ピクセルシェーダ生成.
-        hr = pDevice->CreatePixelShader( SpritePS_TexCube_PSFunc, sizeof( SpritePS_TexCube_PSFunc ), nullptr, m_pPSTexCube.GetAddress() );
+        hr = pDevice->CreatePixelShader( SpritePS_TexCube, sizeof( SpritePS_TexCube ), nullptr, m_pPSTexCube.GetAddress() );
         if ( FAILED( hr ) )
         {
             ELOG( "Error : ID3D11Device::CreatePixelShader() Failed." );
@@ -237,7 +237,7 @@ bool Sprite::Init
 
     {
         // ピクセルシェーダ生成.
-        hr = pDevice->CreatePixelShader( SpritePS_Tex3D_PSFunc, sizeof( SpritePS_Tex3D_PSFunc ), nullptr, m_pPSTex3D.GetAddress() );
+        hr = pDevice->CreatePixelShader( SpritePS_Tex3D, sizeof( SpritePS_Tex3D ), nullptr, m_pPSTex3D.GetAddress() );
         if ( FAILED( hr ) )
         {
             ELOG( "Error : ID3D11Device::CreatePixelShader() Failed." );
