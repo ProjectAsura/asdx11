@@ -22,8 +22,10 @@ enum BlendType
     Opaque = 0,             //!< 不透明
     AlphaBlend,             //!< アルファブレンド.
     Additive,               //!< 加算.
-    NonPremultiplied,       //!< 非事前乗算済みアルファブレンド.
+    Subtract,               //!< 減算.
+    Premultiplied,          //!< 事前乗算済みアルファブレンド.
     Multiply,               //!< 乗算.
+    Screen,                 //!< スクリーン.
     NumBlendType,
 };
 

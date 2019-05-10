@@ -16,39 +16,6 @@
 namespace /* anonymous */ {
 
 //-------------------------------------------------------------------------------------------------
-//      ブレンドステートを生成します.
-//-------------------------------------------------------------------------------------------------
-bool CreateBS
-(
-    ID3D11Device* pDevice,
-    D3D11_BLEND srcBlend,
-    D3D11_BLEND dstBlend,
-    asdx::RefPtr<ID3D11BlendState>& result
-)
-{
-    D3D11_BLEND_DESC desc;
-    ZeroMemory( &desc, sizeof(desc) );
-
-    desc.RenderTarget[0].BlendEnable = ((( srcBlend == D3D11_BLEND_ONE ) && ( dstBlend == D3D11_BLEND_ZERO )) == FALSE);
-    desc.RenderTarget[0].SrcBlend    = desc.RenderTarget[0].SrcBlendAlpha  = srcBlend;
-    desc.RenderTarget[0].DestBlend   = desc.RenderTarget[0].DestBlendAlpha = dstBlend;
-    desc.RenderTarget[0].BlendOp     = desc.RenderTarget[0].BlendOpAlpha   = D3D11_BLEND_OP_ADD;
-    desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-    ID3D11BlendState* pBS;
-    HRESULT hr = pDevice->CreateBlendState( &desc, &pBS );
-    if ( FAILED( hr ) )
-    {
-        ELOG( "Error : ID3D11Device::CreateBlendState() Failed." );
-        return false;
-    }
-
-    result.Attach( pBS );
-
-    return true;
-}
-
-//-------------------------------------------------------------------------------------------------
 //      深度ステンシルステートを生成します.
 //-------------------------------------------------------------------------------------------------
 bool CreateDSS
@@ -240,44 +207,82 @@ bool RenderState::Init( ID3D11Device* pDevice )
 
     // ブレンドステート.
     {
-        struct ArgBS
-        {
-            BlendType   type;
-            D3D11_BLEND src;
-            D3D11_BLEND dst;
-        };
-
-        ArgBS args[] = {
-            { BlendType::Opaque,           D3D11_BLEND_ONE,         D3D11_BLEND_ZERO },
-            { BlendType::AlphaBlend,       D3D11_BLEND_ONE,         D3D11_BLEND_INV_SRC_ALPHA },
-            { BlendType::Additive,         D3D11_BLEND_SRC_ALPHA,   D3D11_BLEND_ONE },
-            { BlendType::NonPremultiplied, D3D11_BLEND_SRC_ALPHA,   D3D11_BLEND_INV_SRC_ALPHA },
-        };
-
-        for ( auto i = 0; i < BlendType::Multiply; ++i )
-        {
-            if ( !CreateBS( pDevice, args[ i ].src, args[ i ].dst, m_BS[ args[ i ].type ] ) )
-            {
-                ELOG( "Error : CreateBS() Failed. index = %d", i );
-                Term();
-                return false;
-            }
-        }
-
+        for ( auto i = 0; i < BlendType::NumBlendType; ++i )
         {
             D3D11_BLEND_DESC desc = {};
-            desc.AlphaToCoverageEnable                  = FALSE;
-            desc.IndependentBlendEnable                 = FALSE;
-            desc.RenderTarget[0].BlendEnable            = TRUE;
-            desc.RenderTarget[0].BlendOp                = D3D11_BLEND_OP_ADD;
-            desc.RenderTarget[0].SrcBlend               = D3D11_BLEND_DEST_COLOR;
-            desc.RenderTarget[0].DestBlend              = D3D11_BLEND_ZERO;
-            desc.RenderTarget[0].BlendOpAlpha           = D3D11_BLEND_OP_ADD;
-            desc.RenderTarget[0].SrcBlendAlpha          = D3D11_BLEND_DEST_ALPHA;
-            desc.RenderTarget[0].DestBlendAlpha         = D3D11_BLEND_ZERO;
-            desc.RenderTarget[0].RenderTargetWriteMask  = D3D11_COLOR_WRITE_ENABLE_ALL;
+            desc.AlphaToCoverageEnable  = FALSE;
+            desc.IndependentBlendEnable = FALSE;
+            desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-            auto hr = pDevice->CreateBlendState(&desc, m_BS[BlendType::Multiply].GetAddress());
+            switch(i)
+            {
+            case BlendType::Opaque:
+                {
+                    desc.RenderTarget[0].BlendEnable = FALSE;
+                    desc.RenderTarget[0].SrcBlend    = desc.RenderTarget[0].SrcBlendAlpha    = D3D11_BLEND_ONE;
+                    desc.RenderTarget[0].DestBlend   = desc.RenderTarget[0].DestBlendAlpha   = D3D11_BLEND_ZERO;
+                    desc.RenderTarget[0].BlendOp     = desc.RenderTarget[0].BlendOpAlpha     = D3D11_BLEND_OP_ADD;
+                }
+                break;
+
+            case BlendType::AlphaBlend:
+                {
+                    desc.RenderTarget[0].BlendEnable = TRUE;
+                    desc.RenderTarget[0].SrcBlend    = desc.RenderTarget[0].SrcBlendAlpha    = D3D11_BLEND_SRC_ALPHA;
+                    desc.RenderTarget[0].DestBlend   = desc.RenderTarget[0].DestBlendAlpha   = D3D11_BLEND_INV_SRC_ALPHA;
+                    desc.RenderTarget[0].BlendOp     = desc.RenderTarget[0].BlendOpAlpha     = D3D11_BLEND_OP_ADD;
+                }
+                break;
+
+            case BlendType::Additive:
+                {
+                    desc.RenderTarget[0].BlendEnable = TRUE;
+                    desc.RenderTarget[0].SrcBlend    = desc.RenderTarget[0].SrcBlendAlpha    = D3D11_BLEND_SRC_ALPHA;
+                    desc.RenderTarget[0].DestBlend   = desc.RenderTarget[0].DestBlendAlpha   = D3D11_BLEND_ONE;
+                    desc.RenderTarget[0].BlendOp     = desc.RenderTarget[0].BlendOpAlpha     = D3D11_BLEND_OP_ADD;
+                }
+                break;
+
+            case BlendType::Subtract:
+                {
+                    desc.RenderTarget[0].BlendEnable = TRUE;
+                    desc.RenderTarget[0].SrcBlend    = desc.RenderTarget[0].SrcBlendAlpha    = D3D11_BLEND_SRC_ALPHA;
+                    desc.RenderTarget[0].DestBlend   = desc.RenderTarget[0].DestBlendAlpha   = D3D11_BLEND_ONE;
+                    desc.RenderTarget[0].BlendOp     = desc.RenderTarget[0].BlendOpAlpha     = D3D11_BLEND_OP_REV_SUBTRACT;
+                }
+                break;
+
+            case BlendType::Premultiplied:
+                {
+                    desc.RenderTarget[0].BlendEnable = TRUE;
+                    desc.RenderTarget[0].SrcBlend    = desc.RenderTarget[0].SrcBlendAlpha    = D3D11_BLEND_ONE;
+                    desc.RenderTarget[0].DestBlend   = desc.RenderTarget[0].DestBlendAlpha   = D3D11_BLEND_INV_SRC_ALPHA;
+                    desc.RenderTarget[0].BlendOp     = desc.RenderTarget[0].BlendOpAlpha     = D3D11_BLEND_OP_ADD;
+                }
+                break;
+
+            case BlendType::Multiply:
+                {
+                    desc.RenderTarget[0].BlendEnable    = TRUE;
+                    desc.RenderTarget[0].SrcBlend       = desc.RenderTarget[0].SrcBlendAlpha    = D3D11_BLEND_ZERO;
+                    desc.RenderTarget[0].DestBlend      = D3D11_BLEND_SRC_COLOR;
+                    desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+                    desc.RenderTarget[0].BlendOp        = desc.RenderTarget[0].BlendOpAlpha     = D3D11_BLEND_OP_ADD;
+                }
+                break;
+
+            case BlendType::Screen:
+                {
+                    desc.RenderTarget[0].BlendEnable    = TRUE;
+                    desc.RenderTarget[0].SrcBlend       = D3D11_BLEND_DEST_COLOR;
+                    desc.RenderTarget[0].SrcBlendAlpha  = D3D11_BLEND_DEST_ALPHA;
+                    desc.RenderTarget[0].DestBlend      = desc.RenderTarget[0].DestBlendAlpha   = D3D11_BLEND_ONE;
+                    desc.RenderTarget[0].BlendOp        = desc.RenderTarget[0].BlendOpAlpha     = D3D11_BLEND_OP_ADD;
+                }
+                break;
+            }
+
+            auto hr = pDevice->CreateBlendState(&desc, m_BS[i].GetAddress());
             if (FAILED(hr))
             {
                 ELOG("Error : ID3D11Device::CreateBlendState() Failed.");
