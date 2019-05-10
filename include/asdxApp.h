@@ -8,13 +8,13 @@
 //-------------------------------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------------------------------
+#include <cstdint>
 #include <mutex>
 
 #include <Windows.h>
 #include <d3d11.h>
 #include <dxgi1_6.h>
 
-#include <asdxTypedef.h>
 #include <asdxRef.h>
 #include <asdxTarget.h>
 #include <asdxTimer.h>
@@ -55,9 +55,9 @@ namespace asdx {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 struct MouseEventArgs
 {
-    s32     X;                  //!< カーソルのX座標です.
-    s32     Y;                  //!< カーソルのY座標です.
-    s32     WheelDelta;         //!< マウスホイールの移動方向です.
+    int     X;                  //!< カーソルのX座標です.
+    int     Y;                  //!< カーソルのY座標です.
+    int     WheelDelta;         //!< マウスホイールの移動方向です.
     bool    IsLeftButtonDown;   //!< 左ボタンが押されたどうかを示すフラグです.
     bool    IsRightButtonDown;  //!< 右ボタンが押されたどうかを示すフラグです.
     bool    IsMiddleButtonDown; //!< 中ボタンが押されたかどうかを示すフラグです.
@@ -85,9 +85,9 @@ struct MouseEventArgs
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 struct KeyEventArgs
 {
-    u32     KeyCode;        //!< キーコードです.
-    bool    IsKeyDown;      //!< キーが押されたかどうかを示すフラグです.
-    bool    IsAltDown;      //!< ALTキーが押されたかどうかを示すフラグです.
+    uint32_t    KeyCode;        //!< キーコードです.
+    bool        IsKeyDown;      //!< キーが押されたかどうかを示すフラグです.
+    bool        IsAltDown;      //!< ALTキーが押されたかどうかを示すフラグです.
 
     //---------------------------------------------------------------------------------------------
     //! @brief      コンストラクタです.
@@ -105,9 +105,9 @@ struct KeyEventArgs
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 struct ResizeEventArgs
 {
-    u32    Width;          //!< 画面の横幅です.
-    u32    Height;         //!< 画面の縦幅です.
-    f32    AspectRatio;    //!< 画面のアスペクト比です.
+    uint32_t    Width;          //!< 画面の横幅です.
+    uint32_t    Height;         //!< 画面の縦幅です.
+    float       AspectRatio;    //!< 画面のアスペクト比です.
 
     //---------------------------------------------------------------------------------------------
     //! @brief      コンストラクタです.
@@ -126,9 +126,9 @@ struct ResizeEventArgs
 struct FrameEventArgs
 {
     ID3D11DeviceContext*    pDeviceContext; //!< デバイスコンテキストです.
-    f64                     Time;           //!< アプリケーション開始からの相対時間です.
-    f64                     ElapsedTime;    //!< 前のフレームからの経過時間(秒)です.
-    f32                     FPS;            //!< １秒当たりフレーム更新回数です.
+    double                     Time;           //!< アプリケーション開始からの相対時間です.
+    double                     ElapsedTime;    //!< 前のフレームからの経過時間(秒)です.
+    float                     FPS;            //!< １秒当たりフレーム更新回数です.
     bool                    IsStopDraw;     //!< 描画停止フラグです.
 
     //---------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ struct FrameEventArgs
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Application class
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-class Application : private NonCopyable
+class Application
 {
     //=============================================================================================
     // list of friend classes and methods.
@@ -178,7 +178,7 @@ public:
     //! @param [in]     hMenu       メニューハンドル.
     //! @param [in]     hAccel      アクセレレータハンドル.
     //---------------------------------------------------------------------------------------------
-    Application( LPCWSTR title, u32 width, u32 height, HICON hIcon, HMENU hMenu, HACCEL hAccel );
+    Application( LPCWSTR title, uint32_t width, uint32_t height, HICON hIcon, HMENU hMenu, HACCEL hAccel );
 
     //---------------------------------------------------------------------------------------------
     //! @brief      デストラクタです.
@@ -206,9 +206,9 @@ protected:
     HWND                            m_hWnd;                 //!< ウィンドウハンドルです.
     D3D_DRIVER_TYPE                 m_DriverType;           //!< ドライバータイプです.
     D3D_FEATURE_LEVEL               m_FeatureLevel;         //!< 機能レベルです.
-    u32                             m_MultiSampleCount;     //!< マルチサンプリングのカウント数です.
-    u32                             m_MultiSampleQuality;   //!< マルチサンプリングの品質値です.
-    u32                             m_SwapChainCount;       //!< スワップチェインのバッファ数です.
+    uint32_t                             m_MultiSampleCount;     //!< マルチサンプリングのカウント数です.
+    uint32_t                             m_MultiSampleQuality;   //!< マルチサンプリングの品質値です.
+    uint32_t                             m_SwapChainCount;       //!< スワップチェインのバッファ数です.
     DXGI_FORMAT                     m_SwapChainFormat;      //!< スワップチェインのバッファフォーマットです.
     DXGI_FORMAT                     m_DepthStencilFormat;   //!< 深度ステンシルバッファのフォーマットです.
     RefPtr<ID3D11Device>            m_pDevice;              //!< デバイスです.
@@ -221,13 +221,13 @@ protected:
     RefPtr<ID3D11RasterizerState>   m_pRS;                  //!< ラスタライザーステートです.
     RefPtr<ID3D11DepthStencilState> m_pDSS;                 //!< 深度ステンシルステートです.
     RefPtr<ID3D11BlendState>        m_pBS;                  //!< ブレンドステートです.
-    f32                             m_BlendFactor[ 4 ];     //!< ブレンドファクターです.
-    u32                             m_SampleMask;           //!< サンプルマスクです.
-    u32                             m_StencilRef;           //!< ステンシル参照です.
-    f32                             m_ClearColor[ 4 ];      //!< 背景のクリアカラーです.
-    u32                             m_Width;                //!< 画面の横幅です.
-    u32                             m_Height;               //!< 画面の縦幅です.
-    f32                             m_AspectRatio;          //!< 画面のアスペクト比です.
+    float                           m_BlendFactor[ 4 ];     //!< ブレンドファクターです.
+    uint32_t                        m_SampleMask;           //!< サンプルマスクです.
+    uint32_t                        m_StencilRef;           //!< ステンシル参照です.
+    float                           m_ClearColor[ 4 ];      //!< 背景のクリアカラーです.
+    uint32_t                        m_Width;                //!< 画面の横幅です.
+    uint32_t                        m_Height;               //!< 画面の縦幅です.
+    float                           m_AspectRatio;          //!< 画面のアスペクト比です.
     LPCWSTR                         m_Title;                //!< アプリケーションのタイトル名です.
     Timer                           m_Timer;                //!< タイマーです.
     D3D11_VIEWPORT                  m_Viewport;             //!< ビューポートです.
@@ -311,7 +311,7 @@ protected:
     //---------------------------------------------------------------------------------------------
     //! @brief      タイピング時の処理です.
     //---------------------------------------------------------------------------------------------
-    virtual void OnTyping     ( u32 keyCode );
+    virtual void OnTyping     ( uint32_t keyCode );
 
     //---------------------------------------------------------------------------------------------
     //! @brief      ウィンドウへのドラッグアンドドロップされたと時に実行する処理です.
@@ -319,7 +319,7 @@ protected:
     //! @param[in]      dropFiles     ドラッグアンドドロップされたファイル名です.
     //! @param[in]      fileCount     ドラッグアンドドロップされたファイル数です.
     //----------------------------------------------------------------------------------------------
-    virtual void OnDrop        ( const char16** dropFiles, u32 fileCount );
+    virtual void OnDrop        ( const wchar_t** dropFiles, uint32_t fileCount );
 
     //---------------------------------------------------------------------------------------------
     //! @brief      メッセージプロシージャの処理です.
@@ -367,14 +367,14 @@ protected:
     //! @return     0.5秒ごとに更新されるFPSを返却します.
     //! @note       各フレームにおけるFPSを取得する場合は FrameEventArgs から取得します.
     //---------------------------------------------------------------------------------------------
-    f32 GetFPS();
+    float GetFPS();
 
     //---------------------------------------------------------------------------------------------
     //! @brief      コマンドを実行して，画面に表示します.
     //!
     //! @param [in]     syncInterval        垂直同期の間隔です.
     //---------------------------------------------------------------------------------------------
-    void Present( u32 syncInterval );
+    void Present( uint32_t syncInterval );
 
     //---------------------------------------------------------------------------------------------
     //! @brief      HDR出力をサポートしているかどうかチェックします.
@@ -397,8 +397,8 @@ private:
     bool                m_IsStopRendering;      //!< 描画を停止するかどうかのフラグ. 停止する場合はtrueを指定.
     bool                m_IsStandbyMode;        //!< スタンバイモードかどうかを示すフラグです.
     DWORD               m_FrameCount;           //!< フレームカウントです.
-    f32                 m_FPS;                  //!< FPS(1秒あたりのフレーム描画回数)です.
-    f64                 m_LatestUpdateTime;     //!< 最後の更新時間です.
+    float               m_FPS;                  //!< FPS(1秒あたりのフレーム描画回数)です.
+    double              m_LatestUpdateTime;     //!< 最後の更新時間です.
     std::mutex          m_Mutex;                //!< ミューテックスです.
     DXGI_OUTPUT_DESC1   m_DisplayDesc;          //!< 出力先の設定です.
 
@@ -502,7 +502,7 @@ private:
     //! @param[in]      dropFiles        ドロップされたファイルパスです.
     //! @param[in]      fileNum          ドラッグアンドドロップされたファイル数です.
     //----------------------------------------------------------------------------------------------
-    void DropEvent( const char16** dropFiles, u32 fileNum );
+    void DropEvent( const wchar_t** dropFiles, uint32_t fileNum );
 
     //---------------------------------------------------------------------------------------------
     //! @brief      HDR出力をサポートしているかどうかチェックします.
@@ -517,7 +517,10 @@ private:
     //! @param [in]     wp          メッセージの追加情報.
     //! @param [in]     lp          メッセージの追加情報.
     //---------------------------------------------------------------------------------------------
-    static LRESULT CALLBACK MsgProc( HWND hWnd, u32 uMsg, WPARAM wp, LPARAM lp );
+    static LRESULT CALLBACK MsgProc( HWND hWnd, uint32_t uMsg, WPARAM wp, LPARAM lp );
+
+    Application             (const Application&) = delete;
+    Application& operator = (const Application&) = delete;
 };
 
 } // namespace asdx

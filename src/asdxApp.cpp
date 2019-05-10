@@ -17,7 +17,7 @@
 #include <asdxSound.h>
 
 
-namespace /* anonymous */{
+namespace /* anonymous */ {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // ApplicationList class
@@ -248,7 +248,7 @@ Application::Application( LPCWSTR title, UINT width, UINT height, HICON hIcon, H
 , m_pBS                 ( nullptr )
 , m_Width               ( width )
 , m_Height              ( height )
-, m_AspectRatio         ( (f32)width/(f32)height )
+, m_AspectRatio         ( (float)width/(float)height )
 , m_Title               ( title )
 , m_Timer               ()
 , m_FrameCount          ( 0 )
@@ -637,8 +637,8 @@ bool Application::InitD3D()
         if ( SUCCEEDED( hr ) )
         {
             // マルチサンプルクオリティの最大値を取得.
-            u32 maxQualityLevel = 0;
-            u32 maxQuality = 0;
+            uint32_t maxQualityLevel = 0;
+            uint32_t maxQuality      = 0;
             m_pDevice->CheckMultisampleQualityLevels( m_SwapChainFormat, m_MultiSampleCount, &maxQualityLevel );
             maxQuality = maxQualityLevel - 1;
 
@@ -1022,7 +1022,7 @@ void Application::MainLoop()
             m_Timer.Update( time, absTime, elapsedTime );
 
             // 0.5秒ごとにFPSを更新.
-            auto interval = f32( time - m_LatestUpdateTime );
+            auto interval = float( time - m_LatestUpdateTime );
             if ( interval > 0.5 )
             {
                 // FPSを算出.
@@ -1035,7 +1035,7 @@ void Application::MainLoop()
             }
 
             frameEventArgs.pDeviceContext  = m_pDeviceContext.GetPtr();
-            frameEventArgs.FPS             = 1.0f / (f32)elapsedTime;   // そのフレームにおけるFPS.
+            frameEventArgs.FPS             = 1.0f / (float)elapsedTime;   // そのフレームにおけるFPS.
             frameEventArgs.Time            = time;
             frameEventArgs.ElapsedTime     = elapsedTime;
             frameEventArgs.IsStopDraw      = m_IsStopRendering;
@@ -1214,7 +1214,7 @@ void Application::MouseEvent( const MouseEventArgs& param )
 //-------------------------------------------------------------------------------------------------
 //      ドロップイベント処理.
 //--------------------------------------------------------------------------------------------------
-void Application::DropEvent( const char16** dropFiles, u32 fileNum )
+void Application::DropEvent( const char16** dropFiles, uint32_t fileNum )
 {
     OnDrop( dropFiles, fileNum );
 }
@@ -1238,7 +1238,7 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
         bool isAltDown =( ( lp & mask ) != 0 );
 
         KeyEventArgs args;
-        args.KeyCode   = u32( wp );
+        args.KeyCode   = uint32_t( wp );
         args.IsAltDown = isAltDown;
         args.IsKeyDown = isKeyDown;
 
@@ -1335,9 +1335,9 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
             // ウインドウ非表示状態に移行する時に縦横1ピクセルのリサイズイベントが発行される
             // マルチサンプル等の関係で縦横1ピクセルは問題が起こるので最少サイズを設定
             ResizeEventArgs args;
-            args.Width  = asdx::Max( w, (u32)8 );
-            args.Height = asdx::Max( h, (u32)8 );
-            args.AspectRatio = f32( args.Width ) / args.Height;
+            args.Width  = asdx::Max( w, (uint32_t)8 );
+            args.Height = asdx::Max( h, (uint32_t)8 );
+            args.AspectRatio = float( args.Width ) / args.Height;
 
             for( ApplicationList::ListItr itr = g_AppList.Begin(); itr != g_AppList.End(); itr++ )
             {
@@ -1349,12 +1349,12 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
     case WM_DROPFILES:
         {
             // ドロップされたファイル数を取得.
-            u32 numFiles = DragQueryFileW((HDROP)wp, 0xFFFFFFFF, NULL, 0);
+            uint32_t numFiles = DragQueryFileW((HDROP)wp, 0xFFFFFFFF, NULL, 0);
 
             // 作業用のバッファを確保.
             const WCHAR** dropFiles = new const WCHAR*[ numFiles ];
 
-            for (u32 i=0; i < numFiles; i++)
+            for (uint32_t i=0; i < numFiles; i++)
             {
                 // ドロップされたファイル名を取得.
                 WCHAR* dropFile = new WCHAR[ MAX_PATH ];
@@ -1369,7 +1369,7 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
             }
 
             // 作業用のバッファを解放.
-            for (u32 i=0; i < numFiles; i++)
+            for (uint32_t i=0; i < numFiles; i++)
             { SafeDelete( dropFiles[ i ] ); }
             SafeDelete( dropFiles );
 
@@ -1397,7 +1397,7 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
 
     case WM_CHAR:
         {
-            auto keyCode = static_cast<u32>( wp );
+            auto keyCode = static_cast<uint32_t>( wp );
             for( ApplicationList::ListItr itr = g_AppList.Begin(); itr != g_AppList.End(); itr++ )
             {
                 (*itr)->OnTyping( keyCode );
@@ -1408,7 +1408,7 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
     case MM_MCINOTIFY:
         {
             // サウンドマネージャのコールバック.
-            SndMgr::GetInstance().OnNofity( (u32)lp, (u32)wp );
+            SndMgr::GetInstance().OnNofity( (uint32_t)lp, (uint32_t)wp );
         }
         break;
     }
@@ -1479,7 +1479,7 @@ void Application::OnFrameRender( FrameEventArgs& )
 //-------------------------------------------------------------------------------------------------
 //      コマンドを実行して，画面に表示します.
 //-------------------------------------------------------------------------------------------------
-void Application::Present( u32 syncInterval )
+void Application::Present( uint32_t syncInterval )
 {
     HRESULT hr = S_OK;
 
@@ -1665,13 +1665,13 @@ void Application::OnMouse( const MouseEventArgs& )
 //-------------------------------------------------------------------------------------------------
 //      タイピングイベント時の処理.
 //-------------------------------------------------------------------------------------------------
-void Application::OnTyping( u32 )
+void Application::OnTyping( uint32_t )
 { /* DO_NOTHING */ }
 
 //-------------------------------------------------------------------------------------------------
 //      ドロップ時の処理.
 //--------------------------------------------------------------------------------------------------
-void Application::OnDrop( const char16**, u32 )
+void Application::OnDrop( const char16**, uint32_t )
 { /* DO_NOTHING */ }
 
 //-------------------------------------------------------------------------------------------------
