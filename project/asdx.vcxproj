@@ -52,9 +52,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\include</AdditionalIncludeDirectories>
     </ClCompile>
-    <Lib>
-      <OutputFile>$(ProjectDir)..\bin\$(PlatformShortName)\$(PlatformToolset)\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
-    </Lib>
+    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -70,9 +68,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib>
-      <OutputFile>$(ProjectDir)..\bin\$(PlatformShortName)\$(PlatformToolset)\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
-    </Lib>
+    <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\asdxApp.cpp" />
