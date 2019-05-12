@@ -638,8 +638,11 @@ bool GuiMgr::Init
     uint32_t                height
 )
 {
-    m_pDevice = pDevice;
+    m_pDevice  = pDevice;
     m_pContext = pContext;
+    m_LastTime = std::chrono::system_clock::now();
+
+    ImGui::CreateContext();
 
     auto& io = ImGui::GetIO();
 
@@ -905,7 +908,7 @@ bool GuiMgr::Init
 
         io.IniFilename = nullptr;
         io.LogFilename = nullptr;
-        io.Framerate = 0.5f;
+        io.DeltaTime   = 1.0f / 60.0f;
 
         auto& style = ImGui::GetStyle();
         style.WindowRounding = 2.0f;
@@ -956,8 +959,6 @@ bool GuiMgr::Init
 
     }
 
-    m_LastTime = std::chrono::system_clock::now();
-
     return true;
 
 }
@@ -981,6 +982,8 @@ void GuiMgr::Term()
     m_pPS.Reset();
     m_pContext.Reset();
     m_pDevice.Reset();
+
+    ImGui::DestroyContext();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -989,8 +992,9 @@ void GuiMgr::Term()
 void GuiMgr::Update( uint32_t width, uint32_t height )
 {
     auto time = std::chrono::system_clock::now();
-    auto elapsedMilliSec = std::chrono::duration_cast<std::chrono::milliseconds>( time - m_LastTime ).count();
-    auto elapsedSec = float( elapsedMilliSec / 1000.0 );
+    auto elapsedMilliSec = std::chrono::duration_cast<std::chrono::microseconds>( time - m_LastTime ).count();
+    auto elapsedSec = static_cast<float>( double(elapsedMilliSec) / (1000.0 * 1000.0) );
+    assert(elapsedSec > 0.0f); // ImGuiで落とされる前にチェックする.
 
     auto& io = ImGui::GetIO();
     io.DeltaTime     = elapsedSec;
