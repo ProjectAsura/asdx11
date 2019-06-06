@@ -91,7 +91,6 @@
     <ClCompile Include="..\src\asdxMouse.cpp" />
     <ClCompile Include="..\src\asdxP4VHelper.cpp" />
     <ClCompile Include="..\src\asdxPad.cpp" />
-    <ClCompile Include="..\src\asdxPenTab.cpp" />
     <ClCompile Include="..\src\asdxRandom.cpp" />
     <ClCompile Include="..\src\asdxRenderState.cpp" />
     <ClCompile Include="..\src\asdxResTexture.cpp" />
