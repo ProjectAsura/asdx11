@@ -4400,6 +4400,85 @@ void Matrix::CreatePerspectiveFieldOfView
 }
 
 //-------------------------------------------------------------------------------------------------
+//      視野角に基づいてReverse-Z透視投影行列を生成します.
+//-------------------------------------------------------------------------------------------------
+inline
+Matrix Matrix::CreatePerspectiveFieldOfViewReverseZ
+(
+    float fieldOfView,
+    float aspectRatio,
+    float nearClip
+)
+{
+    assert( !IsZero( aspectRatio ) );
+    auto sinFov = std::sin( 0.5f * fieldOfView );
+    auto cosFov = std::cos( 0.5f * fieldOfView );
+    auto height = cosFov / sinFov;
+    auto width  = height / aspectRatio;
+
+    return Matrix(
+        width,
+        0.0f,
+        0.0f,
+        0.0f,
+
+        0.0f,
+        height,
+        0.0f,
+        0.0f,
+
+        0.0f,
+        0.0f,
+        0.0f,
+        -1.0f,
+
+        0.0f,
+        0.0f,
+        nearClip,
+        0.0f );
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//      視野角に基づいてReverse-Z透視投影行列を生成します.
+//-------------------------------------------------------------------------------------------------
+inline
+void Matrix::CreatePerspectiveFieldOfViewReverseZ
+(
+    float   fieldOfView,
+    float   aspectRatio,
+    float   nearClip,
+    Matrix& result
+)
+{
+    assert( !IsZero( aspectRatio ) );
+    auto sinFov = std::sin( 0.5f * fieldOfView );
+    auto cosFov = std::cos( 0.5f * fieldOfView );
+    auto height = cosFov / sinFov;
+    auto width  = height / aspectRatio;
+
+    result._11 = width;
+    result._12 = 0.0f;
+    result._13 = 0.0f;
+    result._14 = 0.0f;
+
+    result._21 = 0.0f;
+    result._22 = height;
+    result._23 = 0.0f;
+    result._24 = 0.0f;
+
+    result._31 = 0.0f;
+    result._32 = 0.0f;
+    result._33 = 0.0f;
+    result._34 = -1.0f;
+
+    result._41 = 0.0f;
+    result._42 = 0.0f;
+    result._43 = nearClip;
+    result._44 = 0.0f;
+}
+
+//-------------------------------------------------------------------------------------------------
 //      カスタマイズした透視投影行列を生成します.
 //-------------------------------------------------------------------------------------------------
 inline
