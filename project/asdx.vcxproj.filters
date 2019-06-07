@@ -336,5 +336,11 @@
     <FxCompile Include="..\res\shaders\OETFVS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="..\res\shaders\PrimitivePS_Shadowing.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\PrimitiveVS_Shadowing.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
