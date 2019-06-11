@@ -635,7 +635,8 @@ bool GuiMgr::Init
     ID3D11DeviceContext*    pContext,
     HWND                    hWnd,
     uint32_t                width,
-    uint32_t                height
+    uint32_t                height,
+    const char*             fontPath
 )
 {
     m_pDevice  = pDevice;
@@ -648,7 +649,7 @@ bool GuiMgr::Init
 
     {
         std::string path;
-        if (asdx::SearchFilePathA("../res/fonts/07やさしさゴシック.ttf", path))
+        if (asdx::SearchFilePathA(fontPath, path))
         {
             auto utf8_path = asdx::ToStringUTF8(path);
             io.Fonts->AddFontFromFileTTF(utf8_path.c_str(), 12.0f, nullptr, glyphRangesJapanese);

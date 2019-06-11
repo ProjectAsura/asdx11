@@ -2855,6 +2855,26 @@ public:
     static void    CreatePerspectiveFieldOfView( float fieldOfView, float aspectRatio, float nearClip, float farClip, Matrix &result );
 
     //----------------------------------------------------------------------------------------------
+    //! @brief      視野角に基づいてReverse-Z透視投影行列を生成します.
+    //!
+    //! @param [in]     fieldOfView     視野角(ラジアン).
+    //! @param [in]     aspectRatio     アスペクト比.
+    //! @param [in]     nearClip        近クリップ平面までの距離.
+    //! @return     投資投影行列を返却します.
+    //----------------------------------------------------------------------------------------------
+    static Matrix  CreatePerspectiveFieldOfViewReverseZ( float filedOfView, float aspectRatio, float nearClip );
+
+    //----------------------------------------------------------------------------------------------
+    //! @brief      視野角に基づいてReverse-Z透視投影行列を生成します.
+    //!
+    //! @param [in]     fieldOfView     視野角(ラジアン).
+    //! @param [in]     aspectRatio     アスペクト比.
+    //! @param [in]     nearClip        近クリップ平面までの距離.
+    //! @param [out]    result          透視投影行列.
+    //----------------------------------------------------------------------------------------------
+    static void    CreatePerspectiveFieldOfViewReverseZ( float fieldOfView, float aspectRatio, float nearClip, Matrix& result );
+
+    //----------------------------------------------------------------------------------------------
     //! @brief      カスタマイズした透視投影行列を生成します.
     //!
     //! @param [in]     left        ビューボリュームの最小X値.
