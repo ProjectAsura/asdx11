@@ -189,7 +189,7 @@ uint4 EncodeTBN
     float3 orthoA = normalize(cross(normal, refVector));
     float3 orthoB = cross(normal, orthoA);
     uint cosAngle = uint((dot(tangent, orthoA) * 0.5f + 0.5f) * 255.0f);
-    uint tangentHandedness = (dot(tangent, orthoB) > 0.0001f) ? 1 : 0;
+    uint tangentHandedness = (dot(tangent, orthoB) > 0.0001f) ? 2 : 0;
 
     return uint4(encodedNormal, (cosAngle << 2u) | compIndex, tangentHandedness | binomralHandedeness);
 }
