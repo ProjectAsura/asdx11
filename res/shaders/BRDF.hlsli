@@ -247,7 +247,7 @@ float D_Charlie(float linearRoughness, float NoH)
 float V_Neubelt(float NoV, float NoL)
 {
     // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for THe Order: 1886".
-    return saturate(1.0f / (4.0f * (NoL + NoV - NoL * NoV)));
+    return 1.0f / (4.0f * (NoL + NoV - NoL * NoV));
 }
 
 //-----------------------------------------------------------------------------
@@ -271,13 +271,12 @@ float EvaluateClothSpecular
     float   clothness,
     float   NoH,
     float   NoL,
-    float   NoV,
-    float   LoH
+    float   NoV
 )
 {
     float D = D_Charlie(clothness, NoH);
     float V = V_Neubelt(NoV, NoL);
-    float F = F_Schlick(sheen, LoH);
+    float F = sheen;
     return (D * V * F) / F_PI * NoL;
 }
 
@@ -366,7 +365,7 @@ float3 EvaluateKajiyaKay
     float cosTL = dot(T, L);
     float sinTL = ToSin(cosTL);
 
-    float diffuse = sinTL;
+    float diffuse = max(sinTL, 0.0f);
     float alpha   = radians(noise * 10.0f); // ƒ`ƒ‹ƒgŠp(5 - 10 “x)
 
     float cosTRL = -cosTL;
