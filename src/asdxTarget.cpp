@@ -378,7 +378,7 @@ bool ColorTarget2D::Create( ID3D11Device* pDevice, const TargetDesc2D& desc )
     if ( FAILED( hr ) )
     {
         // エラーログ出力.
-        ELOG( "Error : ID3D11Device::CreateTexture2D() Failed. call from ColorTarget2D::Create()" );
+        ELOG( "Error : ID3D11Device::CreateTexture2D() Failed. call from ColorTarget2D::Create(), errcode = 0x%x", hr );
 
         // 失敗.
         return false;
