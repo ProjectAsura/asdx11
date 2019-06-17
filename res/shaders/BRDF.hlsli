@@ -588,11 +588,6 @@ void EvaluateThinGlass
     // これを使ってアルファブレンディングする.
 }
 
-float F_Schlick_ClearCoat(float value)
-{
-    return 0.04f + 0.96 * pow(1.0f - value, 5.0f);
-}
-
 float3 EvaluateDirectLightClearCoat
 (
     float3  N,
@@ -605,6 +600,7 @@ float3 EvaluateDirectLightClearCoat
     float   clearCoatRoughness
 )
 {
+    // TODO : どこかバグってる.
     float3 H = normalize(V + L);
     float LoH = saturate(dot(L, H));
     float NoL = saturate(dot(N, L));
@@ -614,24 +610,22 @@ float3 EvaluateDirectLightClearCoat
     float a2  = max(roughness * roughness, 0.01f);
     float f90 = saturate(50.0f * dot(Ks, 0.33f));
 
-    float3 standard_diffuse = (Kd / F_PI);
-    float  standard_D = D_GGX(NoH, a2);
-    float  standard_G = G_SmithGGX(NoL, NoV, a2);
-    float3 standard_F = F_Schlick(Ks, f90, LoH);
-    float3 standard_specular = Ks * (standard_D * standard_G * standard_F) / F_PI;
+    float3 Fd = (Kd / F_PI);
+    float  D = D_GGX(NoH, a2);
+    float  G = G_SmithGGX(NoL, NoV, a2);
+    float3 F = F_Schlick(Ks, f90, LoH);
+    float3 Fr = Ks * (D * G * F) / F_PI;
 
-    float3 standard = (standard_diffuse + standard_specular);
-    float clearCoat_F = max(F_Schlick_ClearCoat(NoV), F_Schlick_ClearCoat(NoL));
+    float coatingPerceptualRoughness = GetClearCoatRoughness(clearCoatRoughness);
+    float coatingRoughness = coatingPerceptualRoughness * coatingPerceptualRoughness;
 
-    float ac2 = GetClearCoatRoughness(clearCoatRoughness * clearCoatRoughness);
-    float3 flakly_base = standard * (1.0f - clearCoatStrength * clearCoat_F);
+    float  Dc  = D_GGX(NoH, coatingRoughness);
+    float  Gc  = V_Kelemen(LoH);
+    float  Fc  = GetClearCoatFresnel(LoH, clearCoatStrength);
+    float3 Frc = Ks * (Dc * Gc * Fc) / F_PI; 
+    float  t   = max(1.0f - Fc, 0.0f);
 
-    float  coating_D = D_GGX(NoH, ac2);
-    float  coating_G = G_SmithGGX(NoL, NoV, ac2);
-    float  coating_F = F_Schlick_ClearCoat(HoV) * clearCoatStrength;
-    float3 coating   = (coating_D * coating_G * coating_F) / F_PI;
-
-    return (flakly_base + coating) * NoL;
+    return ((Fd + Fr * (1.0f - Fc)) * (1.0f - Fc) + Frc) * NoL;
 }
 
 
