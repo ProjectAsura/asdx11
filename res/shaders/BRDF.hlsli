@@ -253,13 +253,13 @@ float V_Neubelt(float NoV, float NoL)
 //-----------------------------------------------------------------------------
 //      布用ディフューズ項を評価します.
 //-----------------------------------------------------------------------------
-float3 EvaluateClothDiffuse(float3 diffuseColor, float sheen, float VoH)
+float3 EvaluateClothDiffuse(float3 diffuseColor, float sheen, float3 subsurfaceColor, float NoL)
 { 
-#if 0
-    return (diffuseColor / F_PI) * (1.0f - F_Schlick(sheen, VoH));
-#else
-    return (diffuseColor / F_PI);
-#endif
+    float diffuse = 1.0f / F_PI;
+    diffuse *= saturate((NoL + 0.5f) / 2.25f);
+    float3 result = diffuse * diffuseColor;
+    result *= saturate(subsurfaceColor + NoL);
+    return result;
 }
 
 //-----------------------------------------------------------------------------

@@ -11,7 +11,7 @@
 #include <asdxLogger.h>
 #include <dxgiformat.h>
 #include <wincodec.h>
-#include <wrl.h>
+#include <wrl/client.h>
 #include <cassert>
 #include <memory>
 #include <string>
