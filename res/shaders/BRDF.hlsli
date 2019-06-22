@@ -624,7 +624,7 @@ float3 EvaluateDirectLightClearCoat
     float  Dc  = D_GGX(NoH, coatingRoughness);
     float  Gc  = V_Kelemen(LoH);
     float  Fc  = GetClearCoatFresnel(LoH, clearCoatStrength);
-    float3 Frc = Ks * (Dc * Gc * Fc) / F_PI; 
+    float  Frc = (Dc * Gc * Fc) / F_PI; 
     float  t   = max(1.0f - Fc, 0.0f);
 
     return ((Fd + Fr * (1.0f - Fc)) * (1.0f - Fc) + Frc) * NoL;
