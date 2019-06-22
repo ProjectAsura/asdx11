@@ -824,7 +824,7 @@ float3 BT2020_To_XYZ(float3 color)
         0.000000f, 0.028073f, 1.060985f
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -854,7 +854,7 @@ float3 AdobeRGB_To_XYZ(float3 color)
         0.027031f, 0.070689f, 0.991337f
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -869,7 +869,7 @@ float3 AP0_To_XYZ(float3 color)
         0.0000000000, 0.0000000000, 1.0088251844
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -884,7 +884,7 @@ float3 AP1_To_XYZ(float3 color)
        -0.0055746495, 0.0040607335, 1.0103391003
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------

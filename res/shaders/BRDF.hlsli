@@ -492,9 +492,8 @@ float3 CalcRefraction(float ior, float3 N, float3 V)
 float2 ParallaxRefraction
 (
     float2      texcoord,               // テクスチャ座標.
-    float       radius,                 // 眼球の半径.
+    float       height,                 // 高さ.
     float       parallaxScale,          // 視差スケール.
-    float       anteriorChamberDepth,   // 前房の深さ.
     float3      viewW,                  // ワールド空間の視線ベクトル.
     float4x4    world                   // ワールド行列.
 )
@@ -503,7 +502,7 @@ float2 ParallaxRefraction
     // "Next-Generation Character Rendering", GDC 2013
     // Eye Rendering セクション参照.
     float2 viewL = mul(viewW, (float3x2)world);
-    float2 offset = ProcedualHeightForEye(radius, anteriorChamberDepth) * viewL;
+    float2 offset = height * viewL;
     offset.y = -offset.y;
     return texcoord - parallaxScale * offset;
 }
@@ -514,9 +513,8 @@ float2 ParallaxRefraction
 float2 PhysicallyBasedRefraction
 (
     float2      texcoord,           // テクスチャ座標.
-    float       radius,             // 眼球の半径. 
+    float       height,             // 高さ.
     float       mask,               // 網膜から強膜への補間値.
-    float       anteriorChamberDepth,
     float       ior,                // 屈折率.
     float3      normalW,            // 法線ベクトル.
     float3      viewW,              // ワールド空間での視線ベクトル.
@@ -533,9 +531,12 @@ float2 PhysicallyBasedRefraction
     // "Next-Generation Character Rendering", GDC 2013
     // Eye Rendering セクション参照.
     float  cosAlpha = dot(frontNormalW, -refractedW);
-    float  dist     = ProcedualHeightForEye(radius, anteriorChamberDepth) / cosAlpha;
+    float  dist     = height / cosAlpha;
     float3 offsetW  = dist * refractedW;
-    float2 offsetL  = mul(offsetW, (float3x2)world); // ローカルに変換.
+
+    // ローカルに変換
+    // 通常は mul(matrix, vector)の形式なので，ここでは転置行列(=逆行列)を掛けていることになる.
+    float2 offsetL  = mul(offsetW, (float3x2)world); 
     return texcoord + float2(mask, -mask) * offsetL;
 }
 
