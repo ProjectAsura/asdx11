@@ -588,6 +588,9 @@ void EvaluateThinGlass
     // これを使ってアルファブレンディングする.
 }
 
+//-----------------------------------------------------------------------------
+//      クリアコートの直接光を評価します.
+//-----------------------------------------------------------------------------
 float3 EvaluateDirectLightClearCoat
 (
     float3  N,
@@ -600,12 +603,11 @@ float3 EvaluateDirectLightClearCoat
     float   clearCoatRoughness
 )
 {
-    // TODO : どこかバグってる.
-    float3 H = normalize(V + L);
+    float NoV = abs(dot(N, V));
+    float3 H  = normalize(V + L);
     float LoH = saturate(dot(L, H));
     float NoL = saturate(dot(N, L));
     float NoH = saturate(dot(N, H));
-    float NoV = saturate(dot(N, V));
     float HoV = saturate(dot(H, V));
     float a2  = max(roughness * roughness, 0.01f);
     float f90 = saturate(50.0f * dot(Ks, 0.33f));
@@ -614,7 +616,7 @@ float3 EvaluateDirectLightClearCoat
     float  D = D_GGX(NoH, a2);
     float  G = G_SmithGGX(NoL, NoV, a2);
     float3 F = F_Schlick(Ks, f90, LoH);
-    float3 Fr = Ks * (D * G * F) / F_PI;
+    float3 Fr = (D * G * F) / F_PI;
 
     float coatingPerceptualRoughness = GetClearCoatRoughness(clearCoatRoughness);
     float coatingRoughness = coatingPerceptualRoughness * coatingPerceptualRoughness;
@@ -627,7 +629,5 @@ float3 EvaluateDirectLightClearCoat
 
     return ((Fd + Fr * (1.0f - Fc)) * (1.0f - Fc) + Frc) * NoL;
 }
-
-
 
 #endif//BRDF_HLSLI

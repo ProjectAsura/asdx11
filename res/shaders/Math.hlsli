@@ -907,7 +907,7 @@ float3 XYZ_To_BT709(float3 color)
         0.055630f, -0.203977f,  1.056972f
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -922,7 +922,7 @@ float3 XYZ_To_BT2020(float3 color)
          0.017640f, -0.042771f,  0.942103f
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -937,7 +937,7 @@ float3 XYZ_To_DCI_P3(float3 color)
          0.041242f, -0.087639f,  1.100930f
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -952,7 +952,7 @@ float3 XYZ_To_AdobeRGB(float3 color)
          0.013444f, -0.118362f,  1.015175f
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -967,7 +967,7 @@ float3 XYZ_To_AP0(float3 color)
          0.0000000000, 0.0000000000,  0.9912520182
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -982,7 +982,7 @@ float3 XYZ_To_AP1(float3 color)
          0.0117218943, -0.0082844420,  0.9883948585
     };
 
-    return mul(conversion, color);    
+    return mul(conversion, color);
 }
 
 //-----------------------------------------------------------------------------
