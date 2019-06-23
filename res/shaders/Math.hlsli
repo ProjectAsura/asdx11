@@ -442,12 +442,25 @@ float4 DitherTriangleNoiseRGB(float4 rgba, float2 uv, float2 screenSize, float t
 }
 
 //-----------------------------------------------------------------------------
-//      球面調和関数の係数から放射照度を求めます.
+//      球面調和関数の係数ベクトルから放射照度を求めます.
+//-----------------------------------------------------------------------------
+float3 IrraidanceSH2(float3 n, float4 sh[4])
+{
+    // 2-Band.
+    float3 result = sh[0].rgb
+        + sh[1].rgb * (n.y)
+        + sh[2].rgb * (n.z)
+        + sh[3].rgb * (n.x);
+    return max(result, 0.0f);
+}
+
+//-----------------------------------------------------------------------------
+//      球面調和関数の係数ベクトルから放射照度を求めます.
 //-----------------------------------------------------------------------------
 float3 IrradianceSH3(float3 n, float4 sh[9])
 {
     // 3-Band.
-    return sh[0].rgb
+    float3 result = sh[0].rgb
          + sh[1].rgb * (n.y)
          + sh[2].rgb * (n.z)
          + sh[3].rgb * (n.x)
@@ -456,6 +469,7 @@ float3 IrradianceSH3(float3 n, float4 sh[9])
          + sh[6].rgb * (3.0f * n.z * n.z - 1.0f)
          + sh[7].rgb * (n.z * n.x)
          + sh[8].rgb * (n.x * n.x - n.y * n.y);
+    return max(result, 0.0f);
 }
 
 //-----------------------------------------------------------------------------
