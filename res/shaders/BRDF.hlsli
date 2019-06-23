@@ -535,8 +535,12 @@ float2 PhysicallyBasedRefraction
     float3 offsetW  = dist * refractedW;
 
     // ローカルに変換
-    // 通常は mul(matrix, vector)の形式なので，ここでは転置行列(=逆行列)を掛けていることになる.
-    float2 offsetL  = mul(offsetW, (float3x2)world); 
+#if 0
+    //float2 offsetL  = mul(offsetW, (float3x2)world);
+#else
+    float2 offsetL = mul(float4(offsetW, 1.0f), world).xy;
+#endif
+
     return texcoord + float2(mask, -mask) * offsetL;
 }
 
