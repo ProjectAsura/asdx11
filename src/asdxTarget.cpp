@@ -360,7 +360,7 @@ bool ColorTarget2D::Create( ID3D11Device* pDevice, const TargetDesc2D& desc )
     ConvertColorFormat( desc.Format, textureFormat );
 
     // テクスチャの設定.
-    D3D11_TEXTURE2D_DESC td;
+    D3D11_TEXTURE2D_DESC td = {};
     td.Width                = desc.Width;
     td.Height               = desc.Height;
     td.MipLevels            = desc.MipLevels;

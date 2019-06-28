@@ -8,6 +8,7 @@
 // Includes
 //-------------------------------------------------------------------------------------------------
 #include <asdxTcpConnector.h>
+#include <asdxLogger.h>
 #include <WinSock2.h>
 #include <ws2tcpip.h>
 
@@ -39,19 +40,14 @@ TcpConnector::~TcpConnector()
 //      接続処理を行います
 //-------------------------------------------------------------------------------------------------
 bool TcpConnector::Connect(const TcpConnector::Desc& info)
-{
-    if (info.Server)
-    { return ConnectAsServer(info); } // ビューア側
-    else
-    { return ConnectAsClient(info); } // エディタ側.
-}
+{ return (info.Server) ? ConnectAsServer(info) : ConnectAsClient(info); }
 
 //-------------------------------------------------------------------------------------------------
 //      サーバーとしての接続処理を行います
 //-------------------------------------------------------------------------------------------------
 bool TcpConnector::ConnectAsServer( const TcpConnector::Desc& info )
 {
-    std::lock_guard<std::mutex> locker(m_Mutex);
+    std::lock_guard<std::recursive_mutex> locker(m_Mutex);
 
     sockaddr_in addr;
     sockaddr_in client;
@@ -65,17 +61,16 @@ bool TcpConnector::ConnectAsServer( const TcpConnector::Desc& info )
         ret = WSAStartup( 0x0202, &wsaData );
         if ( ret != 0 )
         {
-            //ELOG( "Error : WSAStartup() Failed." );
+            ELOG( "Error : WSAStartup() Failed." );
             return false;
         }
 
         // TCP通信の設定でソケットを生成.
         m_SrcSocket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 
-        addr.sin_family = AF_INET;
-        addr.sin_port   = htons( info.Port );
-        if (inet_pton(AF_INET, info.Address, &addr.sin_addr) != 1)
-        { return false; }
+        addr.sin_family         = AF_INET;
+        addr.sin_port           = htons( info.Port );
+        addr.sin_addr.s_addr    = INADDR_ANY;
 
         // サーバーソケットに名前を付けます.
         ret = bind( m_SrcSocket, (sockaddr*)&addr, sizeof(addr) );
@@ -84,45 +79,59 @@ bool TcpConnector::ConnectAsServer( const TcpConnector::Desc& info )
             auto errcode = WSAGetLastError();
             if ( errcode != WSAEADDRINUSE )
             {
-                //ELOG( "Error : WSAGetLastError() errorCode = %d", errcode );
+                ELOG( "Error : WSAGetLastError() errorCode = %d", errcode );
                 return false;
             }
-
-            // 準備済みフラグを立てえる.
-            m_IsReady = true;
         }
+
+        // ソケットを受信待機モードにして，保留接続キューのサイズを確保します.
+        ret = listen( m_SrcSocket, 5 );
+        if ( ret != 0 )
+        {
+            ELOG( "Error : listen() Failed." );
+            return false;
+        }
+
+        // 準備済みフラグを立てる.
+        m_IsReady = true;
     }
+
+    // タイムアウト値設定.
+    fd_set cnt;
+    timeval timeout;
+    FD_ZERO(&cnt);
+    FD_SET(m_SrcSocket, &cnt);
+
+    timeout.tv_sec  = 0;
+    timeout.tv_usec = 1000;
+
+    int maxFd = int(m_SrcSocket) + 1;
+
+    ret = select(maxFd, &cnt, NULL, NULL, &timeout);
+    if (ret == 0)
+    {
+        //ELOG("Error : Timeout.");
+        return false;
+    }
+    else if (ret == INVALID_SOCKET)
+    {
+        //ELOG("Error : select() Failed.");
+        return false;
+    }
+
+    if (FD_ISSET(m_SrcSocket, &cnt))
+    {
+        // 接続待機する
+        m_DstSocket = accept(m_SrcSocket, (sockaddr*)&client, &len);
+        if (m_DstSocket == SOCKET_ERROR)
+        { return false; }
+    }
+    else
+    { return false; }
 
     // 非ブロッキングモードにする.
     u_long val = 1;
-    ioctlsocket( m_SrcSocket, FIOASYNC, &val );
-
-    // ソケットを受信待機モードにして，保留接続キューのサイズを確保します.
-    ret = listen( m_SrcSocket, 5 );
-    if ( ret != 0 )
-    {
-        //ELOG( "Error : listen() Failed." );
-        return false;
-    }
-
-    // タイムアウト時間を10秒に設定.
-    timeval timeout;
-    timeout.tv_sec  = 10;
-    timeout.tv_usec = 0;
-    ret = setsockopt(m_SrcSocket,  SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char*>(&timeout), sizeof(timeout));
-    if (ret != 0)
-    {
-        // ELOG( "Error : setsockopt() Failed." );
-        return false;
-    }
-
-    // サーバーソケットを接続要求待ち状態にします.
-    m_DstSocket = accept( m_SrcSocket, (sockaddr*)&client, &len );
-    if ( m_DstSocket == INVALID_SOCKET )
-    {
-        //ELOG( "Error : accepct() Failed." );
-        return false;
-    }
+    ioctlsocket( m_DstSocket, FIONBIO, &val );
 
     // 接続済みフラグを立てます.
     m_IsConnected = true;
@@ -137,7 +146,7 @@ bool TcpConnector::ConnectAsServer( const TcpConnector::Desc& info )
 //-------------------------------------------------------------------------------------------------
 bool TcpConnector::ConnectAsClient( const TcpConnector::Desc& info )
 {
-    std::lock_guard<std::mutex> locker(m_Mutex);
+    std::lock_guard<std::recursive_mutex> locker(m_Mutex);
 
     sockaddr_in addr;
     int len = sizeof(sockaddr_in);
@@ -150,7 +159,7 @@ bool TcpConnector::ConnectAsClient( const TcpConnector::Desc& info )
         ret = WSAStartup( 0x0202, &wsaData );
         if ( ret != 0 )
         {
-            //ELOG( "Error : WSAStartup() Failed." );
+            ELOG( "Error : WSAStartup() Failed." );
             return false;
         }
 
@@ -187,7 +196,7 @@ bool TcpConnector::ConnectAsClient( const TcpConnector::Desc& info )
 //-------------------------------------------------------------------------------------------------
 void TcpConnector::Close()
 {
-    std::lock_guard<std::mutex> locker(m_Mutex);
+    std::lock_guard<std::recursive_mutex> locker(m_Mutex);
 
     if ( !m_IsConnected && !m_IsReady )
     { return; }
@@ -215,11 +224,23 @@ void TcpConnector::Close()
 //-------------------------------------------------------------------------------------------------
 bool TcpConnector::IsConnect()
 {
-    std::lock_guard<std::mutex> locker(m_Mutex);
+    // ソケットが無効な場合は切断扱い.
+    if (m_DstSocket == INVALID_SOCKET)
+    { return false; }
 
-    if ( m_DstSocket == INVALID_SOCKET )
+    int ret = 0;
     {
-        m_IsConnected = false;
+        std::lock_guard<std::recursive_mutex> locker(m_Mutex);
+
+        // バッファを変更せずに読み込み.
+        char buf[16];
+        ret = recv(m_DstSocket, buf, 16, MSG_PEEK);
+    }
+
+    // ソケットが閉じた場合.
+    if (ret == 0)
+    {
+        Close();
         return false;
     }
 
@@ -231,10 +252,10 @@ bool TcpConnector::IsConnect()
 //-------------------------------------------------------------------------------------------------
 bool TcpConnector::Send( const void* pBuffer, int size )
 {
-    std::lock_guard<std::mutex> locker(m_Mutex);
+    std::lock_guard<std::recursive_mutex> locker(m_Mutex);
 
     // 引数チェック.
-    if ( pBuffer == nullptr || size == 0 )
+    if ( pBuffer == nullptr || size == 0 || m_DstSocket == INVALID_SOCKET )
     { return false; }
 
     // 送信処理.
@@ -251,7 +272,11 @@ bool TcpConnector::Send( const void* pBuffer, int size )
 //-------------------------------------------------------------------------------------------------
 bool TcpConnector::Receive( void* pBuffer, int size )
 {
-    std::lock_guard<std::mutex> locker(m_Mutex);
+    std::lock_guard<std::recursive_mutex> locker(m_Mutex);
+
+    // 引数チェック.
+    if ( pBuffer == nullptr || size == 0 || m_DstSocket == INVALID_SOCKET )
+    { return false; }
 
     // 受信処理.
     auto status = recv( m_DstSocket, (char*)pBuffer, size, 0 );

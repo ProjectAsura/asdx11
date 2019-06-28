@@ -33,7 +33,7 @@ public:
     {
         uint16_t     Port;           //!< ポート番号です.
         const char*  Address;        //!< IPアドレスです.
-        bool         Server;         //!< エディタ側は true, ビューア―側は falseを設定.
+        bool         Server;         //!< サーバー側の場合は true に設定.
     };
 
     //=============================================================================================
@@ -112,12 +112,12 @@ private:
     //=============================================================================================
     // private variables.
     //=============================================================================================
-    std::atomic<bool>   m_IsConnected;  //!< 接続済みかどうかを示すフラグ
-    std::atomic<bool>   m_IsReady;      //!< 準備ができているかどうかを示すフラグ.
-    std::mutex          m_Mutex;        //!< ミューテックス.
-    uintptr_t           m_SrcSocket;    //!< 入力ソケット.
-    uintptr_t           m_DstSocket;    //!< 出力ソケット.
-    bool                m_IsServer;     //!< サーバーかどうか?
+    std::atomic<bool>       m_IsConnected;  //!< 接続済みかどうかを示すフラグ
+    std::atomic<bool>       m_IsReady;      //!< 準備ができているかどうかを示すフラグ.
+    std::recursive_mutex    m_Mutex;        //!< ミューテックス.
+    uintptr_t               m_SrcSocket;    //!< 入力ソケット.
+    uintptr_t               m_DstSocket;    //!< 出力ソケット.
+    bool                    m_IsServer;     //!< サーバーかどうか?
 
     //=============================================================================================
     // private methods.
