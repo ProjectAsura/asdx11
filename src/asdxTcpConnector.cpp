@@ -224,14 +224,17 @@ void TcpConnector::Close()
 //-------------------------------------------------------------------------------------------------
 bool TcpConnector::IsConnect()
 {
+    std::lock_guard<std::recursive_mutex> locker(m_Mutex);
+
     // ソケットが無効な場合は切断扱い.
     if (m_DstSocket == INVALID_SOCKET)
-    { return false; }
+    {
+        m_IsConnected = false;
+        return false;
+    }
 
     int ret = 0;
     {
-        std::lock_guard<std::recursive_mutex> locker(m_Mutex);
-
         // バッファを変更せずに読み込み.
         char buf[16];
         ret = recv(m_DstSocket, buf, 16, MSG_PEEK);
