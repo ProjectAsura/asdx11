@@ -47,20 +47,20 @@ float CalcF90(in float3 f0)
 //      Schlickによるフレネル反射の近似値を求める.
 //-----------------------------------------------------------------------------
 float3 F_Schlick(in float3 f0, in float f90, in float u)
-{ return f0 + (f90 - f0) * pow(1.0f - u, 5.0f); }
+{ return f0 + (f90 - f0) * Pow5(1.0f - u); }
 
 //-----------------------------------------------------------------------------
 //      Schlickによるフレネル反射の近似値を求める.
 //-----------------------------------------------------------------------------
 float F_Schlick(in float f0, in float f90, in float u)
-{ return f0 + (f90 - f0) * pow(1.0f - u, 5.0f); }
+{ return f0 + (f90 - f0) * Pow5(1.0f - u); }
 
 //-----------------------------------------------------------------------------
 //      フレネル項を計算します.
 //-----------------------------------------------------------------------------
 float3 F_Schlick(const float3 f0, float VoH)
 {
-    float f = pow(1.0f - VoH, 5.0f);
+    float f = Pow5(1.0f - VoH);
     return f + f0 * (1.0f - f);
 }
 
@@ -69,7 +69,7 @@ float3 F_Schlick(const float3 f0, float VoH)
 //-----------------------------------------------------------------------------
 float F_Schlick(const float f0, float VoH)
 {
-    float f = pow(1.0f - VoH, 5.0f);
+    float f = Pow5(1.0f - VoH);
     return f + f0 * (1.0f - f);
 }
 
@@ -98,7 +98,7 @@ float3 GetSpecularDomiantDir(float3 N, float3 R, float roughness)
 //      スペキュラーAOを計算します.
 //-----------------------------------------------------------------------------
 float CalcSpecularAO(float NoV, float ao, float roughness)
-{ return saturate(pow(max(NoV + ao, 0.0f), exp2(-16.0f * roughness - 1.0f)) - 1.0f + ao); }
+{ return saturate(Pow(max(NoV + ao, 0.0f), exp2(-16.0f * roughness - 1.0f)) - 1.0f + ao); }
 
 //-----------------------------------------------------------------------------
 //      水平スペキュラーAOを計算します.
@@ -148,7 +148,7 @@ float D_GGX(float NdotH, float m)
 {
     float m2 = m * m;
     float f = (NdotH * m2 - NdotH) * NdotH + 1;
-    return m2 / (f * f);
+    return m2 / max(f * f, 1e-4f);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ float G_SmithGGX(float NdotL, float NdotV, float alphaG)
     float alphaG2 = alphaG * alphaG;
     float Lambda_GGXV = NdotL * sqrt((-NdotV * alphaG2 + NdotV) * NdotV + alphaG2);
     float Lambda_GGXL = NdotV * sqrt((-NdotL * alphaG2 + NdotL) * NdotL + alphaG2);
-    return 0.5f / (Lambda_GGXV + Lambda_GGXL);
+    return 0.5f / max(Lambda_GGXV + Lambda_GGXL, 1e-4f);
 }
 
 //-----------------------------------------------------------------------------
@@ -203,7 +203,7 @@ float2 ApproxDFGClothCharlie(float roughness, float NoV)
     float a = 1.0f - NoV;
     float b = 1.0f - roughness;
 
-    float n = pow(max(c1.x + a, 0.0f), 64.0);
+    float n = Pow(max(c1.x + a, 0.0f), 64.0);
     float e = b - c0.x;
     float g = exp2(-(e * e) * c0.y);
     float f = b + c1.y;
@@ -238,7 +238,7 @@ float D_Charlie(float linearRoughness, float NoH)
     float invAlpha = 1.0f / linearRoughness;
     float cos2h = NoH * NoH;
     float sin2h = max(1.0f - cos2h, 0.0078125f); // 2^(-14/2), so sin2h^2 0 in fp16
-    return (2.0f + invAlpha) * pow(sin2h, invAlpha * 0.5f) / (2.0f * F_PI);
+    return max((2.0f + invAlpha) * pow(sin2h, invAlpha * 0.5f) / (2.0f * F_PI), 0.0f);
 }
 
 //-----------------------------------------------------------------------------
@@ -247,7 +247,7 @@ float D_Charlie(float linearRoughness, float NoH)
 float V_Neubelt(float NoV, float NoL)
 {
     // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for THe Order: 1886".
-    return 1.0f / (4.0f * (NoL + NoV - NoL * NoV));
+    return max(1.0f / (4.0f * (NoL + NoV - NoL * NoV)), 0.0f);
 }
 
 //-----------------------------------------------------------------------------
@@ -257,7 +257,7 @@ float3 EvaluateClothDiffuse(float3 diffuseColor, float sheen, float3 subsurfaceC
 { 
     float diffuse = 1.0f / F_PI;
     diffuse *= saturate((NoL + 0.5f) / 2.25f);
-    float3 result = diffuse * diffuseColor;
+    float3 result = diffuseColor * diffuse;
     result *= saturate(subsurfaceColor + NoL);
     return result;
 }
@@ -265,7 +265,7 @@ float3 EvaluateClothDiffuse(float3 diffuseColor, float sheen, float3 subsurfaceC
 //-----------------------------------------------------------------------------
 //      布用スペキュラー項を評価します.
 //-----------------------------------------------------------------------------
-float EvaluateClothSpecular
+float3 EvaluateClothSpecular
 (
     float   sheen,
     float   clothness,
@@ -274,9 +274,9 @@ float EvaluateClothSpecular
     float   NoV
 )
 {
-    float D = D_Charlie(clothness, NoH);
-    float V = V_Neubelt(NoV, NoL);
-    float F = sheen;
+    float  D = D_Charlie(clothness, NoH);
+    float  V = V_Neubelt(NoV, NoL);
+    float3 F = float3(sheen, sheen, sheen);
     return (D * V * F) / F_PI * NoL;
 }
 
@@ -288,7 +288,7 @@ float ScheuermannSingleSpecularTerm(float3 T, float3 H, float exponent)
     // Thorsten Scheuermann, "Hair Rendering and Shading", ShaderX 3, p.244　参照.
     float ToH   = dot(T, H);
     float sinTH = sqrt(1.0f - ToH * ToH);
-    return pow(sinTH, exponent);
+    return Pow(sinTH, exponent);
 }
 
 //-----------------------------------------------------------------------------
@@ -385,8 +385,8 @@ float3 EvaluateKajiyaKay
 
     // BRDFを評価.
     float3 result = Kd * diffuse * baseColor;
-    result += Ks0 * pow(specular0, SpecularPower0);
-    result += Ks1 * pow(specular1, SpecularPower1) * baseColor;
+    result += Ks0 * Pow(specular0, SpecularPower0);
+    result += Ks1 * Pow(specular1, SpecularPower1) * baseColor;
 
     return result;
 }
@@ -580,7 +580,7 @@ void EvaluateThinGlass
     const float3 C = float3(cosRefractedTheta, cosRefractedTheta, cosRefractedTheta);
 
     // 吸収を考慮するための係数.
-    const float3 K = pow(max(baseColor, 0.001), 1 / C);
+    const float3 K = Pow(max(baseColor, 0.001), 1 / C);
     const float3 RK = R * K;
 
     transmittance   = saturate(T * T * K / (1 - RK * RK));
