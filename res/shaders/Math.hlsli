@@ -1240,4 +1240,21 @@ float3 AP1_To_AP0(float3 color)
     return mul(conversion, color);
 }
 
+//-----------------------------------------------------------------------------
+//        ディザ処理.
+//-----------------------------------------------------------------------------
+void Dithering(float2 sv_position, float alpha)
+{
+    const float kDitherList[4][4] = {
+        { 0.37647f, 0.87450f, 0.50196f, 1.00000f },
+        { 0.62352f, 0.12549f, 0.75294f, 0.25098f },
+        { 0.43921f, 0.93725f, 0.31372f, 0.81568f },
+        { 0.68627f, 0.18823f, 0.56470f, 0.06274f },
+    };
+
+    uint2 screenPos = (uint2)(sv_position) % 4;
+    if (alpha < kDitherList[screenPos.x][screenPos.y])
+    { discard; }
+}
+
 #endif//MATH_HLSLI
