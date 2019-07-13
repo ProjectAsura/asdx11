@@ -177,6 +177,9 @@ bool TcpConnector::ConnectAsClient( const TcpConnector::Desc& info )
             m_IsConnected = false;
             return false;
         }
+
+        // 準備済みフラグを立てる.
+        m_IsReady = true;
     }
 
     // 非ブロッキングモードにする.
@@ -227,7 +230,7 @@ bool TcpConnector::IsConnect()
     std::lock_guard<std::recursive_mutex> locker(m_Mutex);
 
     // ソケットが無効な場合は切断扱い.
-    if (m_DstSocket == INVALID_SOCKET)
+    if (m_DstSocket == INVALID_SOCKET || m_IsConnected == false)
     {
         m_IsConnected = false;
         return false;
