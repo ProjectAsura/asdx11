@@ -941,9 +941,9 @@ bool GuiMgr::Init
         style.Colors[ ImGuiCol_Header ]                 = ImVec4( 0.260000f, 0.590000f, 0.980000f, 0.248000f );
         style.Colors[ ImGuiCol_HeaderHovered ]          = ImVec4( 0.260000f, 0.590000f, 0.980000f, 0.640000f );
         style.Colors[ ImGuiCol_HeaderActive ]           = ImVec4( 0.260000f, 0.590000f, 0.980000f, 1.000000f );
-        style.Colors[ ImGuiCol_Column ]                 = ImVec4( 0.610000f, 0.610000f, 0.610000f, 1.000000f );
-        style.Colors[ ImGuiCol_ColumnHovered ]          = ImVec4( 0.260000f, 0.590000f, 0.980000f, 0.624000f );
-        style.Colors[ ImGuiCol_ColumnActive ]           = ImVec4( 0.260000f, 0.590000f, 0.980000f, 1.000000f );
+        //style.Colors[ ImGuiCol_Column ]                 = ImVec4( 0.610000f, 0.610000f, 0.610000f, 1.000000f );
+        //style.Colors[ ImGuiCol_ColumnHovered ]          = ImVec4( 0.260000f, 0.590000f, 0.980000f, 0.624000f );
+        //style.Colors[ ImGuiCol_ColumnActive ]           = ImVec4( 0.260000f, 0.590000f, 0.980000f, 1.000000f );
         style.Colors[ ImGuiCol_ResizeGrip ]             = ImVec4( 0.000000f, 0.000000f, 0.000000f, 0.400000f );
         style.Colors[ ImGuiCol_ResizeGripHovered ]      = ImVec4( 0.260000f, 0.590000f, 0.980000f, 0.536000f );
         style.Colors[ ImGuiCol_ResizeGripActive ]       = ImVec4( 0.260000f, 0.590000f, 0.980000f, 0.760000f );
