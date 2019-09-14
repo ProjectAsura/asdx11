@@ -2949,6 +2949,32 @@ public:
     static void    CreateOrthographicOffCenter( float left, float right, float bottom, float top, float nearClip, float farClip, Matrix &result );
 
     //----------------------------------------------------------------------------------------------
+    //! @brief      カスタマイズした正射影行列を生成します.
+    //!
+    //! @param [in]     left        ビューボリュームの最小X値.
+    //! @param [in]     right       ビューボリュームの最大X値.
+    //! @param [in]     bottom      ビューボリュームの最小Y値.
+    //! @param [in]     top         ビューボリュームの最大Y値.
+    //! @param [in]     nearClip    近クリップ平面までの距離.
+    //! @param [in]     farClip     遠クリップ平面までの距離.
+    //! @return     正射影行列を返却します.
+    //----------------------------------------------------------------------------------------------
+    static Matrix  CreateOrthographicOffCenterReverseZ( float left, float right, float bottom, float top, float nearClip, float farClip );
+
+    //----------------------------------------------------------------------------------------------
+    //! @brief      カスタマイズした正射影行列を生成します.
+    //!
+    //! @param [in]     left        ビューボリュームの最小X値.
+    //! @param [in]     right       ビューボリュームの最大X値.
+    //! @param [in]     bottom      ビューボリュームの最小Y値.
+    //! @param [in]     top         ビューボリュームの最大Y値.
+    //! @param [in]     nearClip    近クリップ平面までの距離.
+    //! @param [in]     farClip     遠クリップ平面までの距離.
+    //! @param [out]    result      正射影行列.
+    //----------------------------------------------------------------------------------------------
+    static void    CreateOrthographicOffCenterReverseZ( float left, float right, float bottom, float top, float nearClip, float farClip, Matrix &result );
+
+    //----------------------------------------------------------------------------------------------
     //! @brief      2つの行列を線形補間します.
     //!
     //! @param [in]     a           入力行列.

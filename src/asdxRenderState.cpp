@@ -23,6 +23,7 @@ bool CreateDSS
     ID3D11Device* pDevice,
     bool enableTest,
     bool enableWrite,
+    bool reverseZ,
     asdx::RefPtr<ID3D11DepthStencilState>& result
 )
 {
@@ -31,7 +32,7 @@ bool CreateDSS
 
     desc.DepthEnable                  = ( !enableTest && enableWrite ) ? TRUE : enableTest;
     desc.DepthWriteMask               = enableWrite ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-    desc.DepthFunc                    = ( !enableTest && enableWrite ) ? D3D11_COMPARISON_ALWAYS : D3D11_COMPARISON_LESS_EQUAL;
+    desc.DepthFunc                    = ( !enableTest && enableWrite ) ? D3D11_COMPARISON_ALWAYS : (reverseZ ? D3D11_COMPARISON_GREATER_EQUAL : D3D11_COMPARISON_LESS_EQUAL);
     desc.StencilEnable                = FALSE;
     desc.StencilReadMask              = D3D11_DEFAULT_STENCIL_READ_MASK;
     desc.StencilWriteMask             = D3D11_DEFAULT_STENCIL_WRITE_MASK;
@@ -299,18 +300,21 @@ bool RenderState::Init( ID3D11Device* pDevice )
             DepthType type;
             bool      depthTest;
             bool      depthWrite;
+            bool      reverseZ;
         };
 
         ArgDSS args[] = {
-            { DepthType::None,     false, false },
-            { DepthType::Default,  true,  true  },
-            { DepthType::Readonly, true,  false },
-            { DepthType::WriteOnly,false, true  }
+            { DepthType::None,             false, false, false },
+            { DepthType::Default,          true,  true,  false },
+            { DepthType::Readonly,         true,  false, false },
+            { DepthType::WriteOnly,        false, true,  false },
+            { DepthType::DefaultReverseZ,  true,  true,  true  },
+            { DepthType::ReadonlyReverseZ, true,  false, true  },
         };
 
         for ( auto i = 0; i < NumDepthType; ++i )
         {
-            if ( !CreateDSS( pDevice, args[ i ].depthTest, args[ i ].depthWrite, m_DSS[ args[ i ].type ] ) )
+            if ( !CreateDSS( pDevice, args[ i ].depthTest, args[ i ].depthWrite, args[i].reverseZ, m_DSS[ args[ i ].type ] ) )
             {
                 ELOG( "Error : CreateDSS() Failed. index = %d", i );
                 Term();

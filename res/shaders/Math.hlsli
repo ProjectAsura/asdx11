@@ -261,6 +261,18 @@ float ToLinearDepth(float hardware_depth, float near_clip, float far_clip)
 { return near_clip / (hardware_depth * (near_clip - far_clip) + far_clip); }
 
 //-----------------------------------------------------------------------------
+//      far_clip=∞とする射影行列でハードウェアから出力された非線形深度をビュー空間深度に変換します.
+//-----------------------------------------------------------------------------
+float ToViewDepth(float hardware_depth, float near_clip)
+{ return near_clip / (hardware_depth - 1.0f); }
+
+//-----------------------------------------------------------------------------
+//      far_clip=∞とするReverse-Z射影行列でハードウェアから出力された非線形深度をビュー空間深度に変換します.
+//-----------------------------------------------------------------------------
+float ToViewDepthFromReverseZ(float hardware_depth, float near_clip)
+{ return -near_clip / hardware_depth; }
+
+//-----------------------------------------------------------------------------
 //      UVからビュー空間位置を求めます.
 //-----------------------------------------------------------------------------
 float3 UVToViewPos(float2 uv, float linear_depth, float3 param)
@@ -274,6 +286,20 @@ float3 UVToViewPos(float2 uv, float linear_depth, float3 param)
      float2 st = uv * float2(2.0f, -2.0f) - float2(1.0f, -1.0f);
      float3 view_dir = float3(st.x * param.x, st.y * param.y, -param.z);
      return linear_depth * view_dir;
+}
+
+//-----------------------------------------------------------------------------
+//      UVとビュー空間深度からビュー空間位置を求めます.
+//-----------------------------------------------------------------------------
+float3 UVToViewPos(float2 uv, float view_depth, float2 param)
+{
+    // param.y = 1.0f / proj._22;
+    // param.x = 1.0f / proj._11;
+    // ※ proj._22 = 1.0f / tanf(fovy * 0.5f);
+    // ※ proj._11 = 1.0f / (tanf(fovy * 0.5f) * aspectRatio);
+    float2 st = uv * float2(2.0f, -2.0f) - float2(1.0f, -1.0f);
+    float3 view_dir = float3(st.x * param.x, st.y * param.y, -1.0f);
+    return view_depth * view_dir;
 }
 
 //-----------------------------------------------------------------------------

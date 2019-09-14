@@ -4729,6 +4729,94 @@ void Matrix::CreateOrthographicOffCenter
     result._44 = 1.0f;
 }
 
+
+//-------------------------------------------------------------------------------------------------
+//      カスタマイズした正射影行列を生成します.
+//-------------------------------------------------------------------------------------------------
+inline
+Matrix Matrix::CreateOrthographicOffCenterReverseZ
+(
+    float left,
+    float right,
+    float bottom,
+    float top,
+    float nearClip,
+    float farClip
+)
+{
+    auto width  = right - left;
+    auto height = bottom - top;
+    auto depth  = nearClip - farClip;
+    assert( !IsZero( width ) );
+    assert( !IsZero( height ) );
+    assert( !IsZero( depth ) );
+
+    return Matrix(
+        2.0f / width,
+        0.0f,
+        0.0f,
+        0.0f,
+
+        0.0f,
+        2.0f / height,
+        0.0f,
+        0.0f,
+
+        0.0f,
+        0.0f,
+        -1.0f / depth,
+        0.0f,
+
+        (left + right) / width,
+        (top + bottom) / height,
+        -nearClip / depth + 1.0f,
+        1.0f
+    );
+}
+
+//-------------------------------------------------------------------------------------------------
+//      カスタマイズした正射影行列を生成します.
+//-------------------------------------------------------------------------------------------------
+inline
+void Matrix::CreateOrthographicOffCenterReverseZ
+(
+    float     left,
+    float     right,
+    float     bottom,
+    float     top,
+    float     nearClip,
+    float     farClip,
+    Matrix&   result
+)
+{
+    auto width  = right - left;
+    auto height = bottom - top;
+    auto depth  = nearClip - farClip;
+    assert( !IsZero( width ) );
+    assert( !IsZero( height ) );
+    assert( !IsZero( depth ) );
+
+    result._11 = 2.0f / width;
+    result._12 = 0.0f;
+    result._13 = 0.0f;
+    result._14 = 0.0f;
+
+    result._21 = 0.0f;
+    result._22 = 2.0f / height;
+    result._23 = 0.0f;
+    result._24 = 0.0f;
+
+    result._31 = 0.0f;
+    result._32 = 0.0f;
+    result._33 = -1.0f / depth;
+    result._34 = 0.0f;
+
+    result._41 = (left + right) / width;
+    result._42 = (top + bottom) / height;
+    result._43 = -nearClip / depth + 1.0f;
+    result._44 = 1.0f;
+}
+
 //-------------------------------------------------------------------------------------------------
 //      2つの行列を線形補間します.
 //-------------------------------------------------------------------------------------------------
