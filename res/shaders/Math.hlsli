@@ -1273,13 +1273,69 @@ float3 AP1_To_AP0(float3 color)
 }
 
 //-----------------------------------------------------------------------------
-//        ディザ処理.
+//      ディザ処理.
 //-----------------------------------------------------------------------------
 void Dithering(float2 sv_position, float alpha)
 {
     uint2 screenPos = (uint2)fmod(sv_position, 4.0f);
     if (alpha < F_DITHER_LIST[screenPos.x][screenPos.y])
     { discard; }
+}
+
+//-----------------------------------------------------------------------------
+//      単なる視差マッピング.
+//-----------------------------------------------------------------------------
+float2 ParallaxMapping
+(
+    Texture2D       heightMap,      // 高さマップ.
+    SamplerState    heightSmp,      // サンプラー.
+    float2          texcoord,       // テクスチャ座標.
+    float3          V,              // 視線ベクトル.
+    float           heightScale     // 高さスケール.
+)
+{
+    float  h = heightMap.Sample(heightSmp, texcoord).r;
+    float2 p = (V.xy / V.z) * (h * heightScale);
+    return texcoord - p;
+}
+
+//-----------------------------------------------------------------------------
+//      視差遮断マッピング.
+//-----------------------------------------------------------------------------
+float2 ParallxOcclusionMapping
+(
+    Texture2D           heightMap,      // 高さマップ.
+    SamplerState        heightSmp,      // 高さマップ用サンプラー.
+    Texture2D<float>    depthMap,       // 深度マップ.
+    SamplerState        depthSmp,       // 深度マップ用サンプラー.
+    float2              texcoord,       // テクスチャ座標.
+    float3              V,              // 視線ベクトル.
+    float               heightScale,    // 高さスケール.
+    const float         layerCount      // レイヤー数.
+)
+{
+    float layerDepth     = 1.0f / layerCount; 
+    float currLayerDepth = 0.0f;
+
+    float2 p = V.xy * heightScale;
+    float2 delta = p / layerCount;
+
+    float2 currUV = texcoord;
+    float currDepth = depthMap.Sample(depthSmp, currUV);
+
+    while(currLayerDepth < currDepth)
+    {
+        currUV -= delta;
+        currDepth = depthMap.Sample(depthSmp, currUV);
+        currLayerDepth += layerDepth;
+    }
+
+    float2 prevUV = currUV + delta;
+    float afterDepth = currDepth - currLayerDepth;
+    float beforeDepth = depthMap.Sample(depthSmp, prevUV) - currLayerDepth + layerDepth;
+
+    float weight = afterDepth / (afterDepth - beforeDepth);
+    return lerp(currUV, prevUV, weight);
 }
 
 #endif//MATH_HLSLI
