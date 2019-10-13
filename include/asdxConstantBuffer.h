@@ -52,7 +52,7 @@ public:
     //! @retval true    初期化に成功.
     //! @retval false   初期化に失敗.
     //---------------------------------------------------------------------------------------------
-    bool Init(ID3D11Device* pDevice, size_t size);
+    bool Init(ID3D11Device* pDevice, size_t size, bool mappable = false);
 
     //---------------------------------------------------------------------------------------------
     //! @brief      終了処理を行います.

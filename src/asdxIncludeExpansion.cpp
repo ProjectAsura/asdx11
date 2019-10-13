@@ -82,7 +82,7 @@ const std::string& IncludeExpansion::GetExpandResult() const
 bool IncludeExpansion::LoadFile(const char* filename, std::string& result)
 {
     FILE* pFile;
-    auto err = fopen_s(&pFile, filename, "rb, ccs=UTF-8");
+    auto err = fopen_s(&pFile, filename, "rb");
     if (err != 0)
     { return false; }
 

@@ -33,7 +33,7 @@ ConstantBuffer::~ConstantBuffer()
 //-------------------------------------------------------------------------------------------------
 //      初期化処理を行います.
 //-------------------------------------------------------------------------------------------------
-bool ConstantBuffer::Init(ID3D11Device* pDevice, size_t size)
+bool ConstantBuffer::Init(ID3D11Device* pDevice, size_t size, bool mappable)
 {
     if ( pDevice == nullptr || size == 0 )
     {
@@ -43,8 +43,10 @@ bool ConstantBuffer::Init(ID3D11Device* pDevice, size_t size)
 
     D3D11_BUFFER_DESC desc;
     ZeroMemory( &desc, sizeof(desc) );
-    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    desc.ByteWidth = UINT(size);
+    desc.Usage          = (mappable) ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
+    desc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+    desc.ByteWidth      = UINT(size);
+    desc.CPUAccessFlags = (mappable) ? D3D11_CPU_ACCESS_WRITE : 0;
 
     auto hr = pDevice->CreateBuffer( &desc, nullptr, m_Buffer.GetAddress() );
     if ( FAILED(hr) )
