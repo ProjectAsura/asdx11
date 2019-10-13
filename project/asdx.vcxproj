@@ -84,6 +84,7 @@
     <ClCompile Include="..\src\asdxHash.cpp" />
     <ClCompile Include="..\src\asdxHashString.cpp" />
     <ClCompile Include="..\src\asdxHistory.cpp" />
+    <ClCompile Include="..\src\asdxIncludeExpansion.cpp" />
     <ClCompile Include="..\src\asdxIndexBuffer.cpp" />
     <ClCompile Include="..\src\asdxKeyboard.cpp" />
     <ClCompile Include="..\src\asdxLocalization.cpp" />
@@ -119,6 +120,7 @@
     <ClInclude Include="..\include\asdxHashString.h" />
     <ClInclude Include="..\include\asdxHid.h" />
     <ClInclude Include="..\include\asdxHistory.h" />
+    <ClInclude Include="..\include\asdxIncludeExpansion.h" />
     <ClInclude Include="..\include\asdxIndexBuffer.h" />
     <ClInclude Include="..\include\asdxLfuCache.h" />
     <ClInclude Include="..\include\asdxLocalization.h" />
