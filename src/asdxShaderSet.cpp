@@ -102,9 +102,9 @@ bool VertexShader::Init
     if (FAILED(hr))
     {
         if (pErrorBlob.GetPtr() != nullptr)
-        { ELOG("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
-        ELOG("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
         return false;
     }
 
@@ -115,6 +115,62 @@ bool VertexShader::Init
         elementCount,
         pElements);
 }
+
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool VertexShader::Init
+(
+    ID3D11Device*                   pDevice,
+    const char*                     sourceCode,
+    size_t                          sourceCodeSize,
+    const char*                     entryPoint,
+    const char*                     shaderModel,
+    uint32_t                        elementCount,
+    const D3D11_INPUT_ELEMENT_DESC* pElements
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompile(
+        sourceCode,
+        sourceCodeSize,
+        "vertex_shader",
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize(),
+        elementCount,
+        pElements);
+}
+
 
 //-----------------------------------------------------------------------------
 //      終了処理を行います.
@@ -226,9 +282,59 @@ bool PixelShader::Init
     if (FAILED(hr))
     {
         if (pErrorBlob.GetPtr() != nullptr)
-        { ELOG("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
-        ELOG("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+ 
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize());
+}
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool PixelShader::Init
+(
+    ID3D11Device*   pDevice,
+    const char*     sourceCode,
+    size_t          sourceCodeSize,
+    const char*     entryPoint,
+    const char*     shaderModel
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompile(
+        sourceCode,
+        sourceCodeSize,
+        "pixel_shader",
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
         return false;
     }
  
@@ -350,9 +456,59 @@ bool ComputeShader::Init
     if (FAILED(hr))
     {
         if (pErrorBlob.GetPtr() != nullptr)
-        { ELOG("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
-        ELOG("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize());
+}
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool ComputeShader::Init
+(
+    ID3D11Device*   pDevice,
+    const char*     sourceCode,
+    size_t          sourceCodeSize,
+    const char*     entryPoint,
+    const char*     shaderModel
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompile(
+        sourceCode,
+        sourceCodeSize,
+        "compute_shader",
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
         return false;
     }
 

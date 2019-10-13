@@ -82,6 +82,18 @@ public:
         const D3D11_INPUT_ELEMENT_DESC* pElements);
 
     //-------------------------------------------------------------------------
+    //! @brief      ソースコードから初期化処理を行います.
+    //-------------------------------------------------------------------------
+    bool Init(
+        ID3D11Device*   pDevice,
+        const char*     sourceCode,
+        size_t          sourceCodSize,
+        const char*     entryPoint,
+        const char*     shaderModel,
+        uint32_t        elementCount,
+        const D3D11_INPUT_ELEMENT_DESC* pElements);
+
+    //-------------------------------------------------------------------------
     //! @brief      終了処理を行います.
     //-------------------------------------------------------------------------
     void Term();
@@ -148,6 +160,16 @@ public:
     bool Init(
         ID3D11Device*   pDevice,
         const wchar_t*  path,
+        const char*     entryPoint,
+        const char*     shaderModel);
+
+    //-------------------------------------------------------------------------
+    //! @brief      ソースコードから初期化処理を行います.
+    //-------------------------------------------------------------------------
+    bool Init(
+        ID3D11Device*   pDevice,
+        const char*     sourceCode,
+        size_t          sourceCodeSize,
         const char*     entryPoint,
         const char*     shaderModel);
 
@@ -225,6 +247,16 @@ public:
     bool Init(
         ID3D11Device*   pDevice,
         const wchar_t*  path,
+        const char*     entryPoint,
+        const char*     shaderModel);
+
+    //-------------------------------------------------------------------------
+    //! @brief      ソースコードから初期化処理を行います.
+    //-------------------------------------------------------------------------
+    bool Init(
+        ID3D11Device*   pDevice,
+        const char*     sourceCode,
+        size_t          sourceCodeSize,
         const char*     entryPoint,
         const char*     shaderModel);
 
