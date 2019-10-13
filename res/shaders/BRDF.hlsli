@@ -495,7 +495,7 @@ float2 ParallaxRefraction
     float       height,                 // 高さ.
     float       parallaxScale,          // 視差スケール.
     float3      viewW,                  // ワールド空間の視線ベクトル.
-    float4x4    world                   // ワールド行列.
+    float3x3    world                   // ワールド行列.
 )
 {
     // Jorge Jimenez, Javier von der Pahlen,
@@ -519,7 +519,7 @@ float2 PhysicallyBasedRefraction
     float3      normalW,            // 法線ベクトル.
     float3      viewW,              // ワールド空間での視線ベクトル.
     float3      frontNormalW,       // 眼球の視線ベクトル
-    float4x4    world               // ワールド行列
+    float3x3    world               // ワールド行列
 )
 {
     // 参考. Real-Time Rendering Third Edition, Section 9.5 Refractions.
@@ -535,11 +535,7 @@ float2 PhysicallyBasedRefraction
     float3 offsetW  = dist * refractedW;
 
     // ローカルに変換
-#if 0
-    //float2 offsetL  = mul(offsetW, (float3x2)world);
-#else
-    float2 offsetL = mul(float4(offsetW, 1.0f), world).xy;
-#endif
+    float2 offsetL = mul(offsetW, world).xy;
 
     return texcoord + float2(mask, -mask) * offsetL;
 }
