@@ -9,20 +9,22 @@
 namespace asdx {
 
 //-----------------------------------------------------------------------------
-//! @brief      デフォルトのチェンジリストに対象ファイルを追加します.
+//! @brief      チェンジリストに対象ファイルを追加します.
 //!
-//! @param[in]      path        対象ファイルのパス.
+//! @param[in]      path            対象ファイルのパス.
+//! @param[in]      changeList      チェンジリスト名.
 //! @return     プロセス起動の結果を返却します.
 //-----------------------------------------------------------------------------
-bool AddP4V(const char* path);
+bool AddP4V(const char* path, const char* changeList="default");
 
 //-----------------------------------------------------------------------------
-//! @brief      デフォルトのチェンジリストに対象ファイルをチェックアウトします.
+//! @brief      チェンジリストに対象ファイルをチェックアウトします.
 //!
-//! @param[in]      path        対象ファイルのパス.
+//! @param[in]      path            対象ファイルのパス.
+//! @param[in]      changeList      チェンジリスト名.
 //! @return     プロセス起動の結果を返却します.
 //-----------------------------------------------------------------------------
-bool CheckoutP4V(const char* path);
+bool CheckoutP4V(const char* path, const char* changeList="default");
 
 //-----------------------------------------------------------------------------
 //! @brief      対象ファイルの変更を元に戻します.
@@ -30,6 +32,7 @@ bool CheckoutP4V(const char* path);
 //! @param[in]      path        対象ファイルのパス.
 //! @return     プロセス起動の結果を返却します.
 //-----------------------------------------------------------------------------
-bool RevertP4V(const char* path);
+bool RevertP4V(const char* path, const char* changeList="default");
+
 
 } // namespace asdx

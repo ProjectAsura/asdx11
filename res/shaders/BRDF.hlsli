@@ -12,7 +12,6 @@
 #include "Math.hlsli"
 
 
-
 //-----------------------------------------------------------------------------
 //      ディフューズ反射率を求めます.
 //-----------------------------------------------------------------------------
@@ -128,6 +127,15 @@ float LambertDiffuse(float NoL)
 { return NoL / F_PI; }
 
 //-----------------------------------------------------------------------------
+//      Half-Lambert Diffuseを求めます.
+//-----------------------------------------------------------------------------
+float HalfLambertDiffuse(float NoL)
+{
+    float  v = NoL * 0.5f + 0.5f;
+    return (v * v) * (3.0f / (4.0f * PI));
+}
+
+//-----------------------------------------------------------------------------
 //      Disney Diffuseを求めます.
 //-----------------------------------------------------------------------------
 float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float roughness)
@@ -142,24 +150,42 @@ float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float roughness)
 }
 
 //-----------------------------------------------------------------------------
+//      Phong Specularを求めます.
+//-----------------------------------------------------------------------------
+float PhongSpecular(float3 N, float3 V, float3 L, float shininess)
+{
+    float3 R = -V + (2.0f * dot(N, V) * N);
+    return Pow(max(dot(L, R), 0.0f), shininess) * ((shininess + 2.0f) / (2.0 * PI));
+}
+
+//-----------------------------------------------------------------------------
 //      GGXのD項を求めます.
 //-----------------------------------------------------------------------------
 float D_GGX(float NdotH, float m)
 {
-    float m2 = m * m;
-    float f = (NdotH * m2 - NdotH) * NdotH + 1;
-    return m2 / max(f * f, 1e-4f);
+    float a2 = m * m;
+    float f = (NdotH * a2 - NdotH) * NdotH + 1;
+    float d = a2 / (f * f);
+    return SaturateHalf(d);
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //      Height Correlated SmithによるG項を求めます.
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 float G_SmithGGX(float NdotL, float NdotV, float alphaG)
 {
-    float alphaG2 = alphaG * alphaG;
-    float Lambda_GGXV = NdotL * sqrt((-NdotV * alphaG2 + NdotV) * NdotV + alphaG2);
-    float Lambda_GGXL = NdotV * sqrt((-NdotL * alphaG2 + NdotL) * NdotL + alphaG2);
-    return 0.5f / max(Lambda_GGXV + Lambda_GGXL, 1e-4f);
+#if 0
+    float a2 = alphaG * alphaG;
+    float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0f - a2) + a2);
+    float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0f - a2) + a2);
+    return 0.5f / (Lambda_GGXV + Lambda_GGXL);
+#else
+    // sqrt()がない最適化バージョン.
+    float a = alphaG;
+    float GGXV = NdotL * (NdotV * (1.0f - a) + a);
+    float GGXL = NdotV * (NdotL * (1.0f - a) + a);
+    return 0.5f / (GGXV + GGXL);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -203,7 +229,7 @@ float2 ApproxDFGClothCharlie(float roughness, float NoV)
     float a = 1.0f - NoV;
     float b = 1.0f - roughness;
 
-    float n = Pow(max(c1.x + a, 0.0f), 64.0);
+    float n = Pow(c1.x + a, 64.0);
     float e = b - c0.x;
     float g = exp2(-(e * e) * c0.y);
     float f = b + c1.y;
@@ -238,7 +264,7 @@ float D_Charlie(float linearRoughness, float NoH)
     float invAlpha = 1.0f / linearRoughness;
     float cos2h = NoH * NoH;
     float sin2h = max(1.0f - cos2h, 0.0078125f); // 2^(-14/2), so sin2h^2 0 in fp16
-    return max((2.0f + invAlpha) * pow(sin2h, invAlpha * 0.5f) / (2.0f * F_PI), 0.0f);
+    return (2.0f + invAlpha) * Pow(sin2h, invAlpha * 0.5f) / (2.0f * F_PI);
 }
 
 //-----------------------------------------------------------------------------
@@ -395,7 +421,7 @@ float3 EvaluateKajiyaKay
 //      V項を計算します.
 //-----------------------------------------------------------------------------
 float V_Kelemen(float LoH)
-{ return 0.25f / max((LoH * LoH), 1e-5f); }
+{ return 0.25f / (LoH * LoH); }
 
 //-----------------------------------------------------------------------------
 //      クリアコートのラフネスを求めます.

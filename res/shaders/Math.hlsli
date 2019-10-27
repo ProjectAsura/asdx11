@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------------
 // Constant Values.
 //-----------------------------------------------------------------------------
+static const float HALF_MAX = 65504.0f;         // 半精度浮動小数の最大値.
 static const float F_PI     = 3.1415926535897932384626433832795f;
 static const float F_1DIVPI = 0.31830988618379067153776752674503f;
 static const float F_DITHER_LIST[4][4] = {
@@ -18,6 +19,30 @@ static const float F_DITHER_LIST[4][4] = {
         { 0.68627f, 0.18823f, 0.56470f, 0.06274f },
     };
 
+
+//-----------------------------------------------------------------------------
+//      半精度浮動小数の最大値未満に飽和させます.
+//-----------------------------------------------------------------------------
+float SaturateHalf(float value)
+{ return clamp(value, 0.0f, HALF_MAX); }
+
+//-----------------------------------------------------------------------------
+//      半精度浮動小数の最大値未満に飽和させます.
+//-----------------------------------------------------------------------------
+float2 SaturateHalf(float2 value)
+{ return clamp(value, float(0).xx, HALF_MAX.xx); }
+
+//-----------------------------------------------------------------------------
+//      半精度浮動小数の最大値未満に飽和させます.
+//-----------------------------------------------------------------------------
+float3 SaturateHalf(float3 value)
+{ return clamp(value, float(0).xxx, HALF_MAX.xxx); }
+
+//-----------------------------------------------------------------------------
+//      単精度浮動小数の最大値未満に飽和させます.
+//-----------------------------------------------------------------------------
+float4 SaturateHalf(float4 value)
+{ return clamp(value, float(0).xxxx, HALF_MAX.xxxx); }
 
 //-----------------------------------------------------------------------------
 //      2乗計算を行います.
@@ -125,25 +150,41 @@ float4 Pow5(float4 x)
 //      累乗計算を行います.
 //-----------------------------------------------------------------------------
 float Pow(float a, float b)
-{ return (precise float)(pow(a, b)); }
+{
+    // a == 0.0f && b == 0.0f のときに機種依存によりNaNが発生する恐れがあるので，
+    // 発生しないようにクランプ処理を入れる.
+    return pow(max(abs(a), 1e-6f), b);
+}
 
 //-----------------------------------------------------------------------------
 //      累乗計算を行います.
 //-----------------------------------------------------------------------------
 float2 Pow(float2 a, float2 b)
-{ return (precise float2)(pow(a, b)); }
+{
+    // a == 0.0f && b == 0.0f のときに機種依存によりNaNが発生する恐れがあるので，
+    // 発生しないようにクランプ処理を入れる.
+    return pow(max(abs(a), float(1e-6f).xx), b);
+}
 
 //-----------------------------------------------------------------------------
 //      累乗計算を行います.
 //-----------------------------------------------------------------------------
 float3 Pow(float3 a, float3 b)
-{ return (precise float3)(pow(a, b)); }
+{
+    // a == 0.0f && b == 0.0f のときに機種依存によりNaNが発生する恐れがあるので，
+    // 発生しないようにクランプ処理を入れる.
+    return pow(max(abs(a), float(1e-6f).xxx), b);
+}
 
 //-----------------------------------------------------------------------------
 //      累乗計算を行います.
 //-----------------------------------------------------------------------------
 float4 Pow(float4 a, float4 b)
-{ return (precise float4)(pow(a, b)); }
+{
+    // a == 0.0f && b == 0.0f のときに機種依存によりNaNが発生する恐れがあるので，
+    // 発生しないようにクランプ処理を入れる.
+    return pow(max(abs(a), float(1e-6f).xxxx), b);
+}
 
 //-----------------------------------------------------------------------------
 //      再マッピングします.
@@ -623,6 +664,7 @@ float3 IrraidanceSH2(float3 n, float4 sh[4])
         + sh[3].rgb * (n.x);
     return max(result, 0.0f);
 }
+
 
 //-----------------------------------------------------------------------------
 //      球面調和関数の係数ベクトルから放射照度を求めます.
@@ -1323,6 +1365,7 @@ float2 ParallxOcclusionMapping
     float2 currUV = texcoord;
     float currDepth = depthMap.Sample(depthSmp, currUV);
 
+    [loop]
     while(currLayerDepth < currDepth)
     {
         currUV -= delta;
@@ -1336,6 +1379,16 @@ float2 ParallxOcclusionMapping
 
     float weight = afterDepth / (afterDepth - beforeDepth);
     return lerp(currUV, prevUV, weight);
+}
+
+//-----------------------------------------------------------------------------
+//      Ray vs Sphereの交差判定を行います.
+//-----------------------------------------------------------------------------
+bool RaySphereHit(float3 rayOrigin, float3 rayDir, float3 sphereCenter, float sphereRadius)
+{
+    float3 closestPointOnRay = max(0, dot(sphereCenter - rayOrigin, rayDir)) * rayDir;
+    float3 centerToRay = rayOrigin + closestPointOnRay - sphereCenter;
+    return dot(centerToRay, centerToRay) <= Sq(sphereRadius);
 }
 
 #endif//MATH_HLSLI
