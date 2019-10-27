@@ -379,6 +379,512 @@ ID3D11ShaderReflection* PixelShader::GetReflection() const
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// GeometryShader class
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+GeometryShader::GeometryShader()
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      デストラクタです.
+//-----------------------------------------------------------------------------
+GeometryShader::~GeometryShader()
+{ Term(); }
+
+//-----------------------------------------------------------------------------
+//      初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool GeometryShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t binarySize)
+{
+    auto hr = pDevice->CreateGeometryShader(pBinary, binarySize, nullptr, m_GS.GetAddress());
+    if (FAILED(hr))
+    {
+        ELOG("Error : ID3D11Device::CreateGeometryShader() Failed.");
+        return false;
+    }
+
+    hr = D3DReflect(pBinary, binarySize, IID_PPV_ARGS(m_Reflection.GetAddress()));
+    if (FAILED(hr))
+    {
+        ELOG("Error : D3DReflect() Failed.");
+        return false;
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool GeometryShader::Init
+(
+    ID3D11Device*   pDevice,
+    const wchar_t*  path,
+    const char*     entryPoint,
+    const char*     shaderModel
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompileFromFile(
+        path,
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+ 
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize());
+}
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool GeometryShader::Init
+(
+    ID3D11Device*   pDevice,
+    const char*     sourceCode,
+    size_t          sourceCodeSize,
+    const char*     entryPoint,
+    const char*     shaderModel
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompile(
+        sourceCode,
+        sourceCodeSize,
+        "geometry_shader",
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+ 
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize());
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void GeometryShader::Term()
+{
+    m_GS.Reset();
+    m_Reflection.Reset();
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダを設定します.
+//-----------------------------------------------------------------------------
+void GeometryShader::Bind(ID3D11DeviceContext* pContext)
+{
+    pContext->GSSetShader(m_GS.GetPtr(), nullptr, 0);
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダの設定を解除します.
+//-----------------------------------------------------------------------------
+void GeometryShader::UnBind(ID3D11DeviceContext* pContext)
+{
+    pContext->GSSetShader(nullptr, nullptr, 0);
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダリフレクションを取得します.
+//-----------------------------------------------------------------------------
+ID3D11ShaderReflection* GeometryShader::GetReflection() const
+{
+    return m_Reflection.GetPtr();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// HullShader class
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+HullShader::HullShader()
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      デストラクタです.
+//-----------------------------------------------------------------------------
+HullShader::~HullShader()
+{ Term(); }
+
+//-----------------------------------------------------------------------------
+//      初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool HullShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t binarySize)
+{
+    auto hr = pDevice->CreateHullShader(pBinary, binarySize, nullptr, m_HS.GetAddress());
+    if (FAILED(hr))
+    {
+        ELOG("Error : ID3D11Device::CreatePixelShader() Failed.");
+        return false;
+    }
+
+    hr = D3DReflect(pBinary, binarySize, IID_PPV_ARGS(m_Reflection.GetAddress()));
+    if (FAILED(hr))
+    {
+        ELOG("Error : D3DReflect() Failed.");
+        return false;
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool HullShader::Init
+(
+    ID3D11Device*   pDevice,
+    const wchar_t*  path,
+    const char*     entryPoint,
+    const char*     shaderModel
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompileFromFile(
+        path,
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+ 
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize());
+}
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool HullShader::Init
+(
+    ID3D11Device*   pDevice,
+    const char*     sourceCode,
+    size_t          sourceCodeSize,
+    const char*     entryPoint,
+    const char*     shaderModel
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompile(
+        sourceCode,
+        sourceCodeSize,
+        "hull_shader",
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+ 
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize());
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void HullShader::Term()
+{
+    m_HS.Reset();
+    m_Reflection.Reset();
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダを設定します.
+//-----------------------------------------------------------------------------
+void HullShader::Bind(ID3D11DeviceContext* pContext)
+{
+    pContext->HSSetShader(m_HS.GetPtr(), nullptr, 0);
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダの設定を解除します.
+//-----------------------------------------------------------------------------
+void HullShader::UnBind(ID3D11DeviceContext* pContext)
+{
+    pContext->HSSetShader(nullptr, nullptr, 0);
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダリフレクションを取得します.
+//-----------------------------------------------------------------------------
+ID3D11ShaderReflection* HullShader::GetReflection() const
+{
+    return m_Reflection.GetPtr();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// DomainShader class
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+DomainShader::DomainShader()
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      デストラクタです.
+//-----------------------------------------------------------------------------
+DomainShader::~DomainShader()
+{ Term(); }
+
+//-----------------------------------------------------------------------------
+//      初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool DomainShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t binarySize)
+{
+    auto hr = pDevice->CreateDomainShader(pBinary, binarySize, nullptr, m_DS.GetAddress());
+    if (FAILED(hr))
+    {
+        ELOG("Error : ID3D11Device::CreateDomainShader() Failed.");
+        return false;
+    }
+
+    hr = D3DReflect(pBinary, binarySize, IID_PPV_ARGS(m_Reflection.GetAddress()));
+    if (FAILED(hr))
+    {
+        ELOG("Error : D3DReflect() Failed.");
+        return false;
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool DomainShader::Init
+(
+    ID3D11Device*   pDevice,
+    const wchar_t*  path,
+    const char*     entryPoint,
+    const char*     shaderModel
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompileFromFile(
+        path,
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+ 
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize());
+}
+
+//-----------------------------------------------------------------------------
+//      ソースコードから初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool DomainShader::Init
+(
+    ID3D11Device*   pDevice,
+    const char*     sourceCode,
+    size_t          sourceCodeSize,
+    const char*     entryPoint,
+    const char*     shaderModel
+)
+{
+    DWORD flag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        flag |= D3DCOMPILE_DEBUG;
+    #else
+        flag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    #endif
+
+    RefPtr<ID3DBlob> pBlob;
+    RefPtr<ID3DBlob> pErrorBlob;
+    auto hr = D3DCompile(
+        sourceCode,
+        sourceCodeSize,
+        "domain_shader",
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entryPoint,
+        shaderModel,
+        flag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        if (pErrorBlob.GetPtr() != nullptr)
+        { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
+
+        ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        return false;
+    }
+ 
+    return Init(
+        pDevice,
+        reinterpret_cast<uint8_t*>(pBlob->GetBufferPointer()),
+        pBlob->GetBufferSize());
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void DomainShader::Term()
+{
+    m_DS.Reset();
+    m_Reflection.Reset();
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダを設定します.
+//-----------------------------------------------------------------------------
+void DomainShader::Bind(ID3D11DeviceContext* pContext)
+{
+    pContext->DSSetShader(m_DS.GetPtr(), nullptr, 0);
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダの設定を解除します.
+//-----------------------------------------------------------------------------
+void DomainShader::UnBind(ID3D11DeviceContext* pContext)
+{
+    pContext->DSSetShader(nullptr, nullptr, 0);
+}
+
+//-----------------------------------------------------------------------------
+//      シェーダリフレクションを取得します.
+//-----------------------------------------------------------------------------
+ID3D11ShaderReflection* DomainShader::GetReflection() const
+{
+    return m_Reflection.GetPtr();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 // ComputeShader class
 ///////////////////////////////////////////////////////////////////////////////
 

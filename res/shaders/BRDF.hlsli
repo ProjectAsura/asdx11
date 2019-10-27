@@ -132,7 +132,7 @@ float LambertDiffuse(float NoL)
 float HalfLambertDiffuse(float NoL)
 {
     float  v = NoL * 0.5f + 0.5f;
-    return (v * v) * (3.0f / (4.0f * PI));
+    return (v * v) * (3.0f / (4.0f * F_PI));
 }
 
 //-----------------------------------------------------------------------------
@@ -155,7 +155,7 @@ float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float roughness)
 float PhongSpecular(float3 N, float3 V, float3 L, float shininess)
 {
     float3 R = -V + (2.0f * dot(N, V) * N);
-    return Pow(max(dot(L, R), 0.0f), shininess) * ((shininess + 2.0f) / (2.0 * PI));
+    return Pow(max(dot(L, R), 0.0f), shininess) * ((shininess + 2.0f) / (2.0 * F_PI));
 }
 
 //-----------------------------------------------------------------------------
