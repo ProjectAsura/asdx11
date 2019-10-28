@@ -309,7 +309,7 @@ const float* EditFloat::GetValuePtr() const
 //      グループヒストリー用のヒストリーを作成します.
 //-----------------------------------------------------------------------------
 asdx::IHistory* EditFloat::CreateHistory(float value)
-{ return new ParamHistory<float>(&m_Value, m_Value, value); }
+{ return new ParamHistory<float>(&m_Value, value); }
 
 #ifdef ASDX_ENABLE_IMGUI
 //-----------------------------------------------------------------------------
