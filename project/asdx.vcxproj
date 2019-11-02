@@ -81,6 +81,7 @@
     <ClCompile Include="..\src\asdxFlatDoc.cpp" />
     <ClCompile Include="..\src\asdxFont.cpp" />
     <ClCompile Include="..\src\asdxFrameHeap.cpp" />
+    <ClCompile Include="..\src\asdxGuiMgr.cpp" />
     <ClCompile Include="..\src\asdxHash.cpp" />
     <ClCompile Include="..\src\asdxHashString.cpp" />
     <ClCompile Include="..\src\asdxHistory.cpp" />
@@ -96,7 +97,7 @@
     <ClCompile Include="..\src\asdxRandom.cpp" />
     <ClCompile Include="..\src\asdxRenderState.cpp" />
     <ClCompile Include="..\src\asdxResTexture.cpp" />
-    <ClCompile Include="..\src\asdxShaderSet.cpp" />
+    <ClCompile Include="..\src\asdxShader.cpp" />
     <ClCompile Include="..\src\asdxSkyBox.cpp" />
     <ClCompile Include="..\src\asdxSkySphere.cpp" />
     <ClCompile Include="..\src\asdxSound.cpp" />
@@ -133,7 +134,7 @@
     <ClInclude Include="..\include\asdxRef.h" />
     <ClInclude Include="..\include\asdxRenderState.h" />
     <ClInclude Include="..\include\asdxResTexture.h" />
-    <ClInclude Include="..\include\asdxShaderSet.h" />
+    <ClInclude Include="..\include\asdxShader.h" />
     <ClInclude Include="..\include\asdxSkyBox.h" />
     <ClInclude Include="..\include\asdxSkySphere.h" />
     <ClInclude Include="..\include\asdxSound.h" />
