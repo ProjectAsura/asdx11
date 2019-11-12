@@ -19,28 +19,23 @@
 #define ASDX_TO_STR(x) #x
 #endif//ASDX_TO_STR
 
-#ifndef ASDX_EDIT_SERIALIZE
-#define ASDX_EDIT_SERIALIZE(doc, element, var)  element->InsertEndChild(var.Serialize(doc, ASDX_TO_STR(var)))
-#endif//ASDX_EDIT_SERIALIZE
+#ifndef ASDX_ELEMENT_SERIALIZE
+#define ASDX_ELEMENT_SERIALIZE(doc, var) \
+    var.Serialize(doc, ASDX_TO_STR(var))
+#endif//ASDX_ELEMENT_SERIALIZE
 
-#ifndef ASDX_EDIT_DESERIALIZE
-#define ASDX_EDIT_DESERIALIZE(element, var)     var.Deserialize(element, ASDX_TO_STR(var))
-#endif//ASDX_EDIT_DESERIALIZE
+#ifndef ASDX_ELEMENT_DESERIALIZE
+#define ASDX_ELEMENT_DESERIALIZE(elem, var) \
+    var.Deserialize(elem, ASDX_TO_STR(var))
+#endif//ASDX_ELEMENT_DESERIALIZE
+
+#ifndef ASDX_ELEMENT_PUSH_BACK
+#define ASDX_ELEMENT_PUSH_BACK(doc, elem, var) \
+    elem->InsertEndChild(ASDX_ELEMENT_SERIALIZE(doc, var))
+#endif//ASDX_ELEMENT_PUSH_BACK
+
 
 #endif//ASDX_ENABLE_TINYXML2
-
-
-#ifdef ASDX_ENABLE_EDIT_HISTORY
-
-//-----------------------------------------------------------------------------
-//! @brief      編集用ヒストリーマネージャを取得します.
-//!
-//! @return     編集用ヒストリーマネージャを返却します.
-//! @note       この関数はアプリケーション側で実装を行ってください. 
-//-----------------------------------------------------------------------------
-asdx::HistoryMgr& EditHistory();
-
-#endif//ASDX_ENABLE_EDIT_HISTORY
 
 
 namespace asdx {

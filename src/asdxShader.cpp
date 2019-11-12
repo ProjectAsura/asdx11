@@ -14,6 +14,152 @@
 namespace asdx {
 
 ///////////////////////////////////////////////////////////////////////////////
+// ShaderCBV class
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+ShaderCBV::ShaderCBV()
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      デストラクタです.
+//-----------------------------------------------------------------------------
+ShaderCBV::~ShaderCBV()
+{ Term(); }
+
+//-----------------------------------------------------------------------------
+//      初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool ShaderCBV::Init
+(
+    ID3D11Device*                           pDevice,
+    ID3D11ShaderReflectionConstantBuffer*   pReflection
+)
+{
+    if (pDevice == nullptr || pReflection == nullptr)
+    {
+        ELOG("Error : Invalid Argument.");
+        return false;
+    }
+
+    D3D11_SHADER_BUFFER_DESC buf_desc;
+    auto hr = pReflection->GetDesc(&buf_desc);
+    if (FAILED(hr))
+    {
+        ELOG("Error : ID3D11ShaderReflectionConstantBuffer::GetDesc() Failed. recode = 0x%x", hr);
+        return false;
+    }
+
+    auto size = buf_desc.Size;
+
+    m_Memory.resize(size);
+
+    D3D11_BUFFER_DESC cb_desc = {};
+    cb_desc.Usage           = D3D11_USAGE_DEFAULT;
+    cb_desc.BindFlags       = D3D11_BIND_CONSTANT_BUFFER;
+    cb_desc.ByteWidth       = size;
+    cb_desc.CPUAccessFlags  = 0;
+
+    hr = pDevice->CreateBuffer(&cb_desc, nullptr, m_CB.GetAddress());
+    if (FAILED(hr))
+    {
+        ELOG("Error : ID3D11Device::CreateBuffer() Failed");
+        return false;
+    }
+
+    for(auto i=0u; i<buf_desc.Variables; ++i)
+    {
+        auto pVar = pReflection->GetVariableByIndex(i);
+        if (pVar == nullptr)
+        { continue; }
+
+        D3D11_SHADER_VARIABLE_DESC var_desc;
+        hr = pVar->GetDesc(&var_desc);
+        if (FAILED(hr))
+        { continue; }
+
+        BufferParam param;
+        param.Offset = var_desc.StartOffset;
+        param.Size   = var_desc.Size;
+
+        if (!Contain(var_desc.Name))
+        { m_ParamMap[var_desc.Name] = param; }
+
+        auto head = m_Memory.data();
+        memcpy(head + var_desc.StartOffset, var_desc.DefaultValue, var_desc.Size);
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void ShaderCBV::Term()
+{
+    m_CB.Reset();
+
+    m_ParamMap.clear();
+    m_Memory  .clear();
+}
+
+//-----------------------------------------------------------------------------
+//      パラメータを設定します.
+//-----------------------------------------------------------------------------
+bool ShaderCBV::SetParam(const char* name, const void* ptr, size_t size)
+{
+    if (!Contain(name))
+    { return false; }
+
+    auto param = m_ParamMap[name];
+    if (param.Size != size)
+    { return false; }
+
+    auto head = m_Memory.data();
+    memcpy(head + param.Offset, ptr, param.Size);
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      パラメータを取得します.
+//-----------------------------------------------------------------------------
+bool ShaderCBV::GetParam(const char* name, void* ptr, size_t size) const
+{
+    if (!Contain(name))
+    { return false; }
+
+    auto param = m_ParamMap.at(name);
+    if (param.Size != size)
+    { return false; }
+
+    auto head = m_Memory.data();
+    memcpy(ptr, head + param.Offset, param.Size);
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      指定されたパラメータ名が含まれるかチェックします.
+//-----------------------------------------------------------------------------
+bool ShaderCBV::Contain(const char* name) const
+{ return m_ParamMap.find(name) != m_ParamMap.end(); }
+
+//-----------------------------------------------------------------------------
+//      サブリソースを更新します.
+//-----------------------------------------------------------------------------
+void ShaderCBV::UpdateSubresource(ID3D11DeviceContext* pContext)
+{ pContext->UpdateSubresource(m_CB.GetPtr(), 0, nullptr, m_Memory.data(), 0, 0); }
+
+//-----------------------------------------------------------------------------
+//      バッファを返却します
+//-----------------------------------------------------------------------------
+ID3D11Buffer* ShaderCBV::GetPtr() const
+{ return m_CB.GetPtr(); }
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 // VertexShader class
 ///////////////////////////////////////////////////////////////////////////////
 

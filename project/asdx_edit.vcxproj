@@ -127,6 +127,8 @@
     <ClCompile Include="..\external\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="..\src\asdxAppHistoryMgr.cpp" />
+    <ClCompile Include="..\src\asdxEditParam.cpp" />
     <ClCompile Include="..\src\asdxGuiMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -137,7 +139,10 @@
     <ClInclude Include="..\external\imgui\imstb_textedit.h" />
     <ClInclude Include="..\external\imgui\imstb_truetype.h" />
     <ClInclude Include="..\external\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="..\include\asdxAppHistoryMgr.h" />
+    <ClInclude Include="..\include\asdxEditParam.h" />
     <ClInclude Include="..\include\asdxGuiMgr.h" />
+    <ClInclude Include="..\include\asdxParamHistory.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

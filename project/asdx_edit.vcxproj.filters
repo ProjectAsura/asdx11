@@ -39,6 +39,12 @@
     <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp">
       <Filter>external\tinyxml2</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\asdxAppHistoryMgr.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\asdxEditParam.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\asdxGuiMgr.h">
@@ -64,6 +70,15 @@
     </ClInclude>
     <ClInclude Include="..\external\tinyxml2\tinyxml2.h">
       <Filter>external\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\asdxAppHistoryMgr.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\asdxEditParam.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\asdxParamHistory.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
