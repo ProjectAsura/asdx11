@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------------
 #include <asdxEditParam.h>
 #include <asdxParamHistory.h>
+#include <asdxAppHistoryMgr.h>
 
 #ifdef ASDX_ENABLE_IMGUI
 #include <imgui.h>
@@ -33,20 +34,16 @@ EditBool::EditBool(bool value)
 //-----------------------------------------------------------------------------
 void EditBool::SetValue(bool value, bool history)
 {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        if (!history)
-        {
-            m_Value = value;
-            return;
-        }
-
-        if (value == m_Value)
-        { return; }
-
-        EditHistory().Add(CreateHistory(value));
-    #else
+    if (!history)
+    {
         m_Value = value;
-    #endif
+        return;
+    }
+
+    if (value == m_Value)
+    { return; }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
 }
 
 //-----------------------------------------------------------------------------
@@ -76,9 +73,7 @@ void EditBool::DrawCheckbox(const char* tag)
     auto prev = m_Value;
     if (ImGui::Checkbox(tag, &m_Value))
     {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        EditHistory().Add(new ParamHistory<bool>(&m_Value, m_Value, prev), false);
-    #endif
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<bool>(&m_Value, m_Value, prev), false);
     }
 }
 #endif//ASDX_ENABLE_IMGUI
@@ -129,20 +124,16 @@ EditInt::EditInt(int value)
 //-----------------------------------------------------------------------------
 void EditInt::SetValue(int value, bool history)
 {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        if (!history)
-        {
-            m_Value = value;
-            return;
-        }
-
-        if (m_Value == value)
-        { return; }
-
-        EditHistory().Add(CreateHistory(value));
-    #else
+    if (!history)
+    {
         m_Value = value;
-    #endif
+        return;
+    }
+
+    if (m_Value == value)
+    { return; }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
 }
 
 //-----------------------------------------------------------------------------
@@ -182,17 +173,13 @@ void EditInt::DrawSlider(const char* tag, int step, int mini, int maxi)
         else if (m_Dragged)
         {
             // マウスドラッグ終了時.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<int>(&m_Value, m_Value, m_Prev), false);
-            #endif//ASDX_ENABLE_EDIT_HISTORY
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<int>(&m_Value, m_Value, m_Prev), false);
             m_Dragged = false;
         }
         else if (flag)
         {
             // キーボード入力.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<int>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<int>(&m_Value, m_Value, m_Prev), false);
         }
     }
     else if (ImGui::IsItemActive())
@@ -209,9 +196,7 @@ void EditInt::DrawCombo(const char* tag, int count, const char** items)
     auto value = m_Value;
     if (ImGui::Combo(tag, &value, items, count))
     {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        EditHistory().Add(new ParamHistory<int>(&m_Value, value, m_Prev));
-    #endif
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<int>(&m_Value, value, m_Prev));
     }
 }
 
@@ -223,9 +208,7 @@ void EditInt::DrawCombo(const char* tag, bool (*items_getter)(void* data, int id
     auto value = m_Value;
     if (ImGui::Combo(tag, &value, items_getter, &value, count))
     {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        EditHistory().Add(new ParamHistory<int>(&m_Value, value, m_Prev));
-    #endif
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<int>(&m_Value, value, m_Prev));
     }
 }
 
@@ -277,20 +260,16 @@ EditFloat::EditFloat(float value)
 //-----------------------------------------------------------------------------
 void EditFloat::SetValue(float value, bool history)
 {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        if (!history)
-        {
-            m_Value = value;
-            return;
-        }
-
-        if (m_Value == value)
-        { return; }
-
-        EditHistory().Add(CreateHistory(value));
-    #else
+    if (!history)
+    {
         m_Value = value;
-    #endif
+        return;
+    }
+
+    if (m_Value == value)
+    { return; }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
 }
 
 //-----------------------------------------------------------------------------
@@ -330,17 +309,13 @@ void EditFloat::DrawSlider(const char* tag, float step, float mini, float maxi)
         else if (m_Dragged)
         {
             // マウスドラッグ終了時.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<float>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<float>(&m_Value, m_Value, m_Prev), false);
             m_Dragged = false;
         }
         else if (flag)
         {
             // キーボード入力.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<float>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<float>(&m_Value, m_Value, m_Prev), false);
         }
     }
     else if (ImGui::IsItemActive())
@@ -395,20 +370,16 @@ EditFloat2::EditFloat2(float x, float y)
 //-----------------------------------------------------------------------------
 void EditFloat2::SetValue(const asdx::Vector2& value, bool history)
 {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        if (!history)
-        {
-            m_Value = value;
-            return;
-        }
-
-        if (m_Value == value)
-        { return; }
-
-        EditHistory().Add(CreateHistory(value));
-    #else
+    if (!history)
+    {
         m_Value = value;
-    #endif
+        return;
+    }
+
+    if (m_Value == value)
+    { return; }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
 }
 
 //-----------------------------------------------------------------------------
@@ -448,17 +419,13 @@ void EditFloat2::DrawSlider(const char* tag, float step, float mini, float maxi)
         else if (m_Dragged)
         {
             // マウスドラッグ終了時.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector2>(&m_Value, m_Value, m_Prev), false);
-            #endif//ASDX_ENABLE_EDIT_HISTORY
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector2>(&m_Value, m_Value, m_Prev), false);
             m_Dragged = false;
         }
         else if (flag)
         {
             // キーボード入力.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector2>(&m_Value, m_Value, m_Prev), false);
-            #endif//ASDX_ENABLE_EDIT_HISTORY
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector2>(&m_Value, m_Value, m_Prev), false);
         }
     }
     else if (ImGui::IsItemActive())
@@ -515,20 +482,16 @@ EditFloat3::EditFloat3(float x, float y, float z)
 //-----------------------------------------------------------------------------
 void EditFloat3::SetValue(const asdx::Vector3& value, bool history)
 {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        if (!history)
-        {
-            m_Value = value;
-            return;
-        }
-
-        if (m_Value == value)
-        { return; }
-
-        EditHistory().Add(CreateHistory(value));
-    #else
+    if (!history)
+    {
         m_Value = value;
-    #endif
+        return;
+    }
+
+    if (m_Value == value)
+    { return; }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
 }
 
 //-----------------------------------------------------------------------------
@@ -568,17 +531,13 @@ void EditFloat3::DrawSlider(const char* tag, float step, float mini, float maxi)
         else if (m_Dragged)
         {
             // マウスドラッグ終了時.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
             m_Dragged = false;
         }
         else if (flag)
         {
             // キーボード入力.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
         }
     }
     else if (ImGui::IsItemActive())
@@ -638,20 +597,16 @@ EditFloat4::EditFloat4(float x, float y, float z, float w)
 //-----------------------------------------------------------------------------
 void EditFloat4::SetValue(const asdx::Vector4& value, bool history)
 {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        if (!history)
-        {
-            m_Value = value;
-            return;
-        }
-
-        if (m_Value == value)
-        { return; }
-
-        EditHistory().Add(CreateHistory(value));
-    #else
+    if (!history)
+    {
         m_Value = value;
-    #endif
+        return;
+    }
+
+    if (m_Value == value)
+    { return; }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
 }
 
 //-----------------------------------------------------------------------------
@@ -691,17 +646,13 @@ void EditFloat4::DrawSlider(const char* tag, float step, float mini, float maxi)
         else if (m_Dragged)
         {
             // マウスドラッグ終了時.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
             m_Dragged = false;
         }
         else if (flag)
         {
             // キーボード入力.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
         }
     }
     else if (ImGui::IsItemActive())
@@ -762,20 +713,16 @@ EditColor3::EditColor3(float r, float g, float b)
 //-----------------------------------------------------------------------------
 void EditColor3::SetValue(const asdx::Vector3& value, bool history)
 {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        if (!history)
-        {
-            m_Value = value;
-            return;
-        }
-
-        if (m_Value == value)
-        { return; }
-
-        EditHistory().Add(CreateHistory(value));
-    #else
+    if (!history)
+    {
         m_Value = value;
-    #endif
+        return;
+    }
+
+    if (m_Value == value)
+    { return; }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
 }
 
 //-----------------------------------------------------------------------------
@@ -815,17 +762,13 @@ void EditColor3::DrawPicker(const char* tag)
         else if (m_Dragged)
         {
             // マウスドラッグ終了時.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
             m_Dragged = false;
         }
         else if (flag)
         {
             // キーボード入力.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
         }
     }
     else if (ImGui::IsItemActive())
@@ -884,20 +827,16 @@ EditColor4::EditColor4(float r, float g, float b, float a)
 //-----------------------------------------------------------------------------
 void EditColor4::SetValue(const asdx::Vector4& value, bool history)
 {
-    #ifdef ASDX_ENABLE_EDIT_HISTORY
-        if (!history)
-        {
-            m_Value = value;
-            return;
-        }
-
-        if (m_Value == value)
-        { return; }
-
-        EditHistory().Add(CreateHistory(value));
-    #else
+    if (!history)
+    {
         m_Value = value;
-    #endif
+        return;
+    }
+
+    if (m_Value == value)
+    { return; }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
 }
 
 //-----------------------------------------------------------------------------
@@ -937,17 +876,13 @@ void EditColor4::DrawPicker(const char* tag)
         else if (m_Dragged)
         {
             // マウスドラッグ終了時.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
             m_Dragged = false;
         }
         else if (flag)
         {
             // キーボード入力.
-            #ifdef ASDX_ENABLE_EDIT_HISTORY
-                EditHistory().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
-            #endif
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
         }
     }
     else if (ImGui::IsItemActive())
