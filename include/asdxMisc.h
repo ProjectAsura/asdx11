@@ -370,4 +370,12 @@ std::string ToRelativePathWithSlash(const std::string& base, const std::string& 
 //-----------------------------------------------------------------------------
 std::string ToLower(const std::string& value);
 
+//-----------------------------------------------------------------------------
+//! @brief      環境変数を取得します.
+//!
+//! @param[in]      name        環境変数名.
+//-----------------------------------------------------------------------------
+std::string GetEnv(const char* name);
+
+
 } // namespacec asdx

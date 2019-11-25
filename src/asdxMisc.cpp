@@ -1255,4 +1255,25 @@ std::string ToLower(const std::string& value)
     return result;
 }
 
+//-----------------------------------------------------------------------------
+//      環境変数を取得します.
+//-----------------------------------------------------------------------------
+std::string GetEnv(const char* name)
+{
+    size_t size;
+    if (getenv_s(&size, nullptr, 0, name))
+    { return ""; }
+
+    if (size == 0)
+    { return ""; }
+
+    std::string result;
+    result.resize(size + 1);
+    getenv_s(&size, &result[0], size, name);
+    result.resize(std::strlen(result.c_str()));
+    result.shrink_to_fit();
+
+    return result;
+}
+
 } // namespace asdx
