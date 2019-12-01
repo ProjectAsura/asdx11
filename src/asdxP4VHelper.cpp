@@ -17,7 +17,7 @@ namespace asdx {
 //-----------------------------------------------------------------------------
 //      デフォルトのチェンジリストに対象ファイルを追加します.
 //-----------------------------------------------------------------------------
-bool AddP4V(const char* path, const char* changeList)
+bool P4Add(const char* path, const char* changeList)
 {
     char fullPath[MAX_PATH];
     char cmd[2048];
@@ -31,7 +31,7 @@ bool AddP4V(const char* path, const char* changeList)
 //-----------------------------------------------------------------------------
 //      デフォルトのチェンジリストに対象ファイルをチェックアウトします.
 //-----------------------------------------------------------------------------
-bool CheckoutP4V(const char* path, const char* changeList)
+bool P4Checkout(const char* path, const char* changeList)
 {
     char fullPath[MAX_PATH];
     char cmd[2048];
@@ -45,13 +45,41 @@ bool CheckoutP4V(const char* path, const char* changeList)
 //-----------------------------------------------------------------------------
 //      対象ファイルの変更を元に戻します.
 //-----------------------------------------------------------------------------
-bool RevertP4V(const char* path, const char* changeList)
+bool P4Revert(const char* path, const char* changeList)
 {
     char fullPath[MAX_PATH];
     char cmd[2048];
 
     GetFullPathNameA(path, MAX_PATH, fullPath, nullptr);
     sprintf_s(cmd, "p4 revert -a -c %s %s", changeList, fullPath);
+
+    return RunProcess(cmd);
+}
+
+//-----------------------------------------------------------------------------
+//      対象ファイルを削除目的でマークします.
+//-----------------------------------------------------------------------------
+bool P4Delete(const char* path, const char* changeList)
+{
+    char fullPath[MAX_PATH];
+    char cmd[2048];
+
+    GetFullPathNameA(path, MAX_PATH, fullPath, nullptr);
+    sprintf_s(cmd, "p4 delete -c %s %s", changeList, fullPath);
+
+    return RunProcess(cmd);
+}
+
+//-----------------------------------------------------------------------------
+//      ファイルを追加、削除、および/または編集目的で作業状態にし、Perforce外部での変更内容とワークスペースとを一致させます
+//-----------------------------------------------------------------------------
+bool P4Reconcile(const char* path, const char* changeList)
+{
+    char fullPath[MAX_PATH];
+    char cmd[2048];
+
+    GetFullPathNameA(path, MAX_PATH, fullPath, nullptr);
+    sprintf_s(cmd, "p4 reconcile -c %s -a -d -e %s", changeList, fullPath);
 
     return RunProcess(cmd);
 }

@@ -15,7 +15,7 @@ namespace asdx {
 //! @param[in]      changeList      チェンジリスト名.
 //! @return     プロセス起動の結果を返却します.
 //-----------------------------------------------------------------------------
-bool AddP4V(const char* path, const char* changeList="default");
+bool P4Add(const char* path, const char* changeList="default");
 
 //-----------------------------------------------------------------------------
 //! @brief      チェンジリストに対象ファイルをチェックアウトします.
@@ -24,15 +24,34 @@ bool AddP4V(const char* path, const char* changeList="default");
 //! @param[in]      changeList      チェンジリスト名.
 //! @return     プロセス起動の結果を返却します.
 //-----------------------------------------------------------------------------
-bool CheckoutP4V(const char* path, const char* changeList="default");
+bool P4Checkout(const char* path, const char* changeList="default");
 
 //-----------------------------------------------------------------------------
 //! @brief      対象ファイルの変更を元に戻します.
 //!
-//! @param[in]      path        対象ファイルのパス.
+//! @param[in]      path            対象ファイルのパス.
+//! @param[in]      changeList      チェンジリスト名.
 //! @return     プロセス起動の結果を返却します.
 //-----------------------------------------------------------------------------
-bool RevertP4V(const char* path, const char* changeList="default");
+bool P4Revert(const char* path, const char* changeList="default");
+
+//-----------------------------------------------------------------------------
+//! @brief      対象ファイルを削除目的でマークします.
+//!
+//! @param[in]      path            対象ファイルのパス.
+//! @param[in]      changeList      チェンジリスト名.
+//! @return     プロセス起動の結果を返却します.
+//-----------------------------------------------------------------------------
+bool P4Delete(const char* path, const char* changeList="default");
+
+//-----------------------------------------------------------------------------
+//! @brief      ファイルを追加、削除、および/または編集目的で作業状態にし、Perforce外部での変更内容とワークスペースとを一致させます.
+//!
+//! @param[in]      path            対象ファイルのパス.
+//! @param[in]      changeList      チェンジリスト名.
+//! @return     プロセス起動の結果を返却します.
+//-----------------------------------------------------------------------------
+bool P4Reconcile(const char* path, const char* changeList="default");
 
 
 } // namespace asdx
