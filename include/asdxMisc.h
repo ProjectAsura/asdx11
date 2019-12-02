@@ -263,10 +263,11 @@ std::vector<std::wstring> Split(  const std::wstring& value, wchar_t delimiter )
 //-------------------------------------------------------------------------------------------------
 //! @brief      外部プロセスを実行します.
 //!
-//! @param[in]      cmd     コマンドライン.
-//! @param[in]      wait    待機する場合は true.
+//! @param[in]      cmd         コマンドライン.
+//! @param[in]      wait        待機する場合は true.
+//! @param[out]     retcode     リターンコード.
 //-------------------------------------------------------------------------------------------------
-bool RunProcess(const char* cmd, bool wait = true);
+bool RunProcess(const char* cmd, bool wait = true, int* retcode = nullptr);
 
 //-------------------------------------------------------------------------------------------------
 //! @brief      ファイルを開くダイアログを出します.

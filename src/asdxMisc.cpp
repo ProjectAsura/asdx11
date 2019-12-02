@@ -496,7 +496,7 @@ std::vector<std::wstring> Split(const std::wstring& input, wchar_t delimiter)
 //-----------------------------------------------------------------------------
 //      外部プロセスを実行します.
 //-----------------------------------------------------------------------------
-bool RunProcess(const char* cmd, bool wait)
+bool RunProcess(const char* cmd, bool wait, int* retcode)
 {
     STARTUPINFOA        startup_info = {};
     PROCESS_INFORMATION process_info = {};
@@ -528,8 +528,17 @@ bool RunProcess(const char* cmd, bool wait)
     if (wait)
     { WaitForSingleObject(process_info.hProcess, INFINITE); }
 
+    DWORD exitCode;
+    ret = GetExitCodeProcess(process_info.hProcess, &exitCode);
+
     CloseHandle(process_info.hProcess);
     CloseHandle(process_info.hThread);
+
+    if (ret == 0)
+    { return false; }
+
+    if (retcode != nullptr)
+    { *retcode = int(exitCode); }
 
     return true;
 }
