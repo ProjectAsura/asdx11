@@ -1134,6 +1134,15 @@ bool SearchFilesA(const char* directory, const char* ext, std::list<std::string>
     WIN32_FIND_DATAA find;
 
     std::string targetDir = directory;
+    std::string dir = directory;
+
+    auto pos = targetDir.find_last_of("\\");
+    if (pos != targetDir.size() - 1)
+    {
+        targetDir += "\\";
+        dir += "\\";
+    }
+
     targetDir += "*";
 
     if (ext != nullptr && strcmp(ext, "") != 0)
@@ -1143,7 +1152,6 @@ bool SearchFilesA(const char* directory, const char* ext, std::list<std::string>
     if (handle == INVALID_HANDLE_VALUE)
     { return false; }
 
-    std::string dir = directory;
     std::string file;
 
     // ディレクトリじゃない場合.
