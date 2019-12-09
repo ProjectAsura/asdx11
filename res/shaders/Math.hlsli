@@ -1391,4 +1391,39 @@ bool RaySphereHit(float3 rayOrigin, float3 rayDir, float3 sphereCenter, float sp
     return dot(centerToRay, centerToRay) <= Sq(sphereRadius);
 }
 
+//-----------------------------------------------------------------------------
+//      グロシネスに変換します.
+//-----------------------------------------------------------------------------
+float RoughnessToGlossiness(float roughness)
+{ return saturate(1.0f - roughness); }
+
+//-----------------------------------------------------------------------------
+//      ラフネスに変換します.
+//-----------------------------------------------------------------------------
+float GlossinessToRoughness(float glossiness)
+{ return saturate(1.0f - glossiness); }
+
+//-----------------------------------------------------------------------------
+//      PBR RoughnessからTradiational Specular Powerに変換します.
+//-----------------------------------------------------------------------------
+float GlossinessToSpecularPower(float glossiness)
+{
+    // Sebastien Lagarade, "Adopting a physically based shading model", 
+    // https://seblagarde.wordpress.com/2011/08/17/hello-world/
+    // ※有効範囲は[2, 2048]まで.
+    return exp2(10.0f * glossiness + 1.0f);
+}
+
+//-----------------------------------------------------------------------------
+//      Traditional Specular Power から PBR Glossinessに変換します.
+//-----------------------------------------------------------------------------
+float SpecularPowerToGlossiness(float specularPower)
+{ return log2(specularPower) * 0.01f - 1.0f; }
+
+//-----------------------------------------------------------------------------
+//      Traditional Specular Power から　PBR Roughnessに変換します.
+//-----------------------------------------------------------------------------
+float SpecularPowerToRoughness(float specularPower)
+{ return SpecularPowerToRoughness(SpecularPowerToGlossiness(specularPower)); }
+
 #endif//MATH_HLSLI
