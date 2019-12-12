@@ -6017,6 +6017,22 @@ bool OrthonormalBasis::operator != ( const OrthonormalBasis& value ) const
         || ( w != value.w );
 }
 
+//-----------------------------------------------------------------------------
+//      Hammersleyサンプルを行います.
+//-----------------------------------------------------------------------------
+inline
+Vector2 Hammersley( uint32_t i, uint32_t numSamples )
+{
+    uint32_t bits = i;
+    bits = (bits << 16u) | (bits >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    float result = float(bits) * 2.3283064365386963e-10f; // / 0x100000000
+
+    return Vector2( float(i)/float(numSamples), result );
+}
 
 } // namespace asdx
 
