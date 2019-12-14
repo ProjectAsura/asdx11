@@ -13,6 +13,27 @@
 
 
 //-----------------------------------------------------------------------------
+//      ラフネスからスペキュラー指数を求めます.
+//-----------------------------------------------------------------------------
+float ToSpecularPower(float roughness)
+{
+    // Dimiatr Lazarov, "Physically-based lighting in Call of Duty: Black Ops",
+    // SIGGRAPH 2011 Cources: Advances in Real-Time Rendering in 3D Graphics.
+    float glossiness = saturate(1.0f - roughness);
+    return exp2(13.0f * glossiness);
+}
+
+//-----------------------------------------------------------------------------
+//      スペキュラー指数からラフネス値を求めます.
+//-----------------------------------------------------------------------------
+float ToRoughness(float specularPower)
+{
+    // Dimiatr Lazarov, "Physically-based lighting in Call of Duty: Black Ops",
+    // SIGGRAPH 2011 Cources: Advances in Real-Time Rendering in 3D Graphics.
+    return sqrt(2.0f / (specularPower + 2.0f));
+}
+
+//-----------------------------------------------------------------------------
 //      ディフューズ反射率を求めます.
 //-----------------------------------------------------------------------------
 float3 ToKd(float3 baseColor, float metallic)
@@ -184,7 +205,7 @@ float G_SmithGGX(float NdotL, float NdotV, float alphaG)
     float a = alphaG;
     float GGXV = NdotL * (NdotV * (1.0f - a) + a);
     float GGXL = NdotV * (NdotL * (1.0f - a) + a);
-    return 0.5f / (GGXV + GGXL);
+    return SaturateHalf(0.5f / (GGXV + GGXL));
 #endif
 }
 
@@ -273,7 +294,7 @@ float D_Charlie(float linearRoughness, float NoH)
 float V_Neubelt(float NoV, float NoL)
 {
     // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for THe Order: 1886".
-    return max(1.0f / (4.0f * (NoL + NoV - NoL * NoV)), 0.0f);
+    return SaturateHalf(1.0f / (4.0f * (NoL + NoV - NoL * NoV)));
 }
 
 //-----------------------------------------------------------------------------
@@ -418,6 +439,66 @@ float3 EvaluateKajiyaKay
 }
 
 //-----------------------------------------------------------------------------
+//      Kajiya-Kay BRDFを評価します.
+//-----------------------------------------------------------------------------
+float3 EvaluateKajiyaKay
+(
+    float3  T,              // 接線ベクトル.
+    float3  N,              // 法線ベクトル.
+    float3  V,              // 視線ベクトル.
+    float3  L,              // ライトベクトル.
+    float3  Kd,             // ディフューズカラー.
+    float3  Ks,             // スペキュラーカラー.
+    float   roughness,      // ラフネス.
+    float   noise           // ノイズテクスチャの値.
+)
+{
+    // James T. Kajiya, Timothy L. Kay, "RENDERING FUR WITH THREE DIMENSIONAL TEXTURES",
+    // Computer Graphics, Volume 23, Number 3, July 1989,
+    // Diffuse  は Equation (14) 参照.
+    // Specular は Equation (16) 参照.
+
+    const float SpecularPower0  = ToSpecularPower(roughness);
+    const float SpecularPower1  = SpecularPower0 * 0.1f;
+    const float Normalize0      = (SpecularPower0 + 2.0f) / (2.0f * F_PI);
+    const float Normalize1      = (SpecularPower1 + 2.0f) / (2.0f * F_PI);
+
+    float cosTL = dot(T, L);
+    float sinTL = ToSin(cosTL);
+
+    float diffuse = max(sinTL, 0.0f);
+    float alpha   = radians(noise * 10.0f); // チルト角(5 - 10 度)
+
+    float cosTRL = -cosTL;
+    float sinTRL =  sinTL;
+    float cosTV  = dot(T, V);
+    float sinTV  = ToSin(cosTV);
+
+    // プライマリーカラーを求める.
+    float cosTRL0   = cosTRL * cos(2.0f * alpha) - sinTRL * sin(2.0f * alpha);
+    float sinTRL0   = ToSin(cosTRL0);
+    float specular0 = max(0, cosTRL0 * cosTV + sinTRL0 * sinTV);
+
+    // セカンダリーカラーを求める.
+    float cosTRL1   = cosTRL * cos(-3.0f * alpha) - sinTRL * sin(-3.0f * alpha);
+    float sinTRL1   = ToSin(cosTRL1);
+    float specular1 = max(0, cosTRL1 * cosTV + sinTRL1 * sinTV);
+
+    // スペキュラー値.
+    float power0 = Pow(specular0, SpecularPower0) * Normalize0;
+    float power1 = Pow(specular1, SpecularPower1) * Normalize1;
+
+    // レンダリング方程式の余弦項.
+    float NoL = saturate(dot(N, L));
+
+    // BRDFを評価.
+    float3 fd = Kd * diffuse / F_PI;
+    float3 fs = Ks * (power0 + power1) * 0.5f;  // 2灯焚いているので2で割る(=0.5を掛ける).
+
+    return (fd + fs) * NoL;
+}
+
+//-----------------------------------------------------------------------------
 //      V項を計算します.
 //-----------------------------------------------------------------------------
 float V_Kelemen(float LoH)
@@ -485,7 +566,7 @@ float V_SmithGGXHeightCorrelatedAnisotropic
     float lambdaV = NoL * length(float3(at * ToV, ab * BoV, NoV));
     float lambdaL = NoV * length(float3(at * ToL, ab * BoL, NoL));
     float v = 0.5f / (lambdaV + lambdaL);
-    return saturate(v);
+    return SaturateHalf(v);
 }
 
 //-----------------------------------------------------------------------------
