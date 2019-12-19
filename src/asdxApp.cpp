@@ -1790,6 +1790,43 @@ bool Application::SetColorSpace(COLOR_SPACE value)
 }
 
 //-----------------------------------------------------------------------------
+//      ディスプレイのリフレッシュレートを取得します.
+//-----------------------------------------------------------------------------
+bool Application::GetDisplayRefreshRate(DXGI_RATIONAL& result) const
+{
+    asdx::RefPtr<IDXGIOutput> output;
+    auto hr = m_pSwapChain->GetContainingOutput(output.GetAddress());
+    if (FAILED(hr))
+    { return false; }
+
+    DXGI_OUTPUT_DESC outputDesc;
+    hr = output->GetDesc(&outputDesc);
+    if (FAILED(hr))
+    { return false; }
+
+    auto hMonitor = outputDesc.Monitor;
+
+    MONITORINFOEX monitorInfo;
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    auto ret = GetMonitorInfo(hMonitor, &monitorInfo);
+    if (ret == 0)
+    { return false; }
+    
+    DEVMODE devMode;
+    devMode.dmSize          = sizeof(devMode);
+    devMode.dmDriverExtra   = 0;
+    ret = EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+    if (ret == 0)
+    { return false; }
+    
+    auto useDefaultRefreshRate = (1 == devMode.dmDisplayFrequency) || (0 == devMode.dmDisplayFrequency);
+    result.Numerator   = (useDefaultRefreshRate) ? 0 : devMode.dmDisplayFrequency;
+    result.Denominator = (useDefaultRefreshRate) ? 0 : 1;
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
 //      リサイズ時の処理.
 //-----------------------------------------------------------------------------
 void Application::OnResize( const ResizeEventArgs& )
