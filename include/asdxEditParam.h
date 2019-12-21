@@ -19,20 +19,25 @@
 #define ASDX_TO_STR(x) #x
 #endif//ASDX_TO_STR
 
-#ifndef ASDX_ELEMENT_SERIALIZE
-#define ASDX_ELEMENT_SERIALIZE(doc, var) \
+#ifndef ASDX_XML_SERIALIZE
+#define ASDX_XML_SERIALIZE(doc, var) \
     var.Serialize(doc, ASDX_TO_STR(var))
-#endif//ASDX_ELEMENT_SERIALIZE
+#endif//ASDX_XML_SERIALIZE
 
-#ifndef ASDX_ELEMENT_DESERIALIZE
-#define ASDX_ELEMENT_DESERIALIZE(elem, var) \
+#ifndef ASDX_XML_DESERIALIZE
+#define ASDX_XML_DESERIALIZE_E(elem, var) \
     var.Deserialize(elem, ASDX_TO_STR(var))
-#endif//ASDX_ELEMENT_DESERIALIZE
+#endif//ASDX_XML_DESERIALIZE
 
-#ifndef ASDX_ELEMENT_PUSH_BACK
-#define ASDX_ELEMENT_PUSH_BACK(doc, elem, var) \
+#ifndef ASDX_XML_PUSH_BACK
+#define ASDX_XML_PUSH_BACK(doc, elem, var) \
     elem->InsertEndChild(ASDX_ELEMENT_SERIALIZE(doc, var))
-#endif//ASDX_ELEMENT_PUSH_BACK
+#endif//ASDX_XML_PUSH_BACK
+
+#ifndef ASDX_XML_PUSH_FRONT
+#define ASDX_XML_PUSH_FRONT(doc, elem, var) \
+    elem->InsertFirstChild(ASDX_ELEMENT_SERIALIZE(doc, var))
+#endif//ASDX_XML_PUSH_FRONT
 
 
 #endif//ASDX_ENABLE_TINYXML2

@@ -34,6 +34,7 @@ FlatDoc::~FlatDoc()
     m_Vec2  .clear();
     m_Vec3  .clear();
     m_Vec4  .clear();
+    m_Matrix.clear();
     m_Text  .clear();
 }
 
@@ -109,6 +110,16 @@ bool FlatDoc::Load(const char* path)
             file >> tag >> x >> y >> z >> w;
             m_Vec4[tag] = asdx::Vector4(x, y, z, w);
         }
+        else if ( 0 == strcmp( buf, "matrix") )
+        {
+            std::string tag;
+            float m[16];
+            file >> tag >> m[0]  >> m[1]  >> m[2]  >> m[3] 
+                        >> m[4]  >> m[5]  >> m[6]  >> m[7]
+                        >> m[8]  >> m[9]  >> m[10] >> m[11]
+                        >> m[12] >> m[13] >> m[14] >> m[15];
+            m_Matrix[tag] = asdx::Matrix(m);
+        }
         else if ( 0 == strcmp( buf, "string") )
         {
             std::string tag;
@@ -153,6 +164,16 @@ bool FlatDoc::Save(const char* path)
 
     for(auto& itr : m_Vec4)
     { fprintf_s(pFile, "vec4 %s %f %f %f %f\n", itr.first.c_str(), itr.second.x, itr.second.y, itr.second.z, itr.second.w); }
+
+    for(auto& itr : m_Matrix)
+    { 
+        fprintf_s(pFile, "matrix %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
+            itr.first.c_str(),
+            itr.second._11, itr.second._12, itr.second._13, itr.second._14,
+            itr.second._21, itr.second._22, itr.second._23, itr.second._24,
+            itr.second._31, itr.second._32, itr.second._33, itr.second._34,
+            itr.second._41, itr.second._42, itr.second._43, itr.second._44);
+    }
 
     for(auto& itr : m_Text)
     { fprintf_s(pFile, "string %s %s\n", itr.first.c_str(), itr.second.c_str()); }
@@ -228,6 +249,17 @@ asdx::Vector4 FlatDoc::GetVec4(const char* tag, asdx::Vector4 defVal) const
 }
 
 //-----------------------------------------------------------------------------
+//      行列を取得します.
+//-----------------------------------------------------------------------------
+asdx::Matrix FlatDoc::GetMatrix(const char* tag, asdx::Matrix defVal) const
+{
+    if (m_Matrix.find(tag) != std::end(m_Matrix))
+    { return m_Matrix.at(tag); }
+
+    return defVal;
+}
+
+//-----------------------------------------------------------------------------
 //      テキストを取得します.
 //-----------------------------------------------------------------------------
 std::string FlatDoc::GetText(const char* tag, std::string defVal) const
@@ -273,6 +305,12 @@ void FlatDoc::SetVec3(const char* tag, const asdx::Vector3& value)
 //-----------------------------------------------------------------------------
 void FlatDoc::SetVec4(const char* tag, const asdx::Vector4& value)
 { m_Vec4[tag] = value; }
+
+//-----------------------------------------------------------------------------
+//      行列を設定します.
+//-----------------------------------------------------------------------------
+void FlatDoc::SetMatrix(const char* tag, const asdx::Matrix& value)
+{ m_Matrix[tag] = value; }
 
 //-----------------------------------------------------------------------------
 //      テキストを設定します.
