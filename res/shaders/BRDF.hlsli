@@ -449,8 +449,9 @@ float3 EvaluateKajiyaKay
     float3  L,              // ライトベクトル.
     float3  Kd,             // ディフューズカラー.
     float3  Ks,             // スペキュラーカラー.
-    float   roughness,      // ラフネス.
-    float   noise           // ノイズテクスチャの値.
+    float   noise,          // ノイズテクスチャの値.
+    float   primaryScale,   // プライマリーハイライト強度.
+    float   secondaryWidth  // セカンダリーハイライト幅.
 )
 {
     // James T. Kajiya, Timothy L. Kay, "RENDERING FUR WITH THREE DIMENSIONAL TEXTURES",
@@ -458,10 +459,10 @@ float3 EvaluateKajiyaKay
     // Diffuse  は Equation (14) 参照.
     // Specular は Equation (16) 参照.
 
-    const float SpecularPower0  = ToSpecularPower(roughness);
-    const float SpecularPower1  = SpecularPower0 * 0.1f;
-    const float Normalize0      = (SpecularPower0 + 2.0f) / (2.0f * F_PI);
-    const float Normalize1      = (SpecularPower1 + 2.0f) / (2.0f * F_PI);
+    float SpecularPower0  = 80.0f * primaryScale;
+    float SpecularPower1  = max(0.04f, SpecularPower0 / secondaryWidth * 4.0f);
+    float Normalize0      = (SpecularPower0 + 2.0f) / (2.0f * F_PI);
+    float Normalize1      = (SpecularPower1 + 2.0f) / (2.0f * F_PI);
 
     float cosTL = dot(T, L);
     float sinTL = ToSin(cosTL);
@@ -493,7 +494,7 @@ float3 EvaluateKajiyaKay
 
     // BRDFを評価.
     float3 fd = Kd * diffuse / F_PI;
-    float3 fs = Ks * (power0 + power1) * 0.5f;  // 2灯焚いているので2で割る(=0.5を掛ける).
+    float3 fs = SaturateHalf(Ks * (power0 + power1) * 0.5f);  // 2灯焚いているので2で割る(=0.5を掛ける).
 
     return (fd + fs) * NoL;
 }
