@@ -539,7 +539,7 @@ float D_GGXAnisotropic
     float  v2  = dot(v, v);
     float  w2  = a2 / v2;
 
-    return a2 * w2 * w2 * (1.0f / F_PI);
+    return a2 * w2 * w2;
 }
 
 //-----------------------------------------------------------------------------
