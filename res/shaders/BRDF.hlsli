@@ -496,7 +496,7 @@ float3 EvaluateKajiyaKay
     float3 fd = Kd * diffuse / F_PI;
     float3 fs = SaturateHalf(Ks * (power0 + power1) * 0.5f);  // 2“”•°‚¢‚Ä‚¢‚é‚Ì‚Å2‚ÅŠ„‚é(=0.5‚ðŠ|‚¯‚é).
 
-    return (fd + fs) * NoL;
+    return (fd + fs * NoL);
 }
 
 //-----------------------------------------------------------------------------
