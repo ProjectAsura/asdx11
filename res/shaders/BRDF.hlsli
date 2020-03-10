@@ -324,7 +324,7 @@ float3 EvaluateClothSpecular
     float  D = D_Charlie(clothness, NoH);
     float  V = V_Neubelt(NoV, NoL);
     float3 F = float3(sheen, sheen, sheen);
-    return (D * V * F) / F_PI * NoL;
+    return (D * V * F) * NoL;
 }
 
 //-----------------------------------------------------------------------------
@@ -517,7 +517,7 @@ float D_GGXAnisotropic
     float  v2  = dot(v, v);
     float  w2  = a2 / v2;
 
-    return a2 * w2 * w2 * (1.0f / F_PI);
+    return a2 * w2 * w2;
 }
 
 //-----------------------------------------------------------------------------

@@ -1425,4 +1425,25 @@ float SpecularPowerToGlossiness(float specularPower)
 float SpecularPowerToRoughness(float specularPower)
 { return SpecularPowerToRoughness(SpecularPowerToGlossiness(specularPower)); }
 
+//-----------------------------------------------------------------------------
+//      Geomerics方式で球面調和関数を評価します.
+//-----------------------------------------------------------------------------
+float IrradianceSH_NonlinearL1(float3 normal, float4 coeff)
+{
+    // William Joseph, "球面調和関数データからの拡散反射光の再現", CEDEC 2015,
+    // https://cedil.cesa.or.jp/cedil_sessions/view/1329
+    float  L0 = coeff.x;
+    float3 L1 = coeff.yzw;
+    float  modL1 = length(L1);
+    if (modL1 == 0.0f)
+    { return 0.0f; }
+
+    float q = saturate(0.5f + 0.5f * dot(normal, normalize(L1)));
+    float r = modL1 / L0;
+    float p = 1.0f + 2.0f * r;
+    float a = (1.0f - r) / (1.0f + r);
+
+    return L0 * lerp((1.0f + p) * Pow(q, p), 1.0f, a);
+}
+
 #endif//MATH_HLSLI
