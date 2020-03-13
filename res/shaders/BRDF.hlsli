@@ -393,60 +393,6 @@ float3 EvaluateKajiyaKay
     float3  N,              // 法線ベクトル.
     float3  V,              // 視線ベクトル.
     float3  L,              // ライトベクトル.
-    float3  baseColor,      // ベースカラー.
-    float   noise           // ノイズテクスチャの値.
-)
-{
-    // James T. Kajiya, Timothy L. Kay, "RENDERING FUR WITH THREE DIMENSIONAL TEXTURES",
-    // Computer Graphics, Volume 23, Number 3, July 1989,
-    // Diffuse  は Equation (14) 参照.
-    // Specular は Equation (16) 参照.
-
-    // ワケあって固定値.
-    const float Kd              = 0.4f;
-    const float Ks0             = 0.14f;
-    const float Ks1             = 0.15f;
-    const float SpecularPower0  = 80.0f;
-    const float SpecularPower1  = 8.0f;
-
-    float cosTL = dot(T, L);
-    float sinTL = ToSin(cosTL);
-
-    float diffuse = max(sinTL, 0.0f);
-    float alpha   = radians(noise * 10.0f); // チルト角(5 - 10 度)
-
-    float cosTRL = -cosTL;
-    float sinTRL =  sinTL;
-    float cosTV  = dot(T, V);
-    float sinTV  = ToSin(cosTV);
-
-    // プライマリーカラーを求める.
-    float cosTRL0   = cosTRL * cos(2.0f * alpha) - sinTRL * sin(2.0f * alpha);
-    float sinTRL0   = ToSin(cosTRL0);
-    float specular0 = max(0, cosTRL0 * cosTV + sinTRL0 * sinTV);
-
-    // セカンダリーカラーを求める.
-    float cosTRL1   = cosTRL * cos(-3.0f * alpha) - sinTRL * sin(-3.0f * alpha);
-    float sinTRL1   = ToSin(cosTRL1);
-    float specular1 = max(0, cosTRL1 * cosTV + sinTRL1 * sinTV);
-
-    // BRDFを評価.
-    float3 result = Kd * diffuse * baseColor;
-    result += Ks0 * Pow(specular0, SpecularPower0);
-    result += Ks1 * Pow(specular1, SpecularPower1) * baseColor;
-
-    return result;
-}
-
-//-----------------------------------------------------------------------------
-//      Kajiya-Kay BRDFを評価します.
-//-----------------------------------------------------------------------------
-float3 EvaluateKajiyaKay
-(
-    float3  T,              // 接線ベクトル.
-    float3  N,              // 法線ベクトル.
-    float3  V,              // 視線ベクトル.
-    float3  L,              // ライトベクトル.
     float3  Kd,             // ディフューズカラー.
     float3  Ks,             // スペキュラーカラー.
     float   noise,          // ノイズテクスチャの値.
@@ -493,10 +439,44 @@ float3 EvaluateKajiyaKay
     float NoL = saturate(dot(N, L));
 
     // BRDFを評価.
-    float3 fd = Kd * diffuse / F_PI;
+    #if 0
+        //float3 fd = Kd * diffuse / F_PI;
+    #else
+        float3 fd = (Kd / F_PI) * EvaluateScheuermannDiffuse(NoL);
+    #endif
     float3 fs = SaturateHalf(Ks * (power0 + power1) * 0.5f);  // 2灯焚いているので2で割る(=0.5を掛ける).
 
-    return (fd + fs * NoL);
+    return (fd + fs) * NoL;
+}
+
+//-----------------------------------------------------------------------------
+//      Scheuermannモデルを評価します.
+//-----------------------------------------------------------------------------
+float3 EvaluateScheuermann
+(
+    float3  T,              // 接線ベクトル.
+    float3  N,              // 法線ベクトル.
+    float3  V,              // 視線ベクトル
+    float3  L,              // ライトベクトル.
+    float3  Kd,             // ディフューズカラー.
+    float3  Ks,             // スペキュラーカラー.
+    float   noise,          // ノイズテクスチャの値.
+    float   primaryScale,   // プライマリーハイライト強度.
+    float   secondaryWidth  // セカンダリーハイライト幅.
+)
+{
+    float3 H = normalize(V + L);
+    float NoL = saturate(dot(N, L));
+
+    float SpecularPower0  = 80.0f * primaryScale;
+    float SpecularPower1  = max(0.04f, SpecularPower0 / secondaryWidth * 4.0f);
+
+    float3 specular0 = Ks * ScheuermannSingleSpecularTerm(T, H, SpecularPower0);
+    float3 specular1 = float(1.0f).xxx * ScheuermannSingleSpecularTerm(T, H, SpecularPower1);
+
+    float3 diffuse = (Kd / F_PI) * EvaluateScheuermannDiffuse(NoL);
+
+    return (diffuse + (specular0 + specular1) * ScheuermannSpecularAttenuation(NoL) * noise) * NoL;
 }
 
 //-----------------------------------------------------------------------------
