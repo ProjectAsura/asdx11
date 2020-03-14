@@ -1110,6 +1110,9 @@ asdx::IHistory* EditBit32::CreateHistory(uint32_t value)
 }
 
 #ifdef ASDX_ENABLE_IMGUI
+//-----------------------------------------------------------------------------
+//      チェックボックスを描画します.
+//-----------------------------------------------------------------------------
 void EditBit32::DrawCheckBox(const char* tag)
 {
     bool bit[32];
@@ -1172,8 +1175,9 @@ void EditBit32::DrawCheckBox(const char* tag)
         }
         bin[32] = '\0';
 
-        ImGui::Text("[HEX] : %08x", next_value);
-        ImGui::Text("[BIN] : %s", bin);
+        ImGui::Text(u8"[DEC] : %u",   m_Value);         // 10進数表示.
+        ImGui::Text(u8"[HEX] : %08x", next_value);      // 16進数表示.
+        ImGui::Text(u8"[BIN]  : %s",  bin);             // 2進数表示.
 
         ImGui::TreePop();
     }
@@ -1185,7 +1189,6 @@ void EditBit32::DrawCheckBox(const char* tag)
         AppHistoryMgr::GetInstance().Add(new ParamHistory<uint32_t>(&m_Value, next_value, m_Prev), true);
     }
 }
-
 
 #endif//ASDX_ENABLE_IMGUI
 
