@@ -160,7 +160,6 @@ asdx::IHistory* EditInt::CreateHistory(int value)
 //-----------------------------------------------------------------------------
 void EditInt::DrawSlider(const char* tag, int step, int mini, int maxi)
 {
-    auto prev = m_Value;
     auto flag = ImGui::DragInt(tag, &m_Value, float(step), mini, maxi);
 
     if (!ImGui::IsMouseDragging(0) && !ImGui::IsMouseDown(0))
@@ -185,6 +184,18 @@ void EditInt::DrawSlider(const char* tag, int step, int mini, int maxi)
     else if (ImGui::IsItemActive())
     {
         m_Dragged = ImGui::IsMouseDragging();
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      エディットボックスとして描画します.
+//-----------------------------------------------------------------------------
+void EditInt::DrawEditBox(const char* label)
+{
+    auto flag = ImGui::InputInt(label, &m_Value, 1, 100, ImGuiInputTextFlags_EnterReturnsTrue);
+    if (flag)
+    {
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<int>(&m_Value, m_Value, m_Prev), false);
     }
 }
 
@@ -296,7 +307,6 @@ asdx::IHistory* EditFloat::CreateHistory(float value)
 //-----------------------------------------------------------------------------
 void EditFloat::DrawSlider(const char* tag, float step, float mini, float maxi)
 {
-    auto prev = m_Value;
     auto flag = ImGui::DragFloat(tag, &m_Value, step, mini, maxi, "%.5f");
 
     if (!ImGui::IsMouseDragging(0) && !ImGui::IsMouseDown(0))
@@ -321,6 +331,18 @@ void EditFloat::DrawSlider(const char* tag, float step, float mini, float maxi)
     else if (ImGui::IsItemActive())
     {
         m_Dragged = ImGui::IsMouseDragging();
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      エディットボックスとして描画します.
+//-----------------------------------------------------------------------------
+void EditFloat::DrawEditBox(const char* label)
+{
+    auto flag = ImGui::InputFloat(label, &m_Value, 1.0f, 100.0f, "%.5f", ImGuiInputTextFlags_EnterReturnsTrue);
+    if (flag)
+    {
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<float>(&m_Value, m_Value, m_Prev), false);
     }
 }
 #endif//ASDX_ENABLE_IMGUI
@@ -406,7 +428,6 @@ asdx::IHistory* EditFloat2::CreateHistory(const asdx::Vector2& value)
 //-----------------------------------------------------------------------------
 void EditFloat2::DrawSlider(const char* tag, float step, float mini, float maxi)
 {
-    auto prev = m_Value;
     auto flag = ImGui::DragFloat2(tag, m_Value, step, mini, maxi);
 
     if (!ImGui::IsMouseDragging(0) && !ImGui::IsMouseDown(0))
@@ -431,6 +452,18 @@ void EditFloat2::DrawSlider(const char* tag, float step, float mini, float maxi)
     else if (ImGui::IsItemActive())
     {
         m_Dragged = ImGui::IsMouseDragging();
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      エディットボックスとして描画します.
+//-----------------------------------------------------------------------------
+void EditFloat2::DrawEditBox(const char* label)
+{
+    auto flag = ImGui::InputFloat2(label, m_Value, "%.5f", ImGuiInputTextFlags_EnterReturnsTrue);
+    if (flag)
+    {
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector2>(&m_Value, m_Value, m_Prev), false);
     }
 }
 #endif//ASDX_ENABLE_IMGUI
@@ -543,6 +576,18 @@ void EditFloat3::DrawSlider(const char* tag, float step, float mini, float maxi)
     else if (ImGui::IsItemActive())
     {
         m_Dragged = ImGui::IsMouseDragging();
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      エディットボックスとして描画します.
+//-----------------------------------------------------------------------------
+void EditFloat3::DrawEditBox(const char* label)
+{
+    auto flag = ImGui::InputFloat3(label, m_Value, "%.5f", ImGuiInputTextFlags_EnterReturnsTrue);
+    if (flag)
+    {
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
     }
 }
 #endif//ASDX_ENABLE_IMGUI
@@ -660,6 +705,18 @@ void EditFloat4::DrawSlider(const char* tag, float step, float mini, float maxi)
         m_Dragged = ImGui::IsMouseDragging();
     }
 }
+
+//-----------------------------------------------------------------------------
+//      エディットボックスとして描画します.
+//-----------------------------------------------------------------------------
+void EditFloat4::DrawEditBox(const char* label)
+{
+    auto flag = ImGui::InputFloat4(label, m_Value, "%.5f", ImGuiInputTextFlags_EnterReturnsTrue);
+    if (flag)
+    {
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
+    }
+}
 #endif
 
 #ifdef ASDX_ENABLE_TINYXML2
@@ -749,8 +806,42 @@ asdx::IHistory* EditColor3::CreateHistory(const asdx::Vector3& value)
 //-----------------------------------------------------------------------------
 void EditColor3::DrawPicker(const char* tag)
 {
-    auto prev = m_Value;
     auto flag = ImGui::ColorEdit3(tag, m_Value, ImGuiColorEditFlags_Float);
+
+    if (!ImGui::IsMouseDragging(0) && !ImGui::IsMouseDown(0))
+    {
+        if (!m_Dragged && !ImGui::IsItemActive())
+        {
+            // 一度もドラッグされておらず，アイテムもいじられていない場合.
+            m_Prev = m_Value;
+        }
+        else if (m_Dragged)
+        {
+            // マウスドラッグ終了時.
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
+            m_Dragged = false;
+        }
+        else if (flag)
+        {
+            // キーボード入力.
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
+        }
+    }
+    else if (ImGui::IsItemActive())
+    {
+        m_Dragged = ImGui::IsMouseDragging(0);
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      カラーホイールを描画します.
+//-----------------------------------------------------------------------------
+void EditColor3::DrawWheel(const char* tag)
+{
+    auto flag = ImGui::ColorPicker3(
+        tag,
+        m_Value,
+        ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_PickerHueBar);
 
     if (!ImGui::IsMouseDragging(0) && !ImGui::IsMouseDown(0))
     {
@@ -890,6 +981,42 @@ void EditColor4::DrawPicker(const char* tag)
         m_Dragged = ImGui::IsMouseDragging(0);
     }
 }
+
+
+//-----------------------------------------------------------------------------
+//      カラーホイールを描画します.
+//-----------------------------------------------------------------------------
+void EditColor4::DrawWheel(const char* tag)
+{
+    auto flag = ImGui::ColorPicker4(
+        tag,
+        m_Value,
+        ImGuiColorEditFlags_Float | ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_PickerHueBar| ImGuiColorEditFlags_AlphaBar);
+
+    if (!ImGui::IsMouseDragging(0) && !ImGui::IsMouseDown(0))
+    {
+        if (!m_Dragged && !ImGui::IsItemActive())
+        {
+            // 一度もドラッグされておらず，アイテムもいじられていない場合.
+            m_Prev = m_Value;
+        }
+        else if (m_Dragged)
+        {
+            // マウスドラッグ終了時.
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
+            m_Dragged = false;
+        }
+        else if (flag)
+        {
+            // キーボード入力.
+            AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
+        }
+    }
+    else if (ImGui::IsItemActive())
+    {
+        m_Dragged = ImGui::IsMouseDragging(0);
+    }
+}
 #endif//ASDX_ENABLE_IMGUI
 
 #ifdef ASDX_ENABLE_TINYXML2
@@ -921,5 +1048,173 @@ void EditColor4::Deserialize(tinyxml2::XMLElement* element, const char* tag)
     m_Value.w = m_Prev.w = e->FloatAttribute("a");
 }
 #endif//ASDX_ENABLE_TINYXML2
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EditBit32 class
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+EditBit32::EditBit32(uint32_t value)
+: m_Value   (value)
+#ifdef ASDX_ENABLE_IMGUI
+, m_Prev    (value)
+, m_Dragged (false)
+#endif//ASDX_ENABLE_IMGUI
+{ /* DO_NOTHING */
+}
+
+//-----------------------------------------------------------------------------
+//      値を設定します.
+//-----------------------------------------------------------------------------
+void EditBit32::SetValue(uint32_t value, bool history)
+{
+    if (!history)
+    {
+        m_Value = value;
+        return;
+    }
+
+    if (m_Value == value)
+    {
+        return;
+    }
+
+    AppHistoryMgr::GetInstance().Add(CreateHistory(value));
+}
+
+//-----------------------------------------------------------------------------
+//      値を取得します.
+//----------------------------------------------------------------------------
+uint32_t EditBit32::GetValue() const
+{
+    return m_Value;
+}
+
+//-----------------------------------------------------------------------------
+//      値へのポインタを取得します.
+//-----------------------------------------------------------------------------
+const uint32_t* EditBit32::GetValuePtr() const
+{
+    return &m_Value;
+}
+
+//-----------------------------------------------------------------------------
+//      グループヒストリー用のヒストリーを作成します.
+//-----------------------------------------------------------------------------
+asdx::IHistory* EditBit32::CreateHistory(uint32_t value)
+{
+    return new ParamHistory<uint32_t>(&m_Value, m_Value, value);
+}
+
+#ifdef ASDX_ENABLE_IMGUI
+void EditBit32::DrawCheckBox(const char* tag)
+{
+    bool bit[32];
+    for(auto i=0; i<32; ++i)
+    {
+        bit[i] = (m_Value & (0x1 << i)) == (0x1 << i);
+    }
+
+    auto changed = false;
+
+    int idx = 1;
+    uint32_t next_value = 0;
+
+    char buf[16];
+    char bin[33];
+
+    ImGui::PushID(tag);
+    if (ImGui::TreeNode(tag))
+    {
+        for(auto i=0; i<4; ++i)
+        {
+            sprintf_s(buf, "%02d", idx); idx++;
+            changed |= ImGui::Checkbox(buf, &bit[8 * i + 0]);
+            ImGui::SameLine();
+
+            sprintf_s(buf, "%02d", idx); idx++;
+            changed |= ImGui::Checkbox(buf, &bit[8 * i + 1]);
+            ImGui::SameLine();
+
+            sprintf_s(buf, "%02d", idx); idx++;
+            changed |= ImGui::Checkbox(buf, &bit[8 * i + 2]);
+            ImGui::SameLine();
+
+            sprintf_s(buf, "%02d", idx); idx++;
+            changed |= ImGui::Checkbox(buf, &bit[8 * i + 3]);
+            ImGui::SameLine();
+
+            sprintf_s(buf, "%02d", idx); idx++;
+            changed |= ImGui::Checkbox(buf, &bit[8 * i + 4]);
+            ImGui::SameLine();
+
+            sprintf_s(buf, "%02d", idx); idx++;
+            changed |= ImGui::Checkbox(buf, &bit[8 * i + 5]);
+            ImGui::SameLine();
+
+            sprintf_s(buf, "%02d", idx); idx++;
+            changed |= ImGui::Checkbox(buf, &bit[8 * i + 6]);
+            ImGui::SameLine();
+
+            sprintf_s(buf, "%02d", idx); idx++;
+            changed |= ImGui::Checkbox(buf, &bit[8 * i + 7]);
+        }
+
+        for (auto i = 0; i<32; ++i)
+        {
+            if (bit[i])
+                next_value |= (0x1 << i);
+
+            bin[32 - i - 1] = (bit[i]) ? '1' : '0';
+        }
+        bin[32] = '\0';
+
+        ImGui::Text("[HEX] : %08x", next_value);
+        ImGui::Text("[BIN] : %s", bin);
+
+        ImGui::TreePop();
+    }
+
+    ImGui::PopID();
+
+    if (changed)
+    {
+        AppHistoryMgr::GetInstance().Add(new ParamHistory<uint32_t>(&m_Value, next_value, m_Prev), true);
+    }
+}
+
+
+#endif//ASDX_ENABLE_IMGUI
+
+#ifdef ASDX_ENABLE_TINYXML2
+//-----------------------------------------------------------------------------
+//      XMLエレメントを生成します.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* EditBit32::Serialize(tinyxml2::XMLDocument* doc, const char* tag)
+{
+    auto element = doc->NewElement(tag);
+    element->SetAttribute("value", m_Value);
+    return element;
+}
+
+//-----------------------------------------------------------------------------
+//      XMLエレメントを解析します.
+//-----------------------------------------------------------------------------
+void EditBit32::Deserialize(tinyxml2::XMLElement* element, const char* tag)
+{
+    auto e = element->FirstChildElement(tag);
+    if (e == nullptr)
+    {
+        return;
+    }
+
+    m_Value = m_Prev = e->UnsignedAttribute("value");
+    element = e;
+}
+#endif//ASDX_ENABLE_TINYXML2
+
 
 } // namespace asdx
