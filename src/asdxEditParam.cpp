@@ -307,7 +307,7 @@ asdx::IHistory* EditFloat::CreateHistory(float value)
 //-----------------------------------------------------------------------------
 void EditFloat::DrawSlider(const char* tag, float step, float mini, float maxi)
 {
-    auto flag = ImGui::DragFloat(tag, &m_Value, step, mini, maxi, "%.5f");
+    auto flag = ImGui::DragFloat(tag, &m_Value, step, mini, maxi, "%.6f");
 
     if (!ImGui::IsMouseDragging(0) && !ImGui::IsMouseDown(0))
     {
@@ -339,7 +339,7 @@ void EditFloat::DrawSlider(const char* tag, float step, float mini, float maxi)
 //-----------------------------------------------------------------------------
 void EditFloat::DrawEditBox(const char* label)
 {
-    auto flag = ImGui::InputFloat(label, &m_Value, 1.0f, 100.0f, "%.5f", ImGuiInputTextFlags_EnterReturnsTrue);
+    auto flag = ImGui::InputFloat(label, &m_Value, 1.0f, 100.0f, "%.6f", ImGuiInputTextFlags_EnterReturnsTrue);
     if (flag)
     {
         AppHistoryMgr::GetInstance().Add(new ParamHistory<float>(&m_Value, m_Value, m_Prev), false);
@@ -460,7 +460,7 @@ void EditFloat2::DrawSlider(const char* tag, float step, float mini, float maxi)
 //-----------------------------------------------------------------------------
 void EditFloat2::DrawEditBox(const char* label)
 {
-    auto flag = ImGui::InputFloat2(label, m_Value, "%.5f", ImGuiInputTextFlags_EnterReturnsTrue);
+    auto flag = ImGui::InputFloat2(label, m_Value, "%.6f", ImGuiInputTextFlags_EnterReturnsTrue);
     if (flag)
     {
         AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector2>(&m_Value, m_Value, m_Prev), false);
@@ -584,7 +584,7 @@ void EditFloat3::DrawSlider(const char* tag, float step, float mini, float maxi)
 //-----------------------------------------------------------------------------
 void EditFloat3::DrawEditBox(const char* label)
 {
-    auto flag = ImGui::InputFloat3(label, m_Value, "%.5f", ImGuiInputTextFlags_EnterReturnsTrue);
+    auto flag = ImGui::InputFloat3(label, m_Value, "%.6f", ImGuiInputTextFlags_EnterReturnsTrue);
     if (flag)
     {
         AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector3>(&m_Value, m_Value, m_Prev), false);
@@ -711,7 +711,7 @@ void EditFloat4::DrawSlider(const char* tag, float step, float mini, float maxi)
 //-----------------------------------------------------------------------------
 void EditFloat4::DrawEditBox(const char* label)
 {
-    auto flag = ImGui::InputFloat4(label, m_Value, "%.5f", ImGuiInputTextFlags_EnterReturnsTrue);
+    auto flag = ImGui::InputFloat4(label, m_Value, "%.6f", ImGuiInputTextFlags_EnterReturnsTrue);
     if (flag)
     {
         AppHistoryMgr::GetInstance().Add(new ParamHistory<asdx::Vector4>(&m_Value, m_Value, m_Prev), false);
