@@ -282,7 +282,7 @@ float D_Ashikhmin(float linearRoughness, float NoH)
 float D_Charlie(float linearRoughness, float NoH)
 {
     // Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF".
-    float invAlpha = 1.0f / linearRoughness;
+    float invAlpha = 1.0f / max(linearRoughness, 0.01f);
     float cos2h = NoH * NoH;
     float sin2h = max(1.0f - cos2h, 0.0078125f); // 2^(-14/2), so sin2h^2 0 in fp16
     return (2.0f + invAlpha) * Pow(sin2h, invAlpha * 0.5f) / (2.0f * F_PI);
@@ -295,6 +295,37 @@ float V_Neubelt(float NoV, float NoL)
 {
     // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for THe Order: 1886".
     return SaturateHalf(1.0f / (4.0f * (NoL + NoV - NoL * NoV)));
+}
+
+//-----------------------------------------------------------------------------
+//      カーブフィッティングによる補助計算関数.
+//-----------------------------------------------------------------------------
+float Charlie_L(float x, float r)
+{
+    // Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF".
+    // L(x) and Table 1.
+    r = saturate(r);
+    r = (1.0f - r) * (1.0f - r);
+
+    float a = lerp( 25.3245,  21.5473, r);
+    float b = lerp( 3.32435,  3.82987, r);
+    float c = lerp( 0.16801,  0.19823, r);
+    float d = lerp(-1.27393, -1.97760, r);
+    float e = lerp(-4.85967, -4.32054, r);
+
+    return a / (1.0f + b * Pow(x, c)) + d * x + e;
+}
+
+//-----------------------------------------------------------------------------
+//      V項を計算します.
+//-----------------------------------------------------------------------------
+float V_Charlie(float roughness, float NoV, float NoL)
+{
+    // Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF".
+    // Equation (3).
+    float visV = (NoV < 0.5f) ? exp(Charlie_L(NoV, roughness)) : exp(2.0f * Charlie_L(0.5f, roughness) - Charlie_L(1.0f - NoV, roughness));
+    float visL = (NoL < 0.5f) ? exp(Charlie_L(NoL, roughness)) : exp(2.0f * Charlie_L(0.5f, roughness) - Charlie_L(1.0f - NoL, roughness));
+    return 1.0f / ((1.0f + visV + visL) * (4.0f * NoV * NoL));
 }
 
 //-----------------------------------------------------------------------------
@@ -318,12 +349,13 @@ float3 EvaluateClothSpecular
     float   clothness,
     float   NoH,
     float   NoL,
-    float   NoV
+    float   NoV,
+    float   VoH
 )
 {
     float  D = D_Charlie(clothness, NoH);
     float  V = V_Neubelt(NoV, NoL);
-    float3 F = float3(sheen, sheen, sheen);
+    float3 F = F_Schlick(sheen, VoH);
     return (D * V * F) * NoL;
 }
 
