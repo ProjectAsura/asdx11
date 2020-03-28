@@ -955,6 +955,23 @@ float ToksvigRoughness(float3 normal, float roughness)
 }
 
 //-----------------------------------------------------------------------------
+//      徳吉フィルタを適用します.
+//-----------------------------------------------------------------------------
+float TokuyoshiRoughness(float3 normal, float roughness, float sigma2, float kappa)
+{
+    // Yusuke Tokuyoshi and Anton S. Kaplanyan, "Improved Geometric Specular Antialiasing",
+    // ACM SIGGRAPH Symposium on Interactive 3D Graphics and Games 2019, 
+    // sigma2 : screen-space variance.
+    // kappa  : clamping threshold.
+    // ※ sigma^2 = 0.25, kappa = 0.18 in the paper.
+    float3 dndu = ddx(normal);
+    float3 dndv = ddy(normal);
+    float  variance = sigma2 * (dot(dndu, dndu) + dot(dndv, dndv));
+    float  kernelRoughness2 = min(2.0f * variance, kappa);
+    return sqrt(saturate(roughness * roughness + kernelRoughness2));
+}
+
+//-----------------------------------------------------------------------------
 //      リニアからSRGBへの変換.
 //-----------------------------------------------------------------------------
 float3 Linear_To_SRGB(float3 color)
