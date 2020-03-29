@@ -997,6 +997,85 @@ float3 SRGB_To_Linear(float3 color)
     return result;
 }
 
+//------------------------------------------------------------------------------
+//      BT.601における輝度値を求める.
+//------------------------------------------------------------------------------
+float BT601_Luminance(float3 rgb)
+{
+    const float3 c = float3(0.299f, 0.587f, 0.114f);
+    return dot(rgb, c);
+}
+
+//-----------------------------------------------------------------------------
+//      BT.709における輝度値を求める.
+//-----------------------------------------------------------------------------
+float BT709_Luminance(float3 rgb)
+{
+    const float3 c = float3(0.2126f, 0.7152f, 0.0722f);
+    return dot(rgb, c);
+}
+
+//-----------------------------------------------------------------------------
+//      BT.2020における輝度値を求める.
+//-----------------------------------------------------------------------------
+float BT2020_Luminance(float3 rgb)
+{
+    const float3 c = float3(0.2627f, 0.6780f, 0.0593f);
+    return dot(rgb, c);
+}
+
+float3 BT2100PQ_OETF(float3 color)
+{
+    float m1 = 0.1593017578125f;
+    float m2 = 78.84375f;
+    float c1 = 0.8359375f;
+    float c2 = 18.8515625f;
+    float c3 = 18.6875f;
+    float3 Ym1 = Pow(abs(color), m1);
+    return Pow((c1 + c2 * Ym1) / (1 + c3 * Ym1), m2);
+}
+
+float3 BT2100PQ_EOTF(float3 color)
+{
+    float m1 = 0.1593017578125f;
+    float m2 = 78.84375f;
+    float c1 = 0.8359375f;
+    float c2 = 18.8515625f;
+    float c3 = 18.6875f;
+    float3 Ed = Pow(color, 1.0f / m2);
+    return Pow(max(Ed - c1.xxx, 0.0f) / (c2 - c3 * Ed), 1.0f / m1);
+}
+
+float3 BT2100HLG_OETF(float3 color)
+{
+    float3 result;
+
+    float range = 1.0f / 12.0f;
+    float a = 0.17883277f;
+    float b = 0.28466892;
+    float c = 0.55991073;
+
+    result.x = (color.x <= range) ? sqrt(3.0f * color.x) : a * log(12.0f * color.x - b) + c;
+    result.y = (color.y <= range) ? sqrt(3.0f * color.y) : a * log(12.0f * color.y - b) + c;
+    result.z = (color.z <= range) ? sqrt(3.0f * color.z) : a * log(12.0f * color.z - b) + c;
+
+    return result;
+}
+
+float3 BT2100HLG_EOTF(float3 color)
+{
+    float3 result;
+
+    float a = 0.17883277f;
+    float b = 0.28466892;
+    float c = 0.55991073;
+    result.x = (color.x <= 0.5f) ? color.x * color.x / 3.0f : exp((color.x - c) / a) + b) / 12.0f;
+    result.y = (color.y <= 0.5f) ? color.y * color.y / 3.0f : exp((color.y - c) / a) + b) / 12.0f;
+    result.z = (color.z <= 0.5f) ? color.z * color.z / 3.0f : exp((color.z - c) / a) + b) / 12.0f;
+
+    return result;
+}
+
 //-----------------------------------------------------------------------------
 //      ITU-R BT.709からAdobeRGBへの変換.
 //-----------------------------------------------------------------------------
@@ -1462,5 +1541,72 @@ float IrradianceSH_NonlinearL1(float3 normal, float4 coeff)
 
     return L0 * lerp((1.0f + p) * Pow(q, p), 1.0f, a);
 }
+
+//-----------------------------------------------------------------------------
+//      X軸を取得します.
+//-----------------------------------------------------------------------------
+float3 GetAxisX(float4x4 view)
+{ return normalize(view._11_12_13); }
+
+//-----------------------------------------------------------------------------
+//      Y軸を取得します.
+//-----------------------------------------------------------------------------
+float3 GetAxisY(float4x4 view)
+{ return normalize(view._21_22_23); }
+
+//-----------------------------------------------------------------------------
+//      Z軸を取得します.
+//-----------------------------------------------------------------------------
+float3 GetAxisZ(float4x4 view)
+{ return normalize(view._31_32_32); }
+
+//-----------------------------------------------------------------------------
+//      平行移動成分を取得します.
+//-----------------------------------------------------------------------------
+float3 GetTranslate(float4x4 view)
+{ return view._41_42_43; }
+
+//-----------------------------------------------------------------------------
+//      X軸周りの回転行列を生成します.
+//-----------------------------------------------------------------------------
+float4x4 CreateRotationX(float radian)
+{
+    float sinRad, cosRad;
+    sincos(radian, sinRad, cosRad);
+    return float4x4(
+        1.0f,     0.0f,     0.0f,   0.0f,
+        0.0f,    cosRad,  sinRad,   0.0f,
+        0.0f,   -sinRad,  cosRad,   0.0f,
+        0.0f,      0.0f,    0.0f,   1.0f);
+}
+
+//-----------------------------------------------------------------------------
+//      Y軸周りの回転行列を生成します.
+//-----------------------------------------------------------------------------
+float4x4 CreateRotationY(float radian)
+{
+    float sinRad, cosRad;
+    sincos(radian, sinRad, cosRad);
+    return float4x4(
+        cosRad,     0.0f,   -sinRad,    0.0f,
+          0.0f,     1.0f,      0.0f,    0.0f,
+        sinRad,     0.0f,    cosRad,    0.0f,
+          0.0f,     0.0f,      0.0f,    1.0f);
+}
+
+//-----------------------------------------------------------------------------
+//      Z軸周りの回転行列を生成します.
+//-----------------------------------------------------------------------------
+float4x4 CreateRotationZ(float radian)
+{
+    float sinRad, cosRad;
+    sincos(radian, sinRad, cosRad);
+    return float4x4(
+      cosRad,   sinRad,     0.0f,   0.0f,
+     -sinRad,   cosRad,     0.0f,   0.0f,
+        0.0f,     0.0f,     1.0f,   0.0f,
+        0.0f,     0.0f,     0.0f,   1.0f);
+}
+
 
 #endif//MATH_HLSLI
