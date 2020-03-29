@@ -1094,9 +1094,9 @@ float3 BT2100HLG_EOTF(float3 color)
     float a = 0.17883277f;
     float b = 0.28466892;
     float c = 0.55991073;
-    result.x = (color.x <= 0.5f) ? color.x * color.x / 3.0f : exp((color.x - c) / a) + b) / 12.0f;
-    result.y = (color.y <= 0.5f) ? color.y * color.y / 3.0f : exp((color.y - c) / a) + b) / 12.0f;
-    result.z = (color.z <= 0.5f) ? color.z * color.z / 3.0f : exp((color.z - c) / a) + b) / 12.0f;
+    result.x = (color.x <= 0.5f) ? color.x * color.x / 3.0f : (exp((color.x - c) / a) + b) / 12.0f;
+    result.y = (color.y <= 0.5f) ? color.y * color.y / 3.0f : (exp((color.y - c) / a) + b) / 12.0f;
+    result.z = (color.z <= 0.5f) ? color.z * color.z / 3.0f : (exp((color.z - c) / a) + b) / 12.0f;
 
     return result;
 }
