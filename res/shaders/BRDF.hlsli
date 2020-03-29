@@ -349,13 +349,12 @@ float3 EvaluateClothSpecular
     float   clothness,
     float   NoH,
     float   NoL,
-    float   NoV,
-    float   VoH
+    float   NoV
 )
 {
     float  D = D_Charlie(clothness, NoH);
     float  V = V_Neubelt(NoV, NoL);
-    float3 F = F_Schlick(sheen, VoH);
+    float3 F = sheen.xxx;
     return (D * V * F) * NoL;
 }
 
