@@ -955,7 +955,7 @@ float ToksvigRoughness(float3 normal, float roughness)
 }
 
 //-----------------------------------------------------------------------------
-//      徳吉フィルタを適用します.
+//      Toku-Kaplanyanフィルタを適用します.
 //-----------------------------------------------------------------------------
 float TokuyoshiRoughness(float3 normal, float roughness, float sigma2, float kappa)
 {
@@ -1583,7 +1583,7 @@ float3 GetAxisY(float4x4 view)
 //      Z軸を取得します.
 //-----------------------------------------------------------------------------
 float3 GetAxisZ(float4x4 view)
-{ return normalize(view._31_32_32); }
+{ return normalize(view._31_32_33); }
 
 //-----------------------------------------------------------------------------
 //      平行移動成分を取得します.
@@ -1633,5 +1633,28 @@ float4x4 CreateRotationZ(float radian)
         0.0f,     0.0f,     0.0f,   1.0f);
 }
 
+//-----------------------------------------------------------------------------
+//      リムライトを適用します.
+//-----------------------------------------------------------------------------
+float SmashBrosRim(float3 N, float3 cameraX, float3 cameraY, float3 cameraZ, float2 angle, float rimPower)
+{
+    // 岩永 欣仁, 鈴木 雅幸, 『大乱闘スマッシュブラザーズ SPECIAL』～お借りしたIPをできるだけ綺麗に描くために,
+    // CEDEC 2019.
+
+    // 普通のリム計算.
+    float3 V = cameraZ;
+    float NoV = saturate(dot(N, V));
+    float rim = Pow(saturate(1.0f - NoV), rimPower);
+
+    // マスク用ライトベクトル.
+    float L = cameraZ * cos(angle.x) * cos(angle.y)
+            + cameraY * sin(angle.y)
+            + cameraX * sin(angle.x) * cos(angle.y);
+
+    // Half-Lambertによるグラデーションマスク.
+    float mask = Pow2(max(dot(L, N), 0) * 0.5f + 0.5f);
+
+    return rim * mask;
+}
 
 #endif//MATH_HLSLI
