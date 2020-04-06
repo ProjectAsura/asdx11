@@ -51,7 +51,7 @@ GamePad::~GamePad()
 { /* DO_NOTHING */ }
 
 //-------------------------------------------------------------------------------------------------
-//      ボタンの値をリセットします/
+//      ボタンの値をリセットします.
 //-------------------------------------------------------------------------------------------------
 void GamePad::Reset()
 {
@@ -72,6 +72,10 @@ void GamePad::Reset()
     m_PressedButtons = 0;
     m_LastButtons    = 0;
 
+    XINPUT_VIBRATION vibrate = {};
+    vibrate.wLeftMotorSpeed  = 0;
+    vibrate.wRightMotorSpeed = 0;
+    XInputSetState(m_PlayerIndex, &vibrate);
 }
 
 //-------------------------------------------------------------------------------------------------
