@@ -48,5 +48,8 @@ VSOutput main(const VSInput input)
     output.Position = projPos;
     output.TexCoord = worldPos.xyz - CameraPos;
 
+    // ç∂âEîΩì].
+    output.TexCoord.x *= -1.0f;
+
     return output;
 }

@@ -1647,9 +1647,9 @@ float SmashBrosRim(float3 N, float3 cameraX, float3 cameraY, float3 cameraZ, flo
     float rim = Pow(saturate(1.0f - NoV), rimPower);
 
     // マスク用ライトベクトル.
-    float L = cameraZ * cos(angle.x) * cos(angle.y)
-            + cameraY * sin(angle.y)
-            + cameraX * sin(angle.x) * cos(angle.y);
+    float3 L = cameraZ * cos(angle.x) * cos(angle.y)
+             + cameraY * sin(angle.y)
+             + cameraX * sin(angle.x) * cos(angle.y);
 
     // Half-Lambertによるグラデーションマスク.
     float mask = Pow2(max(dot(L, N), 0) * 0.5f + 0.5f);
