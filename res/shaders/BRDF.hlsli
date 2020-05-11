@@ -265,10 +265,10 @@ float2 ApproxDFGClothCharlie(float roughness, float NoV)
 //-----------------------------------------------------------------------------
 //      D項を計算します.
 //-----------------------------------------------------------------------------
-float D_Ashikhmin(float linearRoughness, float NoH)
+float D_Ashikhmin(float roughness, float NoH)
 {
     // Ashkhmin 2007, "Distribution-based BRDFs".
-    float a2 = linearRoughness * linearRoughness;
+    float a2 = roughness;
     float cos2h = NoH * NoH;
     float sin2h = max(1.0f - cos2h, 0.0078125); // 2^(-14/2), so sin2h^2 0 in fp16
     float sin4h = sin2h * sin2h;
@@ -279,10 +279,10 @@ float D_Ashikhmin(float linearRoughness, float NoH)
 //-----------------------------------------------------------------------------
 //      D項を計算します.
 //-----------------------------------------------------------------------------
-float D_Charlie(float linearRoughness, float NoH)
+float D_Charlie(float roughness, float NoH)
 {
     // Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF".
-    float invAlpha = 1.0f / max(linearRoughness, 0.01f);
+    float invAlpha = 1.0f / max(roughness, 1e-3f);
     float cos2h = NoH * NoH;
     float sin2h = max(1.0f - cos2h, 0.0078125f); // 2^(-14/2), so sin2h^2 0 in fp16
     return (2.0f + invAlpha) * Pow(sin2h, invAlpha * 0.5f) / (2.0f * F_PI);
@@ -293,7 +293,7 @@ float D_Charlie(float linearRoughness, float NoH)
 //-----------------------------------------------------------------------------
 float V_Neubelt(float NoV, float NoL)
 {
-    // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for THe Order: 1886".
+    // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for The Order: 1886".
     return SaturateHalf(1.0f / (4.0f * (NoL + NoV - NoL * NoV)));
 }
 
@@ -331,10 +331,10 @@ float V_Charlie(float roughness, float NoV, float NoL)
 //-----------------------------------------------------------------------------
 //      布用ディフューズ項を評価します.
 //-----------------------------------------------------------------------------
-float3 EvaluateClothDiffuse(float3 diffuseColor, float sheen, float3 subsurfaceColor, float NoL)
+float3 EvaluateClothDiffuse(float3 diffuseColor, float3 subsurfaceColor, float NoL, float w = 0.5f)
 { 
-    float diffuse = 1.0f / F_PI;
-    diffuse *= saturate((NoL + 0.5f) / 2.25f);
+    // http://blog.stevemcauley.com/2011/12/03/energy-conserving-wrapped-diffuse/
+    float diffuse = saturate((NoL + w) / Pow2(1.0f + w) );
     float3 result = diffuseColor * diffuse;
     result *= saturate(subsurfaceColor + NoL);
     return result;
@@ -345,16 +345,17 @@ float3 EvaluateClothDiffuse(float3 diffuseColor, float sheen, float3 subsurfaceC
 //-----------------------------------------------------------------------------
 float3 EvaluateClothSpecular
 (
-    float   sheen,
-    float   clothness,
+    float3  sheen,
+    float   roughness,
     float   NoH,
     float   NoL,
     float   NoV
 )
 {
-    float  D = D_Charlie(clothness, NoH);
+    float  a = roughness * roughness;
+    float  D = D_Charlie(a, NoH);
     float  V = V_Neubelt(NoV, NoL);
-    float3 F = sheen.xxx;
+    float3 F = sheen;
     return (D * V * F) * NoL;
 }
 
