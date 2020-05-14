@@ -161,13 +161,8 @@ float HalfLambertDiffuse(float NoL)
 //-----------------------------------------------------------------------------
 float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float roughness)
 {
-    float  energyBias   = lerp(0.0f, 0.5f, roughness);
-    float  energyFactor = lerp(1.0f, 1.0f / 1.51f, roughness);
-    float  fd90 = energyBias + 2.0f * LdotH * LdotH * roughness;
-    float  lightScatter = F_Schlick(1.0f, fd90, NdotL).r;
-    float  viewScatter  = F_Schlick(1.0f, fd90, NdotV).r;
-
-    return lightScatter * viewScatter * energyFactor;
+    float f90 = 0.5f + 2.0f * (LdotH * LdotH) * roughness;
+    return F_Schlick(1.0f, f90, NdotL) * F_Schlick(1.0f, f90, NdotV) / F_PI;
 }
 
 //-----------------------------------------------------------------------------
@@ -343,9 +338,9 @@ float3 EvaluateClothDiffuse(float3 diffuseColor, float3 subsurfaceColor, float N
 //-----------------------------------------------------------------------------
 //      布用スペキュラー項を評価します.
 //-----------------------------------------------------------------------------
-float3 EvaluateClothSpecular
+float3 EvaluateClothSpecularCharlie
 (
-    float3  sheen,
+    float3  Ks,
     float   roughness,
     float   NoH,
     float   NoL,
@@ -355,7 +350,26 @@ float3 EvaluateClothSpecular
     float  a = roughness * roughness;
     float  D = D_Charlie(a, NoH);
     float  V = V_Neubelt(NoV, NoL);
-    float3 F = sheen;
+    float3 F = Ks;
+    return (D * V * F) * NoL;
+}
+
+//-----------------------------------------------------------------------------
+//      布用スペキュラー項を評価します.
+//-----------------------------------------------------------------------------
+float3 EvaluateClothSpecularNeubelt
+(
+    float3  Ks,
+    float   roughness,
+    float   NoH,
+    float   NoL,
+    float   NoV
+)
+{
+    float a = roughness * roughness;
+    float D = D_Ashikhmin(a, NoH);
+    float V = V_Neubelt(NoV, NoL);
+    float3 F = Ks;
     return (D * V * F) * NoL;
 }
 
