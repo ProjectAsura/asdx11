@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.572
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29911.84
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asdx", "asdx.vcxproj", "{EBBE78D9-693A-433E-8C76-6832EC15D93D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asdx", "asdx_2019.vcxproj", "{EBBE78D9-693A-433E-8C76-6832EC15D93D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asdx_edit", "asdx_edit.vcxproj", "{01A1F824-50D7-476C-8EED-93E921E57F64}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asdx_edit", "asdx_edit_2019.vcxproj", "{01A1F824-50D7-476C-8EED-93E921E57F64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
