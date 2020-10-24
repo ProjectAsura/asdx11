@@ -216,26 +216,17 @@ protected:
     //=========================================================================
     HINSTANCE                       m_hInst;                //!< インスタンスハンドルです.
     HWND                            m_hWnd;                 //!< ウィンドウハンドルです.
-    D3D_DRIVER_TYPE                 m_DriverType;           //!< ドライバータイプです.
-    D3D_FEATURE_LEVEL               m_FeatureLevel;         //!< 機能レベルです.
+    ID3D11Device*                   m_pDevice;              //!< デバイスです.
+    ID3D11DeviceContext*            m_pDeviceContext;       //!< デバイスコンテキストです.
     uint32_t                        m_MultiSampleCount;     //!< マルチサンプリングのカウント数です.
     uint32_t                        m_MultiSampleQuality;   //!< マルチサンプリングの品質値です.
     uint32_t                        m_SwapChainCount;       //!< スワップチェインのバッファ数です.
     DXGI_FORMAT                     m_SwapChainFormat;      //!< スワップチェインのバッファフォーマットです.
     DXGI_FORMAT                     m_DepthStencilFormat;   //!< 深度ステンシルバッファのフォーマットです.
-    RefPtr<ID3D11Device>            m_pDevice;              //!< デバイスです.
-    RefPtr<ID3D11DeviceContext>     m_pDeviceContext;       //!< デバイスコンテキスト(イミディエイトコンテキスト)です.
-    RefPtr<IDXGIDevice>             m_pDeviceDXGI;          //!< DXGIデバイスです.
     RefPtr<IDXGISwapChain>          m_pSwapChain;           //!< スワップチェインです.
     RefPtr<IDXGISwapChain4>         m_pSwapChain4;          //!< スワップチェイン4です.
     ColorTarget2D                   m_ColorTarget2D;        //!< 描画ターゲットです.
     DepthTarget2D                   m_DepthTarget2D;        //!< 深度ステンシルバッファです.
-    RefPtr<ID3D11RasterizerState>   m_pRS;                  //!< ラスタライザーステートです.
-    RefPtr<ID3D11DepthStencilState> m_pDSS;                 //!< 深度ステンシルステートです.
-    RefPtr<ID3D11BlendState>        m_pBS;                  //!< ブレンドステートです.
-    float                           m_BlendFactor[ 4 ];     //!< ブレンドファクターです.
-    uint32_t                        m_SampleMask;           //!< サンプルマスクです.
-    uint32_t                        m_StencilRef;           //!< ステンシル参照です.
     float                           m_ClearColor[ 4 ];      //!< 背景のクリアカラーです.
     uint32_t                        m_Width;                //!< 画面の横幅です.
     uint32_t                        m_Height;               //!< 画面の縦幅です.

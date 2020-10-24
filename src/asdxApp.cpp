@@ -15,6 +15,7 @@
 #include <asdxMisc.h>
 #include <asdxRenderState.h>
 #include <asdxSound.h>
+#include <asdxDeviceContext.h>
 
 
 namespace /* anonymous */ {
@@ -215,24 +216,16 @@ namespace asdx  {
 Application::Application()
 : m_hInst               ( nullptr )
 , m_hWnd                ( nullptr )
-, m_DriverType          ( D3D_DRIVER_TYPE_HARDWARE )
-, m_FeatureLevel        ( D3D_FEATURE_LEVEL_11_0 )
+, m_pDevice             ( nullptr )
+, m_pDeviceContext      ( nullptr )
 , m_MultiSampleCount    ( 4 )
 , m_MultiSampleQuality  ( 0 )
 , m_SwapChainCount      ( 2 )
 , m_SwapChainFormat     ( DXGI_FORMAT_B8G8R8A8_UNORM_SRGB )
 , m_DepthStencilFormat  ( DXGI_FORMAT_D24_UNORM_S8_UINT )
-, m_pDevice             ( nullptr )
-, m_pDeviceContext      ( nullptr )
-, m_pDeviceDXGI         ( nullptr )
 , m_pSwapChain          ( nullptr )
 , m_ColorTarget2D       ()
 , m_DepthTarget2D       ()
-, m_pRS                 ( nullptr )
-, m_pDSS                ( nullptr )
-, m_pBS                 ( nullptr )
-, m_SampleMask          ( 0 )
-, m_StencilRef          ( 0 )
 , m_Width               ( 960 )
 , m_Height              ( 540 )
 , m_AspectRatio         ( 1.7777f )
@@ -270,22 +263,15 @@ Application::Application()
 Application::Application( LPCWSTR title, UINT width, UINT height, HICON hIcon, HMENU hMenu, HACCEL hAccel )
 : m_hInst               ( nullptr )
 , m_hWnd                ( nullptr )
-, m_DriverType          ( D3D_DRIVER_TYPE_HARDWARE )
-, m_FeatureLevel        ( D3D_FEATURE_LEVEL_11_0 )
+, m_pDevice             ( nullptr )
+, m_pDeviceContext      ( nullptr )
 , m_MultiSampleCount    ( 4 )
 , m_MultiSampleQuality  ( 0 )
 , m_SwapChainCount      ( 2 )
 , m_SwapChainFormat     ( DXGI_FORMAT_B8G8R8A8_UNORM_SRGB )
 , m_DepthStencilFormat  ( DXGI_FORMAT_D24_UNORM_S8_UINT )
-, m_pDevice             ( nullptr )
-, m_pDeviceContext      ( nullptr )
-, m_pDeviceDXGI         ( nullptr )
-, m_pSwapChain          ( nullptr )
 , m_ColorTarget2D       ()
 , m_DepthTarget2D       ()
-, m_pRS                 ( nullptr )
-, m_pDSS                ( nullptr )
-, m_pBS                 ( nullptr )
 , m_Width               ( width )
 , m_Height              ( height )
 , m_AspectRatio         ( (float)width/(float)height )
@@ -610,32 +596,21 @@ bool Application::InitD3D()
     // アスペクト比を算出します.
     m_AspectRatio = (FLOAT)w / (FLOAT)h;
 
-    // デバイス生成フラグ.
-    UINT createDeviceFlags = 0;
-#if ASDX_IS_DEBUG
-    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif//ASDX_IS_DEBUG
-    createDeviceFlags |= D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+    if (!DeviceContext::Instance().Init())
+    {
+        ELOG("Error : DeviceContext::Init() Failed.");
+        return false;
+    }
 
-    // ドライバータイプ.
-    D3D_DRIVER_TYPE driverTypes[] = {
-        D3D_DRIVER_TYPE_HARDWARE,
-        D3D_DRIVER_TYPE_WARP,
-        D3D_DRIVER_TYPE_REFERENCE,
-    };
-    UINT numDriverTytpes = sizeof( driverTypes ) / sizeof( driverTypes[0] );
+    m_pDevice         = DeviceContext::Instance().GetDevice();
+    m_pDeviceContext  = DeviceContext::Instance().GetContext();
+    auto pDXGIFactory = DeviceContext::Instance().GetDXGIFactory();
 
-    // 機能レベル.
-    D3D_FEATURE_LEVEL featureLevels[] = {
-        //D3D_FEATURE_LEVEL_11_1,       // へぼPC向け対応 [ D3D11.1に対応していないハードウェアでは，問答無用で落とされる場合があるので仕方なく除外. ]
-        D3D_FEATURE_LEVEL_11_0,
-        D3D_FEATURE_LEVEL_10_1,
-        D3D_FEATURE_LEVEL_10_0,
-        D3D_FEATURE_LEVEL_9_3,
-        D3D_FEATURE_LEVEL_9_2,
-        D3D_FEATURE_LEVEL_9_1,
-    };
-    UINT numFeatureLevels = sizeof( featureLevels ) / sizeof( featureLevels[0] );
+    // マルチサンプルクオリティの最大値を取得.
+    uint32_t maxQualityLevel = 0;
+    uint32_t maxQuality      = 0;
+    m_pDevice->CheckMultisampleQualityLevels( m_SwapChainFormat, m_MultiSampleCount, &maxQualityLevel );
+    maxQuality = maxQualityLevel - 1;
 
     // スワップチェインの構成設定.
     DXGI_SWAP_CHAIN_DESC sd;
@@ -649,98 +624,13 @@ bool Application::InitD3D()
     sd.BufferUsage                          = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
     sd.OutputWindow                         = m_hWnd;
     sd.SampleDesc.Count                     = m_MultiSampleCount;
-    sd.SampleDesc.Quality                   = m_MultiSampleQuality;
+    sd.SampleDesc.Quality                   = maxQuality;
     sd.Windowed                             = TRUE;
 
-    for( UINT idx = 0; idx < numDriverTytpes; ++idx )
+    hr = pDXGIFactory->CreateSwapChain(m_pDevice, &sd, m_pSwapChain.GetAddress());
+    if (FAILED(hr))
     {
-        // ドライバータイプ設定.
-        m_DriverType = driverTypes[ idx ];
-
-        // デバイスとスワップチェインの生成.
-        hr = D3D11CreateDeviceAndSwapChain(
-            nullptr,
-            m_DriverType,
-            nullptr,
-            createDeviceFlags,
-            featureLevels,
-            numFeatureLevels,
-            D3D11_SDK_VERSION,
-            &sd,
-            m_pSwapChain.GetAddress(),
-            m_pDevice.GetAddress(),
-            &m_FeatureLevel,
-            m_pDeviceContext.GetAddress()
-        );
-
-        // 成功したらループを脱出.
-        if ( SUCCEEDED( hr ) )
-        {
-            // マルチサンプルクオリティの最大値を取得.
-            uint32_t maxQualityLevel = 0;
-            uint32_t maxQuality      = 0;
-            m_pDevice->CheckMultisampleQualityLevels( m_SwapChainFormat, m_MultiSampleCount, &maxQualityLevel );
-            maxQuality = maxQualityLevel - 1;
-
-            // 現在の設定値が取得値と異なるかをチェック.
-            if ( m_MultiSampleQuality != maxQuality )
-            {
-                // マルチサンプルクオリティを設定.
-                m_MultiSampleQuality  = maxQuality;
-                sd.SampleDesc.Quality = m_MultiSampleQuality;
-
-                // スワップチェインを解放.
-                m_pSwapChain.Reset();
-
-                // デバイスコンテキストを解放.
-                m_pDeviceContext.Reset();
-
-                // デバイスを解放.
-                m_pDevice.Reset();
-
-                // デバイスとスワップチェインの生成.
-                hr = D3D11CreateDeviceAndSwapChain(
-                    nullptr,
-                    m_DriverType,
-                    nullptr,
-                    createDeviceFlags,
-                    featureLevels,
-                    numFeatureLevels,
-                    D3D11_SDK_VERSION,
-                    &sd,
-                    m_pSwapChain.GetAddress(),
-                    m_pDevice.GetAddress(),
-                    &m_FeatureLevel,
-                    m_pDeviceContext.GetAddress()
-                );
-
-                // 失敗していないかチェック.
-                if ( FAILED( hr ) )
-                {
-                    ELOG( "Error : D3D11CreateDeviceAndSwapChain() Failed." );
-                    return false;
-                }
-            }
-
-        #if ASDX_IS_DEBUG
-            ILOG( "*******************************************************************" );
-            ILOG( " DriverType              : %s", GetDriverTypeString( m_DriverType ) );
-            ILOG( " Feature Level           : %s", GetFeatureLevelString( m_FeatureLevel ) );
-            ILOG( " SwapChain Format        : %s", GetFormatString( m_SwapChainFormat ) );
-            ILOG( " DepthStencil Format     : %s", GetFormatString( m_DepthStencilFormat ) );
-            ILOG( " Cur MultiSample Count   : %d", m_MultiSampleCount );
-            ILOG( " Cur MultiSample Quality : %d", m_MultiSampleQuality );
-            ILOG( " Max MultiSample Quality : %d", maxQuality );
-            ILOG( "*******************************************************************" );
-        #endif//ASDX_IS_DEBUG
-            break;
-        }
-    }
-
-    // 失敗していないかチェック.
-    if ( FAILED( hr ) )
-    {
-        ELOG( "Error : D3D11CreateDeviceAndSwapChain() Failed." );
+        ELOG("Error : IDXGIFactory::CreateSwapChain() Failed. errcode = 0x%x", hr);
         return false;
     }
 
@@ -757,21 +647,13 @@ bool Application::InitD3D()
         CheckSupportHDR();
     }
 
-    // DXGIデバイスを取得.
-    hr = m_pDevice->QueryInterface( IID_IDXGIDevice, (LPVOID*)m_pDeviceDXGI.GetAddress() );
-    if ( FAILED( hr ) )
-    {
-        ELOG( "Error : ID3D11Device::QueryInterface() Failed." );
-        return false;
-    }
-
 #if ASDX_IS_DEBUG
     // デバッグオブジェクトを初期化.
-    m_pDevice->QueryInterface(__uuidof(ID3D11Debug), (void**)(m_pD3D11Debug.GetAddress()));
+    m_pDevice->QueryInterface(IID_PPV_ARGS(m_pD3D11Debug.GetAddress()));
 #endif//ASDX_IS_DEBUG
 
     // レンダーターゲットを生成.
-    if ( !m_ColorTarget2D.CreateFromBackBuffer( m_pDevice.GetPtr(), m_pSwapChain.GetPtr() ) )
+    if ( !m_ColorTarget2D.CreateFromBackBuffer( m_pDevice, m_pSwapChain.GetPtr() ) )
     {
         DLOG( "Error : RenderTarget2D::CreateFromBackBuffer() Failed." );
         return false;
@@ -790,7 +672,7 @@ bool Application::InitD3D()
     desc.MiscFlags          = 0;
 
     // 深度ステンシルバッファを生成.
-    if ( !m_DepthTarget2D.Create( m_pDevice.GetPtr(), desc ) )
+    if ( !m_DepthTarget2D.Create( m_pDevice, desc ) )
     {
         DLOG( "Error : DepthStencilTarget::Create() Failed." );
         return false;
@@ -822,44 +704,7 @@ bool Application::InitD3D()
     m_pDeviceContext->RSSetScissorRects( 1, &m_ScissorRect );
 
     // レンダーステートの初期化.
-    RenderState::GetInstance().Init( m_pDevice.GetPtr() );
-
-    // ラスタライザーステートの設定.
-    {
-        D3D11_RASTERIZER_DESC rd;
-        ZeroMemory( &rd, sizeof( D3D11_RASTERIZER_DESC ) );
-        rd.FillMode              = D3D11_FILL_SOLID;
-        rd.CullMode              = D3D11_CULL_BACK;
-        rd.FrontCounterClockwise = FALSE;
-        rd.DepthBias             = 0;
-        rd.DepthBiasClamp        = 0;
-        rd.DepthClipEnable       = FALSE;
-        rd.SlopeScaledDepthBias  = 0;
-        rd.ScissorEnable         = TRUE;
-        rd.MultisampleEnable     = ( m_MultiSampleCount <= 1 ) ? FALSE : TRUE;
-        rd.AntialiasedLineEnable = FALSE;
-
-        // ラスタライザーステートを生成.
-        hr = m_pDevice->CreateRasterizerState( &rd, m_pRS.GetAddress() );
-        if ( FAILED( hr ) )
-        {
-            DLOG( "Error : ID3D11Device::CreateRasterizerState() Failed." );
-            return false;
-        }
-
-        // デバイスコンテキストにラスタライザーステートを設定.
-        m_pDeviceContext->RSSetState( m_pRS.GetPtr() );
-    }
-
-    // 深度ステンシルステートを取得.
-    {
-        m_pDeviceContext->OMGetDepthStencilState( m_pDSS.GetAddress(), &m_StencilRef );
-    }
-
-    // ブレンドステートを取得.
-    {
-        m_pDeviceContext->OMGetBlendState( m_pBS.GetAddress(), m_BlendFactor, &m_SampleMask );
-    }
+    RenderState::GetInstance().Init( m_pDevice );
 
     return true;
 }
@@ -875,29 +720,16 @@ void Application::TermD3D()
     // 深度ステンシルバッファを解放.
     m_DepthTarget2D.Release();
 
-    // ラスタライザーステートを解放.
-    m_pRS.Reset();
-
-    // 深度ステンシルステートを解放.
-    m_pDSS.Reset();
-
-    // ブレンドステートを解放.
-    m_pBS.Reset();
-
     // レンダーステートの終了処理.
     RenderState::GetInstance().Term();
 
     // スワップチェインを解放.
     m_pSwapChain.Reset();
 
-    // DXGIデバイスを解放.
-    m_pDeviceDXGI.Reset();
+    m_pDevice        = nullptr;
+    m_pDeviceContext = nullptr;
 
-    // デバイスコンテキストを解放.
-    m_pDeviceContext.Reset();
-
-    // デバイスを解放.
-    m_pDevice.Reset();
+    DeviceContext::Instance().Term();
 
 #if ASDX_IS_DEBUG
     //// メモリリークが出た場合は、下記をコメントアウトすれば詳細情報が表示される.
@@ -1073,7 +905,7 @@ void Application::MainLoop()
                 frameCount = 0;
             }
 
-            frameEventArgs.pDeviceContext  = m_pDeviceContext.GetPtr();
+            frameEventArgs.pDeviceContext  = m_pDeviceContext;
             frameEventArgs.FPS             = 1.0f / (float)elapsedTime;   // そのフレームにおけるFPS.
             frameEventArgs.Time            = time;
             frameEventArgs.ElapsedTime     = elapsedTime;
@@ -1166,7 +998,7 @@ void Application::ResizeEvent( const ResizeEventArgs& param )
         { DLOG( "Error : IDXGISwapChain::ResizeBuffer() Failed." ); }
 
         // バックバッファから描画ターゲットを生成.
-        if ( !m_ColorTarget2D.CreateFromBackBuffer( m_pDevice.GetPtr(), m_pSwapChain.GetPtr() ) )
+        if ( !m_ColorTarget2D.CreateFromBackBuffer( m_pDevice, m_pSwapChain.GetPtr() ) )
         { DLOG( "Error : RenderTarget2D::CreateFromBackBuffer() Failed." ); }
 
         TargetDesc2D desc;
@@ -1180,7 +1012,7 @@ void Application::ResizeEvent( const ResizeEventArgs& param )
         desc.CPUAccessFlags     = 0;
         desc.MiscFlags          = 0;
 
-        if ( !m_DepthTarget2D.Create( m_pDevice.GetPtr(), desc ) )
+        if ( !m_DepthTarget2D.Create( m_pDevice, desc ) )
         { DLOG( "Error : DepthStencilTarget::Create() Failed." ); }
 
         // デバイスコンテキストにレンダーターゲットを設定.

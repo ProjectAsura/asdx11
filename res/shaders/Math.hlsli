@@ -6,18 +6,28 @@
 #ifndef MATH_HLSLI
 #define MATH_HLSLI
 
+// HLSLのhalf型はfloatマッピングされてしまうため，16bitのまま扱えるようにdefineする. サフィックスはhを使う.
+#define half    min16float
+#define half2   min16float2
+#define half3   min16float3
+#define half4   min16float4
+#define half3x3 min16float3x3
+#define half3x4 min16float3x4
+
 //-----------------------------------------------------------------------------
 // Constant Values.
 //-----------------------------------------------------------------------------
 static const float HALF_MAX = 65504.0f;         // 半精度浮動小数の最大値.
+static const float FLT_NAN  = 0x7fc00000;       // qNaN
+static const float FLT_MAX  = 3.402823466e+38f; // 浮動小数の最大値.
 static const float F_PI     = 3.1415926535897932384626433832795f;
 static const float F_1DIVPI = 0.31830988618379067153776752674503f;
 static const float F_DITHER_LIST[4][4] = {
-        { 0.37647f, 0.87450f, 0.50196f, 0.95000f },
-        { 0.62352f, 0.12549f, 0.75294f, 0.25098f },
-        { 0.43921f, 0.93725f, 0.31372f, 0.81568f },
-        { 0.68627f, 0.18823f, 0.56470f, 0.06274f },
-    };
+    { 0.37647f, 0.87450f, 0.50196f, 0.95000f },
+    { 0.62352f, 0.12549f, 0.75294f, 0.25098f },
+    { 0.43921f, 0.93725f, 0.31372f, 0.81568f },
+    { 0.68627f, 0.18823f, 0.56470f, 0.06274f },
+};
 
 
 //-----------------------------------------------------------------------------
@@ -43,6 +53,31 @@ float3 SaturateHalf(float3 value)
 //-----------------------------------------------------------------------------
 float4 SaturateHalf(float4 value)
 { return clamp(value, float(0).xxxx, HALF_MAX.xxxx); }
+
+//-----------------------------------------------------------------------------
+//      精度浮動小数の最大値未満に飽和させます.
+//-----------------------------------------------------------------------------
+float SaturateFloat(float value)
+{ return clamp(value, 0.0f, FLT_MAX); }
+
+//-----------------------------------------------------------------------------
+//      単精度浮動小数の最大値未満に飽和させます.
+//-----------------------------------------------------------------------------
+float2 SaturateFloat(float2 value)
+{ return clamp(value, float(0.0f).xx, FLT_MAX.xx); }
+
+//-----------------------------------------------------------------------------
+//      単精度浮動小数の最大値未満に飽和させます.
+//-----------------------------------------------------------------------------
+float3 SaturateFloat(float3 value)
+{ return clamp(value, float(0.0f).xxx, FLT_MAX.xxx); }
+
+//-----------------------------------------------------------------------------
+//      単精度浮動小数の最大値未満に飽和させます.
+//-----------------------------------------------------------------------------
+float4 SaturateFloat(float4 value)
+{ return clamp(value, float(0.0f).xxxx, FLT_MAX.xxxx); }
+
 
 //-----------------------------------------------------------------------------
 //      2乗計算を行います.
@@ -150,41 +185,25 @@ float4 Pow5(float4 x)
 //      累乗計算を行います.
 //-----------------------------------------------------------------------------
 float Pow(float a, float b)
-{
-    // a == 0.0f && b == 0.0f のときに機種依存によりNaNが発生する恐れがあるので，
-    // 発生しないようにクランプ処理を入れる.
-    return pow(max(abs(a), 1e-6f), b);
-}
+{ return SaturateFloat(pow(a, b)); }
 
 //-----------------------------------------------------------------------------
 //      累乗計算を行います.
 //-----------------------------------------------------------------------------
 float2 Pow(float2 a, float2 b)
-{
-    // a == 0.0f && b == 0.0f のときに機種依存によりNaNが発生する恐れがあるので，
-    // 発生しないようにクランプ処理を入れる.
-    return pow(max(abs(a), float(1e-6f).xx), b);
-}
+{ return SaturateFloat(pow(a, b)); }
 
 //-----------------------------------------------------------------------------
 //      累乗計算を行います.
 //-----------------------------------------------------------------------------
 float3 Pow(float3 a, float3 b)
-{
-    // a == 0.0f && b == 0.0f のときに機種依存によりNaNが発生する恐れがあるので，
-    // 発生しないようにクランプ処理を入れる.
-    return pow(max(abs(a), float(1e-6f).xxx), b);
-}
+{ return SaturateFloat(pow(a, b)); }
 
 //-----------------------------------------------------------------------------
 //      累乗計算を行います.
 //-----------------------------------------------------------------------------
 float4 Pow(float4 a, float4 b)
-{
-    // a == 0.0f && b == 0.0f のときに機種依存によりNaNが発生する恐れがあるので，
-    // 発生しないようにクランプ処理を入れる.
-    return pow(max(abs(a), float(1e-6f).xxxx), b);
-}
+{ return SaturateFloat(pow(a, b)); }
 
 //-----------------------------------------------------------------------------
 //      再マッピングします.
@@ -295,52 +314,66 @@ float3 UnpackNormal(float2 packed)
     return normalize(n);
 }
 
-//-----------------------------------------------------------------------------
-//      ハードウェアから出力された非線形深度を線形深度に変換します.
-//-----------------------------------------------------------------------------
-float ToLinearDepth(float hardware_depth, float near_clip, float far_clip)
-{ return near_clip / (hardware_depth * (near_clip - far_clip) + far_clip); }
 
 //-----------------------------------------------------------------------------
-//      far_clip=∞とする射影行列でハードウェアから出力された非線形深度をビュー空間深度に変換します.
+//      ハードウェアから出力された深度を線形深度に変換します.
 //-----------------------------------------------------------------------------
-float ToViewDepth(float hardware_depth, float near_clip)
-{ return near_clip / (hardware_depth - 1.0f); }
+float ToLinearDepth(float hardwareDepth, float nearClip, float farClip)
+{ return nearClip / (hardwareDepth * (nearClip - farClip) + farClip); }
 
 //-----------------------------------------------------------------------------
-//      far_clip=∞とするReverse-Z射影行列でハードウェアから出力された非線形深度をビュー空間深度に変換します.
+//      ハードウェアから出力された深度をビュー空間深度に変換します.
 //-----------------------------------------------------------------------------
-float ToViewDepthFromReverseZ(float hardware_depth, float near_clip)
-{ return -near_clip / hardware_depth; }
+float ToViewDepth(float hardwareDepth, float nearClip, float farClip)
+{ return -nearClip * farClip / (hardwareDepth * (nearClip - farClip) + farClip); }
 
 //-----------------------------------------------------------------------------
-//      UVからビュー空間位置を求めます.
+//      ハードウェアから出力されたリバース深度を線形深度に変換します.
 //-----------------------------------------------------------------------------
-float3 UVToViewPos(float2 uv, float linear_depth, float3 param)
+float ToLinearDepthFromReverseZ(float hardwareDepth, float nearClip, float farClip)
+{ return -nearClip / (hardwareDepth * (nearClip - farClip) + nearClip); }
+
+//-----------------------------------------------------------------------------
+//      ハードウェアから出力されたリバース深度をビュー空間深度に変換します.
+//-----------------------------------------------------------------------------
+float ToViewDepthFromReveseZ(float hardwareDepth, float nearClip, float farClip)
+{ return -farClip * nearClip / (hardwareDepth * (nearClip - farClip) + nearClip); }
+
+//-----------------------------------------------------------------------------
+//      ビュー空間深度から線形深度に変換します.
+//-----------------------------------------------------------------------------
+float ToLinearDepth(float viewDepth, float farClip)
+{ return viewDepth / farClip; }
+
+//-----------------------------------------------------------------------------
+//      線形深度からビュー空間深度に変換します.
+//-----------------------------------------------------------------------------
+float ToViewDepth(float linearDepth, float farClip)
+{ return linearDepth * farClip; }
+
+//-----------------------------------------------------------------------------
+//      ビュー空間位置からテクスチャ座標を求めます.
+//-----------------------------------------------------------------------------
+float2 ToTexCoord(float3 viewPos, float2 param)
 {
-     // paramはCPU側で以下を計算して渡されたものです.
-     // param.z = far_clip;
-     // param.y = param.z / proj._22;
-     // param.x = param.y * proj._22 / proj._11;
-     // ※ proj._22 = 1.0f / tanf(fovy * 0.5f);
-     // ※ proj._11 = 1.0f / (tanf(fovy * 0.5f) * aspectRatio);
-     float2 st = uv * float2(2.0f, -2.0f) - float2(1.0f, -1.0f);
-     float3 view_dir = float3(st.x * param.x, st.y * param.y, -param.z);
-     return linear_depth * view_dir;
+    // param.x = 1.0f / proj[0][0];
+    // param.y = 1.0f / proj[1][1];
+    float2 p;
+    p.x = (-viewPos.x / (viewPos.z * param.x)) * ( 0.5f) + 0.5f;
+    p.y = (-viewPos.y / (viewPos.z * param.y)) * (-0.5f) + 0.5f;
+    return p;
 }
 
 //-----------------------------------------------------------------------------
-//      UVとビュー空間深度からビュー空間位置を求めます.
+//      ビュー空間位置を求めます.
 //-----------------------------------------------------------------------------
-float3 UVToViewPos(float2 uv, float view_depth, float2 param)
+float3 ToViewPos(float2 uv, float viewZ, float2 param)
 {
-    // param.y = 1.0f / proj._22;
-    // param.x = 1.0f / proj._11;
-    // ※ proj._22 = 1.0f / tanf(fovy * 0.5f);
-    // ※ proj._11 = 1.0f / (tanf(fovy * 0.5f) * aspectRatio);
-    float2 st = uv * float2(2.0f, -2.0f) - float2(1.0f, -1.0f);
-    float3 view_dir = float3(st.x * param.x, st.y * param.y, -1.0f);
-    return view_depth * view_dir;
+    // param.x = 1.0f / proj[0][0];
+    // param.y = 1.0f / proj[1][1];
+    float2 p = uv * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f);
+    p *= -viewZ * param;
+    return float3(p, viewZ);
 }
 
 //-----------------------------------------------------------------------------
@@ -366,146 +399,6 @@ float3 ToNormal(float3 p0, float3 pr, float3 pl, float3 pt, float3 pb)
     return normalize(cross(MinDiff(p0, pr, pl), MinDiff(p0, pt, pb)));
 }
 
-//-----------------------------------------------------------------------------
-//      接線空間を圧縮します.
-//      ※データを格納する際は DXGI_FORMAT_R10G10B10A2_UINTを使用してください.
-//-----------------------------------------------------------------------------
-uint4 EncodeTBN
-(
-    in float3   normal,                 // 法線ベクトル.
-    in float3   tangent,                // 接線ベクトル.
-    in uint     binomralHandedeness     // 従法線の向き(通常は1，向きを逆にしたい場合は0).
-)
-{
-    // octahedron normal vector encoding
-    uint2 encodedNormal = uint2(PackNormal(normal) * 1023.0f);
-
-    // find largest component of tangent
-    float3 tangentAbs = abs(tangent);
-    float  maxComp    = Max3(tangentAbs);
-
-    float3 refVector;
-    uint   compIndex;
-    if (maxComp == tangentAbs.x)
-    {
-        refVector = float3(1.0f, 0.0f, 0.0f);
-        compIndex = 0;
-    }
-    else if (maxComp == tangentAbs.y)
-    {
-        refVector = float3(0.0f, 1.0f, 0.0f);
-        compIndex = 1;
-    }
-    else
-    {
-        refVector = float3(0.0f, 0.0f, 1.0f);
-        compIndex = 2;
-    }
-
-    // compute cosAngle and handedness of tangent.
-    float3 orthoA = normalize(cross(normal, refVector));
-    float3 orthoB = cross(normal, orthoA);
-    uint cosAngle = uint((dot(tangent, orthoA) * 0.5f + 0.5f) * 255.0f);
-    uint tangentHandedness = (dot(tangent, orthoB) > 0.0001f) ? 2 : 0;
-
-    return uint4(encodedNormal, (cosAngle << 2u) | compIndex, tangentHandedness | binomralHandedeness);
-}
-
-//-----------------------------------------------------------------------------
-//      圧縮した接線空間を展開します.
-//      ※入力データはDXGI_FORMAT_R10G10B10A2_UINTに格納されているものとします.
-//-----------------------------------------------------------------------------
-void DecodeTBN
-(
-    in  uint4   encodedTBN,     // 圧縮している接線空間.
-    out float3  normal,         // 法線ベクトル.
-    out float3  tangent,        // 接線ベクトル.
-    out float3  binormal        // 従法線ベクトル.
-)
-{
-    // octahedron normal vector decoding.
-    normal = UnpackNormal(encodedTBN.xy / 1023.0f);
-
-    // get reference vector
-    float3 refVector;
-    uint compIndex = (encodedTBN.z & 0x3);
-    if (compIndex == 0)
-    {
-        refVector = float3(1.0f, 0.0f, 0.0f);
-    }
-    else if (compIndex == 1)
-    {
-        refVector = float3(0.0f, 1.0f, 0.0f);
-    }
-    else
-    {
-        refVector = float3(0.0f, 0.0f, 1.0f);
-    }
-
-    // decode tangent
-    uint cosAngleUint = ((encodedTBN.z >> 2u) & 0xff);
-    float cosAngle = (cosAngleUint / 255.0f) * 2.0f - 1.0f;
-    float sinAngle = sqrt(saturate(1.0f - (cosAngle * cosAngle)));
-
-    sinAngle = ((encodedTBN.w & 0x2) == 0) ? -sinAngle : sinAngle;
-    float3 orthoA = normalize(cross(normal, refVector));
-    float3 orthoB = cross(normal, orthoA);
-    tangent = (cosAngle * orthoA) + (sinAngle * orthoB);
-
-    // decode binormal
-    binormal = cross(normal, tangent);
-    binormal = ((encodedTBN.w & 0x1) == 0) ? binormal : -binormal;
-}
-
-//-----------------------------------------------------------------------------
-//      浮動小数を8bitデータに変換します.
-//-----------------------------------------------------------------------------
-uint ToUint8(float value)
-{ return clamp(uint(value * 255.0f + 0.5f), 0, 255); }
-
-//-----------------------------------------------------------------------------
-//      8bitデータを浮動小数を変換します.
-//-----------------------------------------------------------------------------
-float FromUint8(uint value)
-{ return saturate(float(value) / 255.0f); }
-
-//-----------------------------------------------------------------------------
-//      浮動小数2個を16ビットデータに変換します.
-//-----------------------------------------------------------------------------
-uint ToUint8x2(float value0, float value1)
-{
-    uint hi = ToUint8(value0);
-    uint lo = ToUint8(value1);
-    return (hi << 8 | lo);
-}
-
-//-----------------------------------------------------------------------------
-//      上位8ビットにデータをシフトします.
-//-----------------------------------------------------------------------------
-uint ToUint8Hi(float value)
-{ return ToUint8(value) << 8; }
-
-//-----------------------------------------------------------------------------
-//      16ビットデータを浮動小数2個に変換します.
-//-----------------------------------------------------------------------------
-float2 FromUint8x2(uint value)
-{
-    float hi = FromUint8((value >> 8) & 0xff);
-    float lo = FromUint8((value) & 0xff);
-    return float2(hi, lo);
-}
-
-//-----------------------------------------------------------------------------
-//      16ビットデータの上位8ビットを浮動小数に変換します.
-//-----------------------------------------------------------------------------
-float FromUint8Hi(uint value)
-{ return FromUint8((value >> 8) & 0xff); }
-
-//-----------------------------------------------------------------------------
-//      16ビットデータの下位8ビットを浮動小数に変換します.
-//-----------------------------------------------------------------------------
-float FromUint8Low(uint value)
-{ return FromUint8((value) & 0xff); }
 
 //-----------------------------------------------------------------------------
 //      Hammersleyサンプリング.
@@ -721,6 +614,9 @@ float GaussianNoise(float2 value, float time)
     return InvErrorFunction(x * 2.0f - 1.0f) * 0.15f + 0.5f;
 }
 
+//-----------------------------------------------------------------------------
+//      バリューノイズを生成します.
+//-----------------------------------------------------------------------------
 float ValueNoise(float2 p)
 {
     float2 i = floor(p);
@@ -876,11 +772,29 @@ void Flakes
     }
 }
 
+//-----------------------------------------------------------------------------
+//      オーバーレイします.
+//-----------------------------------------------------------------------------
 float Overlay(float v0, float v1)
 { return v0 * (v0 + 2.f * v1 * (1.f - v0)); }
 
+//-----------------------------------------------------------------------------
+//      オーバーレイします.
+//-----------------------------------------------------------------------------
+float2 Overlay(float2 v0, float2 v1)
+{ return v0 * (v0 + 2.f.xx * v1 * (1.f.xx - v0)); }
+
+//-----------------------------------------------------------------------------
+//      オーバーレイします.
+//-----------------------------------------------------------------------------
 float3 Overlay(float3 v0, float3 v1)
 { return v0 * (v0 + 2.f.xxx * v1 * (1.f.xxx - v0)); }
+
+//-----------------------------------------------------------------------------
+//      オーバーレイします.
+//-----------------------------------------------------------------------------
+float4 Overlay(float4 v0, float4 v1)
+{ return v0 * (v0 + 2.f.xxxx * v1 * (1.f.xxxx - v0)); }
 
 //-----------------------------------------------------------------------------
 //      3要素の合計を求めます.
@@ -1512,6 +1426,18 @@ bool RaySphereHit(float3 rayOrigin, float3 rayDir, float3 sphereCenter, float sp
 }
 
 //-----------------------------------------------------------------------------
+//      Ray vs AABBの交差判定を行います.
+//-----------------------------------------------------------------------------
+bool RayBoxHit(float3 rayOrigin, float3 invRayDir, float3 boxMin, float3 boxMax)
+{
+    float3 t0 = (boxMin - rayOrigin) * invRayDir;
+    float3 t1 = (boxMax - rayOrigin) * invRayDir;
+    float3 tmin = min(t0, t1);
+    float3 tmax = max(t0, t1);
+    return Max3(tmin) <= Min3(tmax);
+}
+
+//-----------------------------------------------------------------------------
 //      グロシネスに変換します.
 //-----------------------------------------------------------------------------
 float RoughnessToGlossiness(float roughness)
@@ -1565,6 +1491,84 @@ float IrradianceSH_NonlinearL1(float3 normal, float4 coeff)
     float a = (1.0f - r) / (1.0f + r);
 
     return L0 * lerp((1.0f + p) * Pow(q, p), 1.0f, a);
+}
+
+//-----------------------------------------------------------------------------
+//      正規直交基底を求めます.
+//-----------------------------------------------------------------------------
+void CalcONB(float3 N, out float3 T, out float3 B)
+{
+    float sig = sign(N.z);
+    float a = -1.0f / (sig + N.z);
+    float b = N.x * N.y * a;
+    T = float3(1.0f + sig * N.x * N.x * a, sig * b, -sig * N.x);
+    B = float3(b, sig + N.y * N.y * a, -N.y);
+}
+
+//-----------------------------------------------------------------------------
+//      半球を一様サンプリングします.
+//-----------------------------------------------------------------------------
+float3 UniformSampleHemisphere(float2 u)
+{
+    float z = u.x;
+    float r = sqrt(max(0.0f, 1.0f - z * z));
+    float phi = 2.0f * F_PI * u.y;
+
+    return float3(r * cos(phi), r * sin(phi), z);
+}
+
+//-----------------------------------------------------------------------------
+//      全球を一様サンプリングします.
+//-----------------------------------------------------------------------------
+float3 UniformSampleSphere(float2 u)
+{
+    float z = 1.0f - 2.0f * u.x;
+    float r = sqrt(max(0.0f, 1.0f - z * z));
+    float phi = 2.0f * F_PI * u.y;
+
+    return float3(r * cos(phi), r * sin(phi), z);
+}
+
+//-----------------------------------------------------------------------------
+//      円盤を一様サンプリングします.
+//-----------------------------------------------------------------------------
+float2 UniformSampleDisk(float2 u)
+{
+    float r = sqrt(u.x);
+    float theta = 2.0f * F_PI * u.y;
+
+    return float2(r * cos(theta), r * sin(theta));
+}
+
+//-----------------------------------------------------------------------------
+//      円錐を一様サンプリングします.
+//-----------------------------------------------------------------------------
+float3 UniformSampleCone(float2 u, float cosThetaMax)
+{
+    float cosTheta = (1.0f - u.x) + u.x * cosThetaMax;
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+    float phi =  u.y * 2.0f * F_PI;
+
+    return float3(
+        cos(phi) * sinTheta,
+        sin(phi) * sinTheta,
+        cosTheta);
+}
+
+//-----------------------------------------------------------------------------
+//      バランスヒューリスティック.
+//-----------------------------------------------------------------------------
+float BalanceHeuristic(float nf, float pf, float ng, float pg)
+{ return (nf * pf) / (nf * pf + ng * pg); }
+
+//-----------------------------------------------------------------------------
+//      パワーヒューリスティック.
+//-----------------------------------------------------------------------------
+float PowerHeuristic(float nf, float pf, float ng, float pg)
+{ 
+    float f = nf * pf;
+    float g = ng * pg;
+    return (f * f) / (f * f + g * g);
 }
 
 //-----------------------------------------------------------------------------
@@ -1634,27 +1638,359 @@ float4x4 CreateRotationZ(float radian)
 }
 
 //-----------------------------------------------------------------------------
-//      リムライトを適用します.
+//      スレッドグループのタイリングを行いスレッドIDを再マッピングします.
 //-----------------------------------------------------------------------------
-float SmashBrosRim(float3 N, float3 cameraX, float3 cameraY, float3 cameraZ, float2 angle, float rimPower)
+uint2 RemapThreadId
+(
+    const uint2 threadGroupDim,     // [numthreads(A, B, 1)]のAとBの値. (8, 8, 1)の64で起動するのが推奨.
+    uint2       dispatchDim,        // ID3D12GraphicsCommandList::Dipatch(X, Y, Z)で渡した(X, Y)の値.
+    uint2       groupId,            // グループID(SV_GroupID).
+    uint2       groupThreadId       // グループスレッドID(SV_GroupThreadID).
+)
 {
-    // 岩永 欣仁, 鈴木 雅幸, 『大乱闘スマッシュブラザーズ SPECIAL』～お借りしたIPをできるだけ綺麗に描くために,
-    // CEDEC 2019.
+    // Louis Bavoil, "Optimizing Compute Shaders for L2 Locality using Thread-Group ID Swizzling"
+    // https://developer.nvidia.com/blog/optimizing-compute-shaders-for-l2-locality-using-thread-group-id-swizzling/
+    // July 16, 2020.
+    
+    const uint N = 16; // タイルの横幅.
 
-    // 普通のリム計算.
-    float3 V = cameraZ;
-    float NoV = saturate(dot(N, V));
-    float rim = Pow(saturate(1.0f - NoV), rimPower);
+    // 1タイル内のスレッドグループの総数.
+    const uint countThreadGroups = N * dispatchDim.y;
 
-    // マスク用ライトベクトル.
-    float3 L = cameraZ * cos(angle.x) * cos(angle.y)
-             + cameraY * sin(angle.y)
-             + cameraX * sin(angle.x) * cos(angle.y);
+    // 考えうる完全なタイルの数.
+    const uint countPerfectTiles = dispatchDim.x / N;
 
-    // Half-Lambertによるグラデーションマスク.
-    float mask = Pow2(max(dot(L, N), 0) * 0.5f + 0.5f);
+    // 完全なタイルにおけるスレッドグループの総数.
+    const uint totalThreadGroups = countPerfectTiles * N * dispatchDim.y - 1;
+ 
+    // 1次元にする.
+    const uint threadGroupIdFlattened = dispatchDim.x * groupId.y + groupId.x;
 
-    return rim * mask;
+    // 現在のスレッドグループからタイルIDへのマッピング.
+    const uint tileId             = threadGroupIdFlattened / countThreadGroups;
+    const uint localThreadGroupId = threadGroupIdFlattened % countThreadGroups;
+
+    // タイルの横幅で除算と剰余算を行って X と Y を算出.
+    uint localThreadGroupIdY = localThreadGroupId / N;
+    uint localThreadGroupIdX = localThreadGroupId % N;
+ 
+    if(totalThreadGroups < threadGroupIdFlattened)
+    {
+        // 最後のタイルに不完全な次元があり、最後のタイルからのCTAが起動された場合にのみ実行されるパス.
+        uint lastTile = dispatchDim.x % N;
+        if (lastTile > 0)
+        {
+            localThreadGroupIdY = localThreadGroupId / lastTile;
+            localThreadGroupIdX = localThreadGroupId % lastTile;
+        }
+    }
+
+    // 1次元にする.
+    const uint swizzledThreadGroupIdFlattened = tileId * N
+      + localThreadGroupIdY * dispatchDim.x
+      + localThreadGroupIdX;
+
+    // 起動数で割り，グループIDを求める.
+    uint2 swizzledThreadGroupId;
+    swizzledThreadGroupId.y = swizzledThreadGroupIdFlattened / dispatchDim.x;
+    swizzledThreadGroupId.x = swizzledThreadGroupIdFlattened % dispatchDim.x;
+
+    // スレッドグループ数から起動スレッドIDを求める.
+    uint2 swizzledThreadId;
+    swizzledThreadId.x = threadGroupDim.x * swizzledThreadGroupId.x + groupThreadId.x;
+    swizzledThreadId.y = threadGroupDim.y * swizzledThreadGroupId.y + groupThreadId.y;
+
+    return swizzledThreadId;
+}
+
+//-----------------------------------------------------------------------------
+//      パッキングされたプリミティブ番号を展開します.
+//-----------------------------------------------------------------------------
+uint3 UnpackPrimitiveIndex(uint packed)
+{
+    return uint3(
+        packed & 0x3FF,
+        (packed >> 10) & 0x3FF,
+        (packed >> 20) & 0x3FF);
+}
+
+//-----------------------------------------------------------------------------
+//      R8G8B8A8_SNORMを展開します.
+//-----------------------------------------------------------------------------
+float4 UnpackSnorm4(uint packed)
+{
+    float4 v;
+    v.x = float((packed >> 0) & 0xFF);
+    v.y = float((packed >> 8) & 0xFF);
+    v.z = float((packed >> 16) & 0xFF);
+    v.w = float((packed >> 24) & 0xFF);
+    v = v / 255.0;
+    v = v * 2.0 - 1.0;
+    return v;
+}
+
+//-----------------------------------------------------------------------------
+//      R8G8B8A8_UNORMを展開します.
+//-----------------------------------------------------------------------------
+float4 UnpackUnorm4(uint packed)
+{
+    float4 v;
+    v.x = float((packed >> 0) & 0xFF);
+    v.y = float((packed >> 8) & 0xFF);
+    v.z = float((packed >> 16) & 0xFF);
+    v.w = float((packed >> 24) & 0xFF);
+    v = v / 255.0;
+    return v;
+}
+
+//-----------------------------------------------------------------------------
+//      R16G16_FLOATを展開します.
+//-----------------------------------------------------------------------------
+float2 UnpackHalf2(uint packed)
+{
+    float2 result;
+    result.x = f16tof32(packed & 0xffff);
+    result.y = f16tof32((packed >> 16) & 0xffff);
+    return result;
+}
+
+//-----------------------------------------------------------------------------
+//      R16G16_UINTを展開します.
+//-----------------------------------------------------------------------------
+uint2 UnpackUshort2(uint packed)
+{
+    return uint2(
+        packed & 0xffff,
+        (packed >> 16) & 0xffff);
+}
+
+//-----------------------------------------------------------------------------
+//      R16G16B16A16_UINTを展開します.
+//-----------------------------------------------------------------------------
+uint4 UnpackUshort4(uint2 packed)
+{
+    return uint4(
+        UnpackUshort2(packed.x),
+        UnpackUshort2(packed.y));
+}
+
+//-----------------------------------------------------------------------------
+//      パッキングされた接線空間を展開します.
+//-----------------------------------------------------------------------------
+void UnpackTN
+(
+    in  uint    encodedTBN,     // 圧縮している接線空間(32bit).
+    out float3  tangent,        // 接線ベクトル.
+    out float3  normal          // 法線ベクトル.
+)
+{
+    // Hawar Doghramachi and Jean-Normand Bucci, 
+    // "Deferred+: Next-Gen Culling and Rendering for the Dawn Engine"
+    // GPU Zen, pp.89-91, 2017.
+    uint2 packedN;
+    packedN.x = encodedTBN & 0x3FF;
+    packedN.y = (encodedTBN >> 10) & 0x3FF;
+
+    // octahedron normal vector decoding.
+    normal = UnpackNormal(packedN / 1023.0f);
+    
+    uint cosAngleUint = (encodedTBN >> 20) & 0xFF;
+    uint compIndex    = (encodedTBN >> 28) & 0x3;
+
+    // get reference vector
+    float3 refVector;
+    if (compIndex == 0)
+    { refVector = float3(1.0f, 0.0f, 0.0f); }
+    else if (compIndex == 1)
+    { refVector = float3(0.0f, 1.0f, 0.0f); }
+    else
+    { refVector = float3(0.0f, 0.0f, 1.0f); }
+
+    // decode tangent
+    float cosAngle = (float(cosAngleUint) / 255.0f) * 2.0f - 1.0f;
+    float sinAngle = sqrt(saturate(1.0f - (cosAngle * cosAngle)));
+    
+    uint handedness = (encodedTBN >> 30) & 0x3;
+
+    sinAngle = ((handedness & 0x2) == 0) ? -sinAngle : sinAngle;
+    float3 orthoA = normalize(cross(normal, refVector));
+    float3 orthoB = cross(normal, orthoA);
+    tangent = normalize((cosAngle * orthoA) + (sinAngle * orthoB));
+}
+
+//-----------------------------------------------------------------------------
+//      パッキングされた接線空間を展開します.
+//-----------------------------------------------------------------------------
+void UnpackTBN
+(
+    in  uint    encodedTBN,     // 圧縮している接線空間(32bit).
+    out float3  tangent,        // 接線ベクトル.
+    out float3  bitangent,      // 従接線ベクトル.
+    out float3  normal          // 法線ベクトル.
+)
+{
+    // Hawar Doghramachi and Jean-Normand Bucci, 
+    // "Deferred+: Next-Gen Culling and Rendering for the Dawn Engine"
+    // GPU Zen, pp.89-91, 2017.
+    uint2 packedN;
+    packedN.x = encodedTBN & 0x3FF;
+    packedN.y = (encodedTBN >> 10) & 0x3FF;
+
+    // octahedron normal vector decoding.
+    normal = UnpackNormal(packedN / 1023.0f);
+    
+    uint cosAngleUint = (encodedTBN >> 20) & 0xFF;
+    uint compIndex    = (encodedTBN >> 28) & 0x3;
+
+    // get reference vector
+    float3 refVector;
+    if (compIndex == 0)
+    { refVector = float3(1.0f, 0.0f, 0.0f); }
+    else if (compIndex == 1)
+    { refVector = float3(0.0f, 1.0f, 0.0f); }
+    else
+    { refVector = float3(0.0f, 0.0f, 1.0f); }
+
+    // decode tangent
+    float cosAngle = (float(cosAngleUint) / 255.0f) * 2.0f - 1.0f;
+    float sinAngle = sqrt(saturate(1.0f - (cosAngle * cosAngle)));
+    
+    uint handedness = (encodedTBN >> 30) & 0x3;
+
+    sinAngle = ((handedness & 0x2) == 0) ? -sinAngle : sinAngle;
+    float3 orthoA = normalize(cross(normal, refVector));
+    float3 orthoB = cross(normal, orthoA);
+    tangent = normalize((cosAngle * orthoA) + (sinAngle * orthoB));
+
+    // decode bitangent
+    bitangent = cross(normal, tangent);
+    bitangent = ((handedness & 0x1) == 0) ? bitangent : -bitangent;
+}
+
+//-----------------------------------------------------------------------------
+//      接線空間を32bitにパッキングします.
+//-----------------------------------------------------------------------------
+uint PackTBN(float3 normal, float3 tangent, uint binormalHandedness)
+{
+    // Hawar Doghramachi and Jean-Normand Bucci, 
+    // "Deferred+: Next-Gen Culling and Rendering for the Dawn Engine"
+    // GPU Zen, pp.89-91, 2017.
+    uint result = 0;
+    float2 packNormal = PackNormal(normal);
+    result |= uint(packNormal.x * 1023.0f);
+    result |= uint(packNormal.y * 1023.0f) << 10;
+
+    float3 tangentAbs = abs(tangent);
+    float maxComp = Max3(tangentAbs);
+
+    float3 refVector;
+    uint compIndex = 0;
+    if (maxComp == tangentAbs.x)
+    {
+        refVector = float3(1.0f, 0.0f, 0.0f);
+        compIndex = 0;
+    }
+    else if (maxComp == tangentAbs.y)
+    {
+        refVector = float3(0.0f, 1.0f, 0.0f);
+        compIndex = 1;
+    }
+    else
+    {
+        refVector = float3(0.0f, 0.0f, 1.0f);
+        compIndex = 2;
+    }
+    
+    float3 orthoA = normalize(cross(normal, refVector));
+    float3 orthoB = cross(normal, orthoA);
+    uint cosAngle = uint((dot(tangent, orthoA) * 0.5f + 0.5f) * 255.0f);
+    uint tangentHandedness = (dot(tangent, orthoB) > 0.0001f) ? 1 : 0;
+    
+    result |= (cosAngle  & 0xff) << 20;
+    result |= (compIndex & 0x3)  << 28;
+    result |= (tangentHandedness  & 0x1) << 30;
+    result |= (binormalHandedness & 0x1) << 31;
+    
+    return result;
+}
+
+//-----------------------------------------------------------------------------
+//      R10G10B10A2_UINTフォーマットを展開します.
+//-----------------------------------------------------------------------------
+uint4 DecodeR10G10B10A2(uint packed)
+{
+    return uint4(
+        packed & 0x3FF,
+        (packed >> 10) & 0x3FF,
+        (packed >> 20) & 0x3FF,
+        (packed >> 30) & 0x2);
+}
+
+//-----------------------------------------------------------------------------
+//      法錐が縮退しているかどうかチェックします.
+//-----------------------------------------------------------------------------
+bool IsConeDegenerate(uint packedCone)
+{ return (packedCone >> 24) == 0xff; }
+
+//-----------------------------------------------------------------------------
+//      法錐カリングを行います.
+//-----------------------------------------------------------------------------
+bool NormalConeCulling(float4 normalCone, float3 viewDir)
+{
+    // normalConeはワールド変換済みとします.
+    return dot(normalCone.xyz, -viewDir) > normalCone.w;
+}
+
+//-----------------------------------------------------------------------------
+//      視錐台の中にスフィアが含まれるかどうかチェックします.
+//-----------------------------------------------------------------------------
+bool Contains(float4 planes[6], float4 sphere)
+{
+    // sphereは事前に位置座標がワールド変換済み，半径もスケール適用済みとします.
+    float4 center = float4(sphere.xyz, 1.0f);
+
+    for(int i=0; i<6; ++i)
+    {
+        if (dot(center, planes[i]) < -sphere.w)
+        {
+            // カリングする.
+            return false;
+        }
+    }
+
+    // カリングしない.
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      ポリゴン単位のバックフェースカリングを行います.
+//-----------------------------------------------------------------------------
+bool OrientationCulling(float3 p0, float3 p1, float3 p2)
+{
+    float det = determinant(float3x3(p0, p1, p2));
+    return -det <= 0.0f; // true でカリング.
+}
+
+//-----------------------------------------------------------------------------
+//      極小プリミティブカリングを行います.
+//-----------------------------------------------------------------------------
+bool SmallPrimitiveCulling(float2 vmin, float2 vmax)
+{
+    // vmin, vmaxは NDC(正規化デバイス座標系).
+    return any(round(vmin) == round(vmax)); // true でカリング.
+}
+
+//-----------------------------------------------------------------------------
+//      ポリゴン単位の錐台カリングを行います.
+//-----------------------------------------------------------------------------
+bool FrustumCulling(float3 p0, float3 p1, float3 p2)
+{
+    // p0, p1, p2 は NDC(正規化デバイス座標系).
+    float3 pmin = min(p0, min(p1, p2));
+    float3 pmax = max(p0, max(p1, p2));
+
+    // true でカリング.
+    return (any(pmax.xy < -1.0f) || any(pmin.xy > 1.0f) || pmax.z < 0.0f || pmax.z > 1.0f);
 }
 
 #endif//MATH_HLSLI

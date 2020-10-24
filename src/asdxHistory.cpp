@@ -54,7 +54,8 @@ EventHandler& EventHandler::operator += (IEventListener* listener)
 //-----------------------------------------------------------------------------
 EventHandler& EventHandler::operator-= (IEventListener* listener)
 {
-    std::remove(m_Listeners.begin(), m_Listeners.end(), listener);
+    auto itr = std::remove(m_Listeners.begin(), m_Listeners.end(), listener);
+    (void)itr;
     return *this;
 }
 
