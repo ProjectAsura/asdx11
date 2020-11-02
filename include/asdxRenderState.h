@@ -49,12 +49,12 @@ enum DepthType
 enum RasterizerType
 {
     CullNone = 0,               //!< カリングなし. マルチサンプル無効.
-    CullNoneMS,                 //!< カリングなし. マルチサンプル有効.
     CullClockWise,              //!< 時計回りをカリング. マルチサンプル無効.
-    CullClockWiseMS,            //!< 時計回りをカリング. マルチサンプル有効.
     CullCounterClockWise,       //!< 反時計周りをカリング. マルチサンプル無効.
-    CullCounterClockWiseMS,     //!< 反時計周りをカリング. マルチサンプル有効.
     WireFrame,                  //!< ワイヤーフレーム. マルチサンプル無効.
+    CullNoneMS,                 //!< カリングなし. マルチサンプル有効.
+    CullClockWiseMS,            //!< 時計回りをカリング. マルチサンプル有効.
+    CullCounterClockWiseMS,     //!< 反時計周りをカリング. マルチサンプル有効.
     WireFrameMS,                //!< ワイヤーフレーム. マルチサンプル有効.
     NumRasterizerType
 };

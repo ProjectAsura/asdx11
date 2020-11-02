@@ -45,13 +45,16 @@ bool P4Checkout(const char* path, const char* changeList)
 //-----------------------------------------------------------------------------
 //      対象ファイルの変更を元に戻します.
 //-----------------------------------------------------------------------------
-bool P4Revert(const char* path, const char* changeList)
+bool P4Revert(const char* path, bool onlyUnchanged, const char* changeList)
 {
     char fullPath[MAX_PATH];
     char cmd[2048];
 
     GetFullPathNameA(path, MAX_PATH, fullPath, nullptr);
-    sprintf_s(cmd, "p4 revert -a -c %s %s", changeList, fullPath);
+    if (onlyUnchanged)
+    { sprintf_s(cmd, "p4 revert -a -c %s %s", changeList, fullPath); }
+    else
+    { sprintf_s(cmd, "p4 revert -c %s %s", changeList, fullPath); }
 
     return RunProcess(cmd);
 }

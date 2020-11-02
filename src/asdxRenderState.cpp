@@ -335,12 +335,12 @@ bool RenderState::Init( ID3D11Device* pDevice )
 
         ArgRS args[] = {
             { RasterizerType::CullNone,                 D3D11_CULL_NONE,    D3D11_FILL_SOLID,       false },
-            { RasterizerType::CullNoneMS,               D3D11_CULL_NONE,    D3D11_FILL_SOLID,       true  },
             { RasterizerType::CullClockWise,            D3D11_CULL_FRONT,   D3D11_FILL_SOLID,       false },
-            { RasterizerType::CullClockWiseMS,          D3D11_CULL_FRONT,   D3D11_FILL_SOLID,       true  },
             { RasterizerType::CullCounterClockWise,     D3D11_CULL_BACK,    D3D11_FILL_SOLID,       false },
-            { RasterizerType::CullCounterClockWiseMS,   D3D11_CULL_BACK,    D3D11_FILL_SOLID,       true  },
             { RasterizerType::WireFrame,                D3D11_CULL_NONE,    D3D11_FILL_WIREFRAME,   false },
+            { RasterizerType::CullNoneMS,               D3D11_CULL_NONE,    D3D11_FILL_SOLID,       true  },
+            { RasterizerType::CullClockWiseMS,          D3D11_CULL_FRONT,   D3D11_FILL_SOLID,       true  },
+            { RasterizerType::CullCounterClockWiseMS,   D3D11_CULL_BACK,    D3D11_FILL_SOLID,       true  },
             { RasterizerType::WireFrameMS,              D3D11_CULL_NONE,    D3D11_FILL_WIREFRAME,   true  }
         };
 

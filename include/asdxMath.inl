@@ -15,28 +15,28 @@ namespace asdx {
 //      ラジアンに変換します.
 //-------------------------------------------------------------------------------------------------
 inline
-constexpr float ToRadian( float degree ) noexcept
+float ToRadian( float degree ) noexcept
 { return degree * ( F_PI / 180.0f ); }
 
 //-------------------------------------------------------------------------------------------------
 //      ラジアンに変換します.
 //-------------------------------------------------------------------------------------------------
 inline
-constexpr double ToRadian( double degree ) noexcept
+double ToRadian( double degree ) noexcept
 { return degree * ( D_PI / 180.0 ); }
 
 //-------------------------------------------------------------------------------------------------
 //      度に変換します.
 //-------------------------------------------------------------------------------------------------
 inline
-constexpr float ToDegree( float radian ) noexcept
+float ToDegree( float radian ) noexcept
 { return radian * ( 180.0f / F_PI ); }
 
 //-------------------------------------------------------------------------------------------------
 //      度に変換します.
 //-------------------------------------------------------------------------------------------------
 inline
-constexpr double ToDegree( double radian ) noexcept
+double ToDegree( double radian ) noexcept
 { return radian * ( 180.0 / D_PI ); }
 
 //-------------------------------------------------------------------------------------------------
@@ -71,14 +71,14 @@ bool IsEqual( double value1, double value2 ) noexcept
 //      非数かどうかチェックします.
 //-------------------------------------------------------------------------------------------------
 inline
-constexpr bool IsNan( float value ) noexcept
+bool IsNan( float value ) noexcept
 { return ( value != value ); }
 
 //-------------------------------------------------------------------------------------------------
 //      非数かどうかチェックします.
 //-------------------------------------------------------------------------------------------------
 inline
-constexpr bool IsNan( double value ) noexcept
+bool IsNan( double value ) noexcept
 { return ( value != value ); }
 
 //-------------------------------------------------------------------------------------------------
@@ -194,12 +194,20 @@ uint32_t Comb( uint32_t n, uint32_t r )
 //      32bit 浮動小数から 16bit 浮動小数に変換します.
 //-------------------------------------------------------------------------------------------------
 inline 
-half floatToF16( float value )
+half ToHalf( float value )
 {
+    union FP32
+    {
+        uint32_t u;
+        float    f;
+    };
+
     half result;
 
     // ビット列を崩さないままuint32_t型に変換.
-    uint32_t bit = *reinterpret_cast<uint32_t*>( &value );
+    FP32 fp32;
+    fp32.f = value;
+    uint32_t bit = fp32.u;
 
     // float表現の符号bitを取り出し.
     uint32_t sign   = ( bit & 0x80000000U) >> 16U;
@@ -236,8 +244,14 @@ half floatToF16( float value )
 //      16bit 浮動小数から　32bit 浮動小数に変換します.
 //-------------------------------------------------------------------------------------------------
 inline 
-float F16Tofloat( half value )
+float ToFloat( half value )
 {
+    union FP32 
+    {
+        uint32_t u;
+        float f;
+    };
+
     uint32_t exponent;
     uint32_t result;
 
@@ -274,21 +288,24 @@ float F16Tofloat( half value )
              ( ( exponent + 112 ) << 23) | // 指数部.
              ( mantissa << 13 );           // 仮数部.
 
-    return *reinterpret_cast<float*>( &result );
+    FP32 fp32;
+    fp32.u = result;
+
+    return fp32.f;
 }
 
 //-------------------------------------------------------------------------------------------------
 //      線形補間を行います.
 //-------------------------------------------------------------------------------------------------
 inline
-constexpr float Lerp( float a, float b, float amount ) noexcept
+float Lerp( float a, float b, float amount ) noexcept
 { return a + amount * ( b - a ); }
 
 //-------------------------------------------------------------------------------------------------
 //      線形補間を行います.
 //-------------------------------------------------------------------------------------------------
 inline
-constexpr double Lerp( double a, double b, double amount ) noexcept
+double Lerp( double a, double b, double amount ) noexcept
 { return a + amount * ( b - a ); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3566,23 +3583,23 @@ Matrix Matrix::MultiplyTranspose( const Matrix& a, const Matrix& b )
 {
     return Matrix(
         ( a._11 * b._11 ) + ( a._12 * b._21 ) + ( a._13 * b._31 ) + ( a._14 * b._41 ),
-        ( a._11 * b._12 ) + ( a._12 * b._22 ) + ( a._13 * b._32 ) + ( a._14 * b._42 ),
-        ( a._11 * b._13 ) + ( a._12 * b._23 ) + ( a._13 * b._33 ) + ( a._14 * b._43 ),
-        ( a._11 * b._14 ) + ( a._12 * b._24 ) + ( a._13 * b._34 ) + ( a._14 * b._44 ),
-
         ( a._21 * b._11 ) + ( a._22 * b._21 ) + ( a._23 * b._31 ) + ( a._24 * b._41 ),
-        ( a._21 * b._12 ) + ( a._22 * b._22 ) + ( a._23 * b._32 ) + ( a._24 * b._42 ),
-        ( a._21 * b._13 ) + ( a._22 * b._23 ) + ( a._23 * b._33 ) + ( a._24 * b._43 ),
-        ( a._21 * b._14 ) + ( a._22 * b._24 ) + ( a._23 * b._34 ) + ( a._24 * b._44 ),
-
         ( a._31 * b._11 ) + ( a._32 * b._21 ) + ( a._33 * b._31 ) + ( a._34 * b._41 ),
-        ( a._31 * b._12 ) + ( a._32 * b._22 ) + ( a._33 * b._32 ) + ( a._34 * b._42 ),
-        ( a._31 * b._13 ) + ( a._32 * b._23 ) + ( a._33 * b._33 ) + ( a._34 * b._43 ),
-        ( a._31 * b._14 ) + ( a._32 * b._24 ) + ( a._33 * b._34 ) + ( a._34 * b._44 ),
-
         ( a._41 * b._11 ) + ( a._42 * b._21 ) + ( a._43 * b._31 ) + ( a._44 * b._41 ),
+
+        ( a._11 * b._12 ) + ( a._12 * b._22 ) + ( a._13 * b._32 ) + ( a._14 * b._42 ),
+        ( a._21 * b._12 ) + ( a._22 * b._22 ) + ( a._23 * b._32 ) + ( a._24 * b._42 ),
+        ( a._31 * b._12 ) + ( a._32 * b._22 ) + ( a._33 * b._32 ) + ( a._34 * b._42 ),
         ( a._41 * b._12 ) + ( a._42 * b._22 ) + ( a._43 * b._32 ) + ( a._44 * b._42 ),
+
+        ( a._11 * b._13 ) + ( a._12 * b._23 ) + ( a._13 * b._33 ) + ( a._14 * b._43 ),
+        ( a._21 * b._13 ) + ( a._22 * b._23 ) + ( a._23 * b._33 ) + ( a._24 * b._43 ),
+        ( a._31 * b._13 ) + ( a._32 * b._23 ) + ( a._33 * b._33 ) + ( a._34 * b._43 ),
         ( a._41 * b._13 ) + ( a._42 * b._23 ) + ( a._43 * b._33 ) + ( a._44 * b._43 ),
+
+        ( a._11 * b._14 ) + ( a._12 * b._24 ) + ( a._13 * b._34 ) + ( a._14 * b._44 ),
+        ( a._21 * b._14 ) + ( a._22 * b._24 ) + ( a._23 * b._34 ) + ( a._24 * b._44 ),
+        ( a._31 * b._14 ) + ( a._32 * b._24 ) + ( a._33 * b._34 ) + ( a._34 * b._44 ),
         ( a._41 * b._14 ) + ( a._42 * b._24 ) + ( a._43 * b._34 ) + ( a._44 * b._44 )
     );
 }
@@ -5832,7 +5849,7 @@ void Quaternion::Squad
     const Quaternion&   a,
     const Quaternion&   b,
     const Quaternion&   c,
-    float                 amount,
+    float               amount,
     Quaternion&         result
 )
 {
@@ -5842,179 +5859,17 @@ void Quaternion::Squad
     Quaternion::Slerp( d, e, 2.0f * amount * ( 1.0f - amount ), result );
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////
-// OrthonormalBasis structure
-////////////////////////////////////////////////////////////////////////////////////
-
-//----------------------------------------------------------------------------------
-//      コンストラクタです.
-//----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//      正規直交基底を求めます.
+//-----------------------------------------------------------------------------
 inline
-OrthonormalBasis::OrthonormalBasis() = default;
-
-//----------------------------------------------------------------------------------
-//      引数付きコンストラクタです.
-//----------------------------------------------------------------------------------
-inline
-OrthonormalBasis::OrthonormalBasis
-(
-    const Vector3& nu,
-    const Vector3& nv,
-    const Vector3& nw 
-)
-: u( nu )
-, v( nv )
-, w( nw )
-{ /* DO_NOTHING */ }
-
-//----------------------------------------------------------------------------------
-//      コピーコンストラクタです.
-//----------------------------------------------------------------------------------
-inline
-OrthonormalBasis::OrthonormalBasis( const OrthonormalBasis& value )
-: u( value.u )
-, v( value.v )
-, w( value.w )
-{ /* DO_NOTHING */ }
-
-//----------------------------------------------------------------------------------
-//      U方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromU( const Vector3& value )
+void CalcONB(const Vector3& N, Vector3& T, Vector3& B)
 {
-    Vector3 n( 1.0f, 0.0f, 0.0f );
-    Vector3 m( 0.0f, 1.0f, 0.0f );
-    
-    u = Vector3::Normalize( value );
-    v = Vector3::Cross( u, n );
-    if ( v.Length() < ONB_EPSILON )
-    { v = Vector3::Cross( u, m ); }
-    w = Vector3::Cross( v, u );
-}
-
-//----------------------------------------------------------------------------------
-//      V方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromV( const Vector3& value )
-{
-    Vector3 n ( 1.0f, 0.0f, 0.0f );
-    Vector3 m ( 0.0f, 1.0f, 0.0f );
-
-    v = Vector3::Normalize( value );
-    u = Vector3::Cross( v, n );
-    if ( u.LengthSq() < ONB_EPSILON )
-    { u = Vector3::Cross( v, m ); }
-    w = Vector3::Cross( v, u );
-}
-
-//----------------------------------------------------------------------------------
-//      W方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromW( const Vector3& value )
-{
-    Vector3 n ( 1.0f, 0.0f, 0.0f );
-    Vector3 m ( 0.0f, 1.0f, 0.0f );
-
-    w = Vector3::Normalize( value );
-    u = Vector3::Cross( w, n );
-    if ( u.Length() < ONB_EPSILON )
-    { u = Vector3::Cross( w, m ); }
-    u.Normalize();
-
-    v = Vector3::Cross( u, w );
-    v.Normalize();
-}
-
-//----------------------------------------------------------------------------------
-//      U方向とV方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromUV( const Vector3& _u, const Vector3& _v )
-{
-    u = Vector3::Normalize( _u );
-    w = Vector3::Normalize( Vector3::Cross( _u, _v ) );
-    v = Vector3::Cross( w, v );
-}
-
-//----------------------------------------------------------------------------------
-//      V方向とU方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromVU( const Vector3& _v, const Vector3& _u )
-{
-    v = Vector3::Normalize( _v );
-    w = Vector3::Normalize( Vector3::Cross( _u, _v ) );
-    u = Vector3::Cross( v, w );
-}
-
-//----------------------------------------------------------------------------------
-//      U方向とW方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromUW( const Vector3& _u, const Vector3& _w )
-{
-    u = Vector3::Normalize( _u );
-    v = Vector3::Normalize( Vector3::Cross( _w, _u ) );
-    w = Vector3::Cross( u, v );
-}
-
-//----------------------------------------------------------------------------------
-//      W方向とU方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromWU( const Vector3& _w, const Vector3& _u )
-{
-    w = Vector3::Normalize( _w );
-    v = Vector3::Normalize( Vector3::Cross( _w, _u ) );
-    u = Vector3::Cross( v, w );
-}
-
-//----------------------------------------------------------------------------------
-//      V方向とW方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromVW( const Vector3& _v, const Vector3& _w )
-{
-    v = Vector3::Normalize( _v );
-    u = Vector3::Normalize( Vector3::Cross( _v, _w ) );
-    w = Vector3::Cross( u, v );
-}
-
-//----------------------------------------------------------------------------------
-//      W方向とV方向から基底を構築します.
-//----------------------------------------------------------------------------------
-inline
-void OrthonormalBasis::InitFromWV( const Vector3& _w, const Vector3& _v )
-{
-    w = Vector3::Normalize( _w );
-    u = Vector3::Normalize( Vector3::Cross( _v, _w ) );
-    v = Vector3::Cross( w, u );
-}
-
-//----------------------------------------------------------------------------------
-//      等価演算子です.
-//----------------------------------------------------------------------------------
-inline
-bool OrthonormalBasis::operator == ( const OrthonormalBasis& value ) const
-{
-    return ( u == value.u )
-        && ( v == value.v )
-        && ( w == value.w );
-}
-
-//----------------------------------------------------------------------------------
-//      非等価演算子です.
-//----------------------------------------------------------------------------------
-inline
-bool OrthonormalBasis::operator != ( const OrthonormalBasis& value ) const
-{
-    return ( u != value.u )
-        || ( v != value.v )
-        || ( w != value.w );
+    float sig = (N.z >= 0.0) ? 1.0f : -1.0f;
+    float a = -1.0f / (sig + N.z);
+    float b = N.x * N.y * a;
+    T = Vector3(1.0f + sig * N.x * N.x * a, sig * b, -sig * N.x);
+    B = Vector3(b, sig + N.y * N.y * a, -N.y);
 }
 
 //-----------------------------------------------------------------------------
@@ -6033,6 +5888,366 @@ Vector2 Hammersley( uint32_t i, uint32_t numSamples )
 
     return Vector2( float(i)/float(numSamples), result );
 }
+
+//-----------------------------------------------------------------------------
+//      平面式を正規化します.
+//-----------------------------------------------------------------------------
+inline
+Vector4 NormalizePlane(const Vector4& value)
+{
+    auto mag = sqrt(value.x * value.x + value.y * value.y + value.z * value.z);
+    return Vector4(value.x / mag, value.y / mag, value.z / mag, value.w / mag);
+}
+
+//-----------------------------------------------------------------------------
+//      視錐台を構成する6平面を求めます.
+//-----------------------------------------------------------------------------
+inline
+void CalcFrustumPlanes(const Matrix& view, const Matrix& proj, Vector4* planes)
+{
+    // Gil Gribb, Klaus Hartmann,
+    // "Fast Extraction of Viewing Frustum Planes from the World-View-Projection Matrix"
+    // https://www.gamedevs.org/
+    auto vp = Matrix::MultiplyTranspose(view, proj);
+
+    planes[0] = NormalizePlane(vp.row[3] + vp.row[0]);
+    planes[1] = NormalizePlane(vp.row[3] - vp.row[0]);
+    planes[2] = NormalizePlane(vp.row[3] + vp.row[1]);
+    planes[3] = NormalizePlane(vp.row[3] - vp.row[1]);
+    planes[4] = NormalizePlane(vp.row[2]);
+    planes[5] = NormalizePlane(vp.row[3] - vp.row[2]);
+}
+
+//-----------------------------------------------------------------------------
+//      交差線を求めます.
+//-----------------------------------------------------------------------------
+inline
+void ComputeIntersectionLine(const Vector4& p1, const Vector4& p2, Vector3& orig, Vector3& dir)
+{
+    auto n1 = Vector3(p1.x, p1.y, p1.z);
+    auto n2 = Vector3(p2.x, p2.y, p2.z);
+    dir = Vector3::Cross(n1, n2);
+    auto divider = Vector3::Dot(dir, dir);
+    orig = Vector3::Cross(p1.w * n2 + p2.w * n1, dir) / divider;
+}
+
+//-----------------------------------------------------------------------------
+//      平面とレイの交差点を求めます.
+//-----------------------------------------------------------------------------
+inline
+Vector3 ComputeIntersection(const Vector4& plane, const Vector3& orig, const Vector3& dir)
+{
+    auto normal = Vector3(plane.x, plane.y, plane.z);
+    auto t = (-plane.w - Vector3::Dot(normal, orig)) / Vector3::Dot(normal, dir);
+    return orig + dir * t;
+}
+
+//-----------------------------------------------------------------------------
+//      視錐台の8角を求めます.
+//-----------------------------------------------------------------------------
+inline
+void GetCorners(const Vector4* planes, Vector3* corners)
+{
+    Vector3 orig, dir;
+    ComputeIntersectionLine(planes[0], planes[2], orig, dir);
+    corners[0] = ComputeIntersection(planes[4], orig, dir);
+    corners[3] = ComputeIntersection(planes[5], orig, dir);
+ 
+    ComputeIntersectionLine(planes[3], planes[0], orig, dir);
+    corners[1] = ComputeIntersection(planes[4], orig, dir);
+    corners[2] = ComputeIntersection(planes[5], orig, dir);
+
+    ComputeIntersectionLine(planes[2], planes[1], orig, dir);
+    corners[4] = ComputeIntersection(planes[4], orig, dir);
+    corners[7] = ComputeIntersection(planes[5], orig, dir);
+
+    ComputeIntersectionLine(planes[1], planes[3], orig, dir);
+    corners[5] = ComputeIntersection(planes[4], orig, dir);
+    corners[6] = ComputeIntersection(planes[5], orig, dir);
+}
+
+//-----------------------------------------------------------------------------
+//      半精度浮動小数に変換します.
+//-----------------------------------------------------------------------------
+inline
+Half2 EncodeHalf2(const Vector2& value)
+{
+    Half2 packed;
+    packed.x = ToHalf(value.x);
+    packed.y = ToHalf(value.y);
+    return packed;
+}
+
+//-----------------------------------------------------------------------------
+//      単精度浮動小数に変換します.
+//-----------------------------------------------------------------------------
+inline
+Vector2 DecodeHalf2(const Half2& value)
+{
+    Vector2 unpacked;
+    unpacked.x = ToFloat(value.x);
+    unpacked.y = ToFloat(value.y);
+    return unpacked;
+}
+
+//-----------------------------------------------------------------------------
+//      半精度浮動小数に変換します.
+//-----------------------------------------------------------------------------
+inline
+Half3 EncodeHalf3(const Vector3& value)
+{
+    Half3 packed;
+    packed.x = ToHalf(value.x);
+    packed.y = ToHalf(value.y);
+    packed.z = ToHalf(value.z);
+    return packed;
+}
+
+//-----------------------------------------------------------------------------
+//      単精度浮動小数に変換します.
+//-----------------------------------------------------------------------------
+inline
+Vector3 DecodeHalf3(const Half3& value)
+{
+    Vector3 unpacked;
+    unpacked.x = ToFloat(value.x);
+    unpacked.y = ToFloat(value.y);
+    unpacked.z = ToFloat(value.z);
+    return unpacked;
+}
+
+//-----------------------------------------------------------------------------
+//      半精度浮動小数に変換します.
+//-----------------------------------------------------------------------------
+inline
+Half4 EncodeHalf4(const Vector4& value)
+{
+    Half4 packed;
+    packed.x = ToHalf(value.x);
+    packed.y = ToHalf(value.y);
+    packed.z = ToHalf(value.z);
+    packed.w = ToHalf(value.w);
+    return packed;
+}
+
+//-----------------------------------------------------------------------------
+//      単精度浮動小数に変換します.
+//-----------------------------------------------------------------------------
+inline
+Vector4 DecodeHalf4(const Half4& value)
+{
+    Vector4 unpacked;
+    unpacked.x = ToFloat(value.x);
+    unpacked.y = ToFloat(value.y);
+    unpacked.z = ToFloat(value.z);
+    unpacked.w = ToFloat(value.w);
+    return unpacked;
+}
+
+//-----------------------------------------------------------------------------
+//      4要素UNORM形式に変換します.
+//-----------------------------------------------------------------------------
+inline
+uint32_t EncodeUnorm4(const Vector4& value)
+{
+    union Unorm4
+    {
+        struct
+        {
+            uint8_t x;
+            uint8_t y;
+            uint8_t z;
+            uint8_t w;
+        };
+        uint32_t u;
+    };
+
+    Unorm4 result;
+    result.x = uint8_t(Saturate(value.x) * 255.0f);
+    result.y = uint8_t(Saturate(value.y) * 255.0f);
+    result.z = uint8_t(Saturate(value.z) * 255.0f);
+    result.w = uint8_t(Saturate(value.w) * 255.0f);
+    return result.u;
+}
+
+//-----------------------------------------------------------------------------
+//      4要素UNORM形式を展開します.
+//-----------------------------------------------------------------------------
+inline
+Vector4 DecodeUnorm4(uint32_t value)
+{
+    union Unorm4
+    {
+        struct
+        {
+            uint8_t x;
+            uint8_t y;
+            uint8_t z;
+            uint8_t w;
+        };
+        uint32_t u;
+    };
+
+    Unorm4 packed;
+    packed.u = value;
+
+    Vector4 result;
+    result.x = float(packed.x) / 255.0f;
+    result.y = float(packed.y) / 255.0f;
+    result.z = float(packed.z) / 255.0f;
+    result.w = float(packed.w) / 255.0f;
+    return result;
+}
+
+//-----------------------------------------------------------------------------
+//      2要素UNORM形式に変換します.
+//-----------------------------------------------------------------------------
+inline
+uint16_t EncodeUnorm2(const Vector2& value)
+{
+    union Unorm2
+    {
+        struct
+        {
+            uint8_t x;
+            uint8_t y;
+        };
+        uint16_t u;
+    };
+
+    Unorm2 result;
+    result.x = uint8_t(value.x * 255.0f);
+    result.y = uint8_t(value.y * 255.0f);
+    return result.u;
+}
+
+//-----------------------------------------------------------------------------
+//      2要素UNORM形式を展開します.
+//-----------------------------------------------------------------------------
+inline
+Vector2 DecodeUnorm2(uint16_t value)
+{
+    union Unorm2
+    {
+        struct
+        {
+            uint8_t x;
+            uint8_t y;
+        };
+        uint16_t u;
+    };
+
+    Unorm2 packed;
+    packed.u = value;
+
+    Vector2 result;
+    result.x = float(packed.x) / 255.0f;
+    result.y = float(packed.y) / 255.0f;
+    return result;
+}
+
+//-----------------------------------------------------------------------------
+//      4要素SNORM形式に変換します.
+//-----------------------------------------------------------------------------
+inline
+uint32_t EncodeSnorm4(const Vector4& value)
+{
+    union Snorm4
+    {
+        struct
+        {
+            uint8_t x;
+            uint8_t y;
+            uint8_t z;
+            uint8_t w;
+        };
+        uint32_t u;
+    };
+
+    Snorm4 result;
+    result.x = uint8_t((Clamp(value.x, -1.0f, 1.0f) * 0.5f + 0.5f) * 255.0f);
+    result.y = uint8_t((Clamp(value.y, -1.0f, 1.0f) * 0.5f + 0.5f) * 255.0f);
+    result.z = uint8_t((Clamp(value.z, -1.0f, 1.0f) * 0.5f + 0.5f) * 255.0f);
+    result.w = uint8_t((Clamp(value.w, -1.0f, 1.0f) * 0.5f + 0.5f) * 255.0f);
+    return result.u;
+}
+
+//-----------------------------------------------------------------------------
+//      4要素SNORM形式を展開します.
+//-----------------------------------------------------------------------------
+inline
+Vector4 DecodeSnorm4(uint32_t value)
+{
+    union Snorm4
+    {
+        struct
+        {
+            uint8_t x;
+            uint8_t y;
+            uint8_t z;
+            uint8_t w;
+        };
+        uint32_t u;
+    };
+
+    Snorm4 packed;
+    packed.u = value;
+
+    Vector4 result;
+    result.x = (float(packed.x) / 255.0f) * 2.0f - 1.0f;
+    result.y = (float(packed.y) / 255.0f) * 2.0f - 1.0f;
+    result.z = (float(packed.z) / 255.0f) * 2.0f - 1.0f;
+    result.w = (float(packed.w) / 255.0f) * 2.0f - 1.0f;
+    return result;
+}
+
+//-----------------------------------------------------------------------------
+//      2要素SNORM形式に変換します.
+//-----------------------------------------------------------------------------
+inline
+uint16_t EncodeSnorm2(const Vector2& value)
+{
+    union Snorm2
+    {
+        struct
+        {
+            uint8_t x;
+            uint8_t y;
+        };
+        uint32_t u;
+    };
+
+    Snorm2 result;
+    result.x = uint8_t((Clamp(value.x, -1.0f, 1.0f) * 0.5f + 0.5f) * 255.0f);
+    result.y = uint8_t((Clamp(value.y, -1.0f, 1.0f) * 0.5f + 0.5f) * 255.0f);
+    return result.u;
+}
+
+//-----------------------------------------------------------------------------
+//      2要素SNORM形式を展開します.
+//-----------------------------------------------------------------------------
+inline
+Vector2 DecodeSnorm2(uint16_t value)
+{
+    union Snorm2
+    {
+        struct
+        {
+            uint8_t x;
+            uint8_t y;
+        };
+        uint32_t u;
+    };
+
+    Snorm2 packed;
+    packed.u = value;
+
+    Vector2 result;
+    result.x = (float(packed.x) / 255.0f) * 2.0f - 1.0f;
+    result.y = (float(packed.y) / 255.0f) * 2.0f - 1.0f;
+    return result;
+}
+
 
 } // namespace asdx
 

@@ -42,8 +42,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -97,6 +103,7 @@
     <ClCompile Include="..\src\asdxPad.cpp" />
     <ClCompile Include="..\src\asdxRandom.cpp" />
     <ClCompile Include="..\src\asdxRenderState.cpp" />
+    <ClCompile Include="..\src\asdxResModel.cpp" />
     <ClCompile Include="..\src\asdxResTexture.cpp" />
     <ClCompile Include="..\src\asdxShader.cpp" />
     <ClCompile Include="..\src\asdxSkyBox.cpp" />
@@ -135,6 +142,7 @@
     <ClInclude Include="..\include\asdxParamHistory.h" />
     <ClInclude Include="..\include\asdxRef.h" />
     <ClInclude Include="..\include\asdxRenderState.h" />
+    <ClInclude Include="..\include\asdxResModel.h" />
     <ClInclude Include="..\include\asdxResTexture.h" />
     <ClInclude Include="..\include\asdxShader.h" />
     <ClInclude Include="..\include\asdxSkyBox.h" />

@@ -30,10 +30,11 @@ bool P4Checkout(const char* path, const char* changeList="default");
 //! @brief      対象ファイルの変更を元に戻します.
 //!
 //! @param[in]      path            対象ファイルのパス.
+//! @param[in]      onlyUnchanged   変更が無かったファイルだけ戻す場合は true.
 //! @param[in]      changeList      チェンジリスト名.
 //! @return     プロセス起動の結果を返却します.
 //-----------------------------------------------------------------------------
-bool P4Revert(const char* path, const char* changeList="default");
+bool P4Revert(const char* path, bool onlyUnchanged = false, const char* changeList="default");
 
 //-----------------------------------------------------------------------------
 //! @brief      対象ファイルを削除目的でマークします.

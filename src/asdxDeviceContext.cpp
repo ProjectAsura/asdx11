@@ -22,6 +22,7 @@ const float DeviceContext::kDefaultBlendFactor[4] = {
     D3D11_DEFAULT_BLEND_FACTOR_BLUE,
     D3D11_DEFAULT_BLEND_FACTOR_ALPHA
 };
+DeviceContext DeviceContext::s_Instance = {};
 
 //-----------------------------------------------------------------------------
 //      コンストラクタです.
