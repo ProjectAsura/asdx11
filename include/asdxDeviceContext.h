@@ -8,7 +8,8 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <d3d11.h>
+#include <d3d11_4.h>
+#include <dxgi1_6.h>
 #include <asdxRef.h>
 
 
@@ -111,6 +112,13 @@ public:
     ID3D11BlendState* GetDefaultBS() const;
 
     //-------------------------------------------------------------------------
+    //! @brief      ユーザーアノテーションを取得します.
+    //!
+    //! @return     ユーザーアノテーションを返却します.
+    //-------------------------------------------------------------------------
+    ID3DUserDefinedAnnotation* GetAnnotation() const;
+
+    //-------------------------------------------------------------------------
     //! @brief      ドライバータイプを取得します.
     //!
     //! @return     ドライバータイプを返却します.
@@ -133,17 +141,18 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    static DeviceContext            s_Instance;
-    RefPtr<ID3D11Device>            m_pDevice;
-    RefPtr<ID3D11DeviceContext>     m_pContext;
-    RefPtr<ID3D11RasterizerState>   m_DefaultRS;
-    RefPtr<ID3D11DepthStencilState> m_DefaultDSS;
-    RefPtr<ID3D11BlendState>        m_DefaultBS;
-    RefPtr<IDXGIDevice>             m_DXGIDevice;
-    RefPtr<IDXGIAdapter>            m_DXGIAdapter;
-    RefPtr<IDXGIFactory>            m_DXGIFactory;
-    D3D_DRIVER_TYPE                 m_DriverType    = D3D_DRIVER_TYPE_HARDWARE;
-    D3D_FEATURE_LEVEL               m_FeatureLevel  = D3D_FEATURE_LEVEL_11_0;
+    static DeviceContext                s_Instance;
+    RefPtr<ID3D11Device>                m_pDevice;
+    RefPtr<ID3D11DeviceContext>         m_pContext;
+    RefPtr<ID3D11RasterizerState>       m_DefaultRS;
+    RefPtr<ID3D11DepthStencilState>     m_DefaultDSS;
+    RefPtr<ID3D11BlendState>            m_DefaultBS;
+    RefPtr<IDXGIDevice>                 m_DXGIDevice;
+    RefPtr<IDXGIAdapter>                m_DXGIAdapter;
+    RefPtr<IDXGIFactory>                m_DXGIFactory;
+    RefPtr<ID3DUserDefinedAnnotation>   m_Annotation;
+    D3D_DRIVER_TYPE                     m_DriverType    = D3D_DRIVER_TYPE_HARDWARE;
+    D3D_FEATURE_LEVEL                   m_FeatureLevel  = D3D_FEATURE_LEVEL_11_0;
 
     //=========================================================================
     // private methods.

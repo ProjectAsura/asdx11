@@ -120,6 +120,14 @@ bool DeviceContext::Init()
         return false;
     }
 
+    // ユーザーアノテーションを取得.
+    hr = m_pContext->QueryInterface(IID_PPV_ARGS(m_Annotation.GetAddress()));
+    if (FAILED(hr))
+    {
+        ELOG("Error : ID3D11DeviceContext::QueryInterface() Failed. errcode = 0x%x", hr);
+        return false;
+    }
+
     // ラスタライザーステートを生成.
     {
         D3D11_RASTERIZER_DESC desc = {};
@@ -216,6 +224,7 @@ void DeviceContext::Term()
     m_DXGIFactory   .Reset();
     m_DXGIAdapter   .Reset();
     m_DXGIDevice    .Reset();
+    m_Annotation    .Reset();
     m_pDevice       .Reset();
 }
 
@@ -272,6 +281,12 @@ IDXGIAdapter* DeviceContext::GetDXGIAdapter() const
 //-----------------------------------------------------------------------------
 IDXGIFactory* DeviceContext::GetDXGIFactory() const
 { return m_DXGIFactory.GetPtr(); }
+
+//-----------------------------------------------------------------------------
+//      ユーザーアノテーションを取得します.
+//-----------------------------------------------------------------------------
+ID3DUserDefinedAnnotation* DeviceContext::GetAnnotation() const
+{ return m_Annotation.GetPtr(); }
 
 //-----------------------------------------------------------------------------
 //      ドライバータイプを取得します.

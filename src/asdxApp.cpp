@@ -350,6 +350,9 @@ FLOAT Application::GetFPS()
 //-----------------------------------------------------------------------------
 bool Application::InitApp()
 {
+    // タイマー分解能を上げる.
+    timeBeginPeriod(1);
+
     // COMライブラリの初期化.
     HRESULT hr = CoInitialize( nullptr );
     if ( FAILED(hr) )
@@ -442,6 +445,9 @@ void Application::TermApp()
 
     // COMライブラリの終了処理.
     CoUninitialize();
+
+    // タイマー分解能を戻す.
+    timeEndPeriod(1);
 }
 
 //-----------------------------------------------------------------------------
@@ -608,9 +614,8 @@ bool Application::InitD3D()
 
     // マルチサンプルクオリティの最大値を取得.
     uint32_t maxQualityLevel = 0;
-    uint32_t maxQuality      = 0;
     m_pDevice->CheckMultisampleQualityLevels( m_SwapChainFormat, m_MultiSampleCount, &maxQualityLevel );
-    maxQuality = maxQualityLevel - 1;
+    m_MultiSampleQuality = maxQualityLevel - 1;
 
     // スワップチェインの構成設定.
     DXGI_SWAP_CHAIN_DESC sd;
@@ -624,7 +629,7 @@ bool Application::InitD3D()
     sd.BufferUsage                          = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
     sd.OutputWindow                         = m_hWnd;
     sd.SampleDesc.Count                     = m_MultiSampleCount;
-    sd.SampleDesc.Quality                   = maxQuality;
+    sd.SampleDesc.Quality                   = m_MultiSampleQuality;
     sd.Windowed                             = TRUE;
 
     hr = pDXGIFactory->CreateSwapChain(m_pDevice, &sd, m_pSwapChain.GetAddress());
@@ -1085,9 +1090,9 @@ void Application::MouseEvent( const MouseEventArgs& param )
 //-----------------------------------------------------------------------------
 //      ドロップイベント処理.
 //------------------------------------------------------------------------------
-void Application::DropEvent( const wchar_t** dropFiles, uint32_t fileNum )
+void Application::DropEvent( const std::vector<std::string>& dropFiles )
 {
-    OnDrop( dropFiles, fileNum );
+    OnDrop( dropFiles );
 }
 
 //-----------------------------------------------------------------------------
@@ -1220,29 +1225,28 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
     case WM_DROPFILES:
         {
             // ドロップされたファイル数を取得.
-            uint32_t numFiles = DragQueryFileW((HDROP)wp, 0xFFFFFFFF, NULL, 0);
+            uint32_t fileCount = DragQueryFileA((HDROP)wp, 0xFFFFFFFF, NULL, 0);
 
             // 作業用のバッファを確保.
-            const WCHAR** dropFiles = new const WCHAR*[ numFiles ];
+            std::vector<std::string> dropFiles;
+            dropFiles.resize(fileCount);
 
-            for (uint32_t i=0; i < numFiles; i++)
+            for (uint32_t i=0; i <fileCount; i++)
             {
+                char dropFile[MAX_PATH] = {};
+
                 // ドロップされたファイル名を取得.
-                WCHAR* dropFile = new WCHAR[ MAX_PATH ];
-                DragQueryFileW((HDROP)wp, i, dropFile, MAX_PATH);
+                DragQueryFileA((HDROP)wp, i, dropFile, MAX_PATH);
                 dropFiles[ i ] = dropFile;
             }
 
             // アプリケーションに通知.
             for( ApplicationList::ListItr itr = g_AppList.Begin(); itr != g_AppList.End(); itr++ )
             {
-                (*itr)->DropEvent( dropFiles, numFiles );
+                (*itr)->DropEvent(dropFiles);
             }
 
-            // 作業用のバッファを解放.
-            for (uint32_t i=0; i < numFiles; i++)
-            { SafeDelete( dropFiles[ i ] ); }
-            SafeDelete( dropFiles );
+            dropFiles.clear();
 
             DragFinish((HDROP)wp);
         }
@@ -1685,7 +1689,7 @@ void Application::OnTyping( uint32_t )
 //-----------------------------------------------------------------------------
 //      ドロップ時の処理.
 //------------------------------------------------------------------------------
-void Application::OnDrop( const wchar_t**, uint32_t )
+void Application::OnDrop( const std::vector<std::string>& )
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------

@@ -10,6 +10,8 @@
 //-----------------------------------------------------------------------------
 #include <cstdint>
 #include <mutex>
+#include <vector>
+#include <string>
 
 #include <Windows.h>
 #include <d3d11.h>
@@ -320,9 +322,8 @@ protected:
     //! @brief      ウィンドウへのドラッグアンドドロップされたと時に実行する処理です.
     //!
     //! @param[in]      dropFiles     ドラッグアンドドロップされたファイル名です.
-    //! @param[in]      fileCount     ドラッグアンドドロップされたファイル数です.
     //-------------------------------------------------------------------------
-    virtual void OnDrop        ( const wchar_t** dropFiles, uint32_t fileCount );
+    virtual void OnDrop        ( const std::vector<std::string>& dropFiles );
 
     //-------------------------------------------------------------------------
     //! @brief      メッセージプロシージャの処理です.
@@ -521,9 +522,8 @@ private:
     //! @brief      ドロップイベントを処理します.
     //!
     //! @param[in]      dropFiles        ドロップされたファイルパスです.
-    //! @param[in]      fileNum          ドラッグアンドドロップされたファイル数です.
     //-------------------------------------------------------------------------
-    void DropEvent( const wchar_t** dropFiles, uint32_t fileNum );
+    void DropEvent( const std::vector<std::string>& dropFiles );
 
     //-------------------------------------------------------------------------
     //! @brief      HDR出力をサポートしているかどうかチェックします.
