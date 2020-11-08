@@ -2918,7 +2918,10 @@ bool CreateResTextureFromTGAFileW(const wchar_t* filename, asdx::ResTexture& res
     }
 
     // IDフィールドサイズ分だけオフセットを移動させる.
-    fseek( pFile, header.IdFieldLength, SEEK_CUR );
+    if (header.IdFieldLength != 0)
+    {
+        fseek(pFile, header.IdFieldLength, SEEK_CUR);
+    }
 
     // RGBのみはテクスチャがサポートされないので，強制的にRGBAにする.
     auto bpp = (bytePerPixel == 3) ? 4 : bytePerPixel;
@@ -2932,6 +2935,10 @@ bool CreateResTextureFromTGAFileW(const wchar_t* filename, asdx::ResTexture& res
         fclose( pFile );
         return false;
     }
+
+    // ゼロクリア.
+    for(size_t i=0; i<size; ++i)
+    { pPixels[i] = 0; }
 
     // カラーマップを持つかチェック.
     uint8_t* pColorMap = nullptr;
@@ -3009,11 +3016,11 @@ bool CreateResTextureFromTGAFileW(const wchar_t* filename, asdx::ResTexture& res
             switch( header.BitPerPixel )
             {
             case 16:
-                { Parse16BitsRLE( pFile, width * height * 3, pPixels ); }
+                { Parse16BitsRLE( pFile, width * height * 4, pPixels ); }
                 break;
 
             case 24:
-                { Parse24BitsRLE( pFile, width * height * 3, pPixels ); }
+                { Parse24BitsRLE( pFile, width * height * 4, pPixels ); }
                 break;
 
             case 32:

@@ -1171,6 +1171,7 @@ void EditTexture2D::SetPath(const std::string& value, bool history)
     { return; }
 
     AppHistoryMgr::GetInstance().Add(CreateHistory(value));
+    m_Path = value;
 }
 
 //-----------------------------------------------------------------------------
@@ -1193,12 +1194,14 @@ void EditTexture2D::DrawControl
     const char* label,
     const char* defaultPath,
     uint32_t    width,
-    uint32_t    height
+    uint32_t    height,
+    bool        jp
 )
 {
 #if ASDX_ENABLE_IMGUI
     ImGui::PushID(label);
     {
+        ImGui::Columns(2);
         auto descriptor = m_Texture.GetSRV();
         if (descriptor != nullptr)
         {
@@ -1211,7 +1214,18 @@ void EditTexture2D::DrawControl
         else
         { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"NO TEXTURE"); }
 
-        if (ImGui::Button(u8"Setting"))
+        ImGui::NextColumn();
+        ImGui::Text(label);
+        auto resource = m_Texture.GetTexture();
+        if (resource != nullptr)
+        {
+            D3D11_TEXTURE2D_DESC desc;
+            resource->GetDesc(&desc);
+            ImGui::BulletText(u8"%u×%u", desc.Width, desc.Height);
+            ImGui::BulletText(u8"%s", asdx::GetString(desc.Format));
+            ImGui::BulletText(u8"%u mips", desc.MipLevels);
+        }
+        if (ImGui::Button(jp ? u8"設定" : u8"Load"))
         {
             std::string path;
             if (OpenFileDlg(
@@ -1223,9 +1237,11 @@ void EditTexture2D::DrawControl
         if (descriptor != nullptr)
         {
             ImGui::SameLine();
-            if (ImGui::Button(u8"Delete"))
+            if (ImGui::Button(jp ? u8"破棄" : u8"Delete"))
             { SetPath("", true); }
         }
+
+        ImGui::Columns(1);
     }
     ImGui::PopID();
 #else
