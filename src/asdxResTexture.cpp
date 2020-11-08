@@ -2936,10 +2936,6 @@ bool CreateResTextureFromTGAFileW(const wchar_t* filename, asdx::ResTexture& res
         return false;
     }
 
-    // ゼロクリア.
-    for(size_t i=0; i<size; ++i)
-    { pPixels[i] = 0; }
-
     // カラーマップを持つかチェック.
     uint8_t* pColorMap = nullptr;
     if ( header.HasColorMap )
