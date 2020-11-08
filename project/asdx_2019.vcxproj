@@ -122,6 +122,7 @@
     <ClInclude Include="..\include\asdxCameraUtil.h" />
     <ClInclude Include="..\include\asdxConstantBuffer.h" />
     <ClInclude Include="..\include\asdxDeviceContext.h" />
+    <ClInclude Include="..\include\asdxDisposer.h" />
     <ClInclude Include="..\include\asdxFileWatcher.h" />
     <ClInclude Include="..\include\asdxFlatDoc.h" />
     <ClInclude Include="..\include\asdxFont.h" />
@@ -148,6 +149,7 @@
     <ClInclude Include="..\include\asdxSkyBox.h" />
     <ClInclude Include="..\include\asdxSkySphere.h" />
     <ClInclude Include="..\include\asdxSound.h" />
+    <ClInclude Include="..\include\asdxSpinLock.h" />
     <ClInclude Include="..\include\asdxSprite.h" />
     <ClInclude Include="..\include\asdxStepTimer.h" />
     <ClInclude Include="..\include\asdxStopWatch.h" />
