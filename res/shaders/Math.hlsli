@@ -1993,4 +1993,20 @@ bool FrustumCulling(float3 p0, float3 p1, float3 p2)
     return (any(pmax.xy < -1.0f) || any(pmin.xy > 1.0f) || pmax.z < 0.0f || pmax.z > 1.0f);
 }
 
+//-----------------------------------------------------------------------------
+//      スフィアマップのテクスチャ座標を求めます.
+//-----------------------------------------------------------------------------
+float2 ToSphereMapCoord(float3 reflectDir)
+{
+    // https://www.clicktorelease.com/blog/creating-spherical-environment-mapping-shader/
+    // Pierre Lepers氏のコメントを参照.
+    // 計算式導出についてには，Jaume Sanchez Elias氏の画像を参照.
+    const float kSqrt8 = 2.82842712474619;
+    float s = 1.0f / (kSqrt8 * sqrt(abs(reflectDir.z + 1.0f)));
+
+    return float2(
+        reflectDir.x * s + 0.5f,
+        reflectDir.y * s + 0.5f);
+}
+
 #endif//MATH_HLSLI
