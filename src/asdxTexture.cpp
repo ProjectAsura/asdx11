@@ -54,11 +54,13 @@ bool CreateTexture2D
 )
 {
     assert( pInitData != nullptr );
+    if ( mipCount == 0 )
+    { mipCount = 1; }
 
     bool autogen = false;
     uint32_t fmtSupport = 0;
     HRESULT hr = pDevice->CheckFormatSupport( format, &fmtSupport );
-    if ( mipCount == 0 && SUCCEEDED( hr ) && ( fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN ) )
+    if ( mipCount == 1 && SUCCEEDED( hr ) && ( fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN ) )
     {
         autogen = true;
     }

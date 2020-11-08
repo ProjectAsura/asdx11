@@ -1202,6 +1202,7 @@ void EditTexture2D::DrawControl
     ImGui::PushID(label);
     {
         ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, width);
         auto descriptor = m_Texture.GetSRV();
         if (descriptor != nullptr)
         {
