@@ -20,16 +20,6 @@
 // Forward Declarations.
 //-------------------------------------------------------------------------------------------------
 struct ImDrawData;
-struct ImVec2;
-
-//-------------------------------------------------------------------------------------------------
-//! @brief      キューブマップを描画します.
-//!
-//! @param[in]      user_texture_id     ID3D11ShaderResourceView*を指定します.
-//! @param[in]      size                描画する領域サイズです.
-//! @param[in]      cross               キューブマップを十字で描画したい場合は true で指定します.
-//-------------------------------------------------------------------------------------------------
-void ImGuiImageCube(void* user_texture_id, const ImVec2& size, bool cross = false);
 
 
 namespace asdx {

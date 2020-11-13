@@ -153,6 +153,7 @@
     <ClCompile Include="..\src\asdxAppHistoryMgr.cpp" />
     <ClCompile Include="..\src\asdxEditParam.cpp" />
     <ClCompile Include="..\src\asdxGuiMgr.cpp" />
+    <ClCompile Include="..\src\asdxImGuiExtension.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\imgui\imconfig.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="..\include\asdxAppHistoryMgr.h" />
     <ClInclude Include="..\include\asdxEditParam.h" />
     <ClInclude Include="..\include\asdxGuiMgr.h" />
+    <ClInclude Include="..\include\asdxImGuiExtension.h" />
     <ClInclude Include="..\include\asdxParamHistory.h" />
     <ClInclude Include="..\src\GlyphJapanese.h" />
   </ItemGroup>
