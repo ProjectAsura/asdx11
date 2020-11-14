@@ -1213,7 +1213,7 @@ void EditTexture2D::DrawControl
             { ImGui::SetTooltip("%s", m_Path.c_str()); }
         }
         else
-        { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"NO TEXTURE"); }
+        { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), jp ? u8"テクスチャ無し" : u8"NO TEXTURE"); }
 
         ImGui::NextColumn();
         ImGui::Text(label);

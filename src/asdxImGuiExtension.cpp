@@ -61,19 +61,4 @@ bool ImGuiClickableText
     return pressed;
 }
 
-//-----------------------------------------------------------------------------
-//      キューブマップを描画します.
-//-----------------------------------------------------------------------------
-void ImGuiImageCube
-(
-    ImTextureID     textureId,
-    const ImVec2&   size,
-    bool            cross,
-    const ImVec4&   tintColor,
-    const ImVec4&   borderColor
-)
-{
-
-}
-
 #endif // ASDX_ENABLE_IMGUI

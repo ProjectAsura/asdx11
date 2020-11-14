@@ -2009,4 +2009,19 @@ float2 ToSphereMapCoord(float3 reflectDir)
         reflectDir.y * s + 0.5f);
 }
 
+//-----------------------------------------------------------------------------
+//      スフィアマップ形式で表示するためのキューブマップ参照方向を求めます.
+//-----------------------------------------------------------------------------
+float3 ToCubeMapCoord(float2 texcoord)
+{
+    // [-1, 1]に変更.
+    float2 uv = texcoord * float2(2.0f, -2.0f) - float2(1.0f, -1.0f);
+
+    float3 dir;
+    dir.x = cos(uv.x * F_PI);
+    dir.y = uv.y;
+    dir.z = sin(uv.x * F_PI);
+    return dir;
+}
+
 #endif//MATH_HLSLI

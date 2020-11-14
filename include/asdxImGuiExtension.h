@@ -41,15 +41,4 @@ bool ImGuiClickableText(
     const ImVec4&   hoverColor  = ImVec4(1.0f, 0.5f, 0.0f, 1.0f)
 );
 
-//-----------------------------------------------------------------------------
-//      キューブマップを描画します.
-//-----------------------------------------------------------------------------
-void ImGuiImageCube(
-    ImTextureID     texture_id,
-    const ImVec2&   size,
-    bool            cross       = false,
-    const ImVec4&   tint_col    = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-    const ImVec4&   border_col  = ImVec4(0.0f, 0.0f, 0.0f, 0.0f)
-);
-
 #endif// ASDX_ENABLE_IMGUI
