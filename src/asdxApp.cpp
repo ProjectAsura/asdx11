@@ -613,26 +613,33 @@ bool Application::InitD3D()
     auto pDXGIFactory = DeviceContext::Instance().GetDXGIFactory();
 
     // マルチサンプルクオリティの最大値を取得.
-    uint32_t maxQualityLevel = 0;
-    m_pDevice->CheckMultisampleQualityLevels( m_SwapChainFormat, m_MultiSampleCount, &maxQualityLevel );
-    m_MultiSampleQuality = maxQualityLevel - 1;
+    if (m_EnableMultiSample)
+    {
+        uint32_t maxQualityLevel = 0;
+        m_pDevice->CheckMultisampleQualityLevels( m_SwapChainFormat, m_MultiSampleCount, &maxQualityLevel );
+        m_MultiSampleQuality = maxQualityLevel - 1;
+    }
+    else
+    {
+        m_MultiSampleCount   = 1;
+        m_MultiSampleQuality = 0;
+    }
 
     // スワップチェインの構成設定.
-    DXGI_SWAP_CHAIN_DESC sd;
-    ZeroMemory( &sd, sizeof(DXGI_SWAP_CHAIN_DESC) );
-    sd.BufferCount                          = m_SwapChainCount;
-    sd.BufferDesc.Width                     = w;
-    sd.BufferDesc.Height                    = h;
-    sd.BufferDesc.Format                    = m_SwapChainFormat;
-    sd.BufferDesc.RefreshRate.Numerator     = 60;
-    sd.BufferDesc.RefreshRate.Denominator   = 1;
-    sd.BufferUsage                          = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
-    sd.OutputWindow                         = m_hWnd;
-    sd.SampleDesc.Count                     = m_MultiSampleCount;
-    sd.SampleDesc.Quality                   = m_MultiSampleQuality;
-    sd.Windowed                             = TRUE;
+    DXGI_SWAP_CHAIN_DESC1 sd = {};
+    sd.Width                = w;
+    sd.Height               = h;
+    sd.Format               = m_SwapChainFormat;
+    sd.Stereo               = FALSE;
+    sd.SampleDesc.Count     = m_MultiSampleCount;
+    sd.SampleDesc.Quality   = m_MultiSampleQuality;
+    sd.BufferUsage          = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
+    sd.BufferCount          = m_SwapChainCount;
+    sd.Scaling              = DXGI_SCALING_STRETCH;
+    sd.SwapEffect           = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    sd.AlphaMode            = DXGI_ALPHA_MODE_UNSPECIFIED;
 
-    hr = pDXGIFactory->CreateSwapChain(m_pDevice, &sd, m_pSwapChain.GetAddress());
+    hr = pDXGIFactory->CreateSwapChainForHwnd(m_pDevice, m_hWnd, &sd, nullptr, nullptr, m_pSwapChain.GetAddress());
     if (FAILED(hr))
     {
         ELOG("Error : IDXGIFactory::CreateSwapChain() Failed. errcode = 0x%x", hr);

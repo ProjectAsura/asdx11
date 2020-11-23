@@ -102,7 +102,7 @@ public:
     //!
     //! @return     DXGIファクトリーを返却します.
     //-------------------------------------------------------------------------
-    IDXGIFactory* GetDXGIFactory() const;
+    IDXGIFactory2* GetDXGIFactory() const;
 
     //-------------------------------------------------------------------------
     //! @brief      ブレンドステートを取得します.
@@ -149,7 +149,7 @@ private:
     RefPtr<ID3D11BlendState>            m_DefaultBS;
     RefPtr<IDXGIDevice>                 m_DXGIDevice;
     RefPtr<IDXGIAdapter>                m_DXGIAdapter;
-    RefPtr<IDXGIFactory>                m_DXGIFactory;
+    RefPtr<IDXGIFactory2>               m_DXGIFactory;
     RefPtr<ID3DUserDefinedAnnotation>   m_Annotation;
     D3D_DRIVER_TYPE                     m_DriverType    = D3D_DRIVER_TYPE_HARDWARE;
     D3D_FEATURE_LEVEL                   m_FeatureLevel  = D3D_FEATURE_LEVEL_11_0;

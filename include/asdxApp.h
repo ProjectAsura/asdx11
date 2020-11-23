@@ -225,7 +225,7 @@ protected:
     uint32_t                        m_SwapChainCount;       //!< スワップチェインのバッファ数です.
     DXGI_FORMAT                     m_SwapChainFormat;      //!< スワップチェインのバッファフォーマットです.
     DXGI_FORMAT                     m_DepthStencilFormat;   //!< 深度ステンシルバッファのフォーマットです.
-    RefPtr<IDXGISwapChain>          m_pSwapChain;           //!< スワップチェインです.
+    RefPtr<IDXGISwapChain1>         m_pSwapChain;           //!< スワップチェインです.
     RefPtr<IDXGISwapChain4>         m_pSwapChain4;          //!< スワップチェイン4です.
     ColorTarget2D                   m_ColorTarget2D;        //!< 描画ターゲットです.
     DepthTarget2D                   m_DepthTarget2D;        //!< 深度ステンシルバッファです.
@@ -240,6 +240,7 @@ protected:
     HICON                           m_hIcon;                //!< アイコンハンドルです.
     HMENU                           m_hMenu;                //!< メニューハンドルです.
     HACCEL                          m_hAccel;               //!< アクセレレータハンドルです.
+    bool                            m_EnableMultiSample;
 
 #if ASDX_IS_DEBUG
     RefPtr<ID3D11Debug>             m_pD3D11Debug;          //!< デバッグオブジェクトです.

@@ -279,7 +279,7 @@ IDXGIAdapter* DeviceContext::GetDXGIAdapter() const
 //-----------------------------------------------------------------------------
 //      DXGIファクトリーを取得します.
 //-----------------------------------------------------------------------------
-IDXGIFactory* DeviceContext::GetDXGIFactory() const
+IDXGIFactory2* DeviceContext::GetDXGIFactory() const
 { return m_DXGIFactory.GetPtr(); }
 
 //-----------------------------------------------------------------------------
