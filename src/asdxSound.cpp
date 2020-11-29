@@ -67,7 +67,7 @@ SndMgr& SndMgr::GetInstance()
 //-------------------------------------------------------------------------------------------------
 //      サウンドデータを登録します.
 //-------------------------------------------------------------------------------------------------
-bool SndMgr::Open( uint32_t id, const wchar_t* filename )
+bool SndMgr::Open( uint32_t id, const char* filename )
 {
     if ( filename == nullptr )
     { return false; }
@@ -76,24 +76,24 @@ bool SndMgr::Open( uint32_t id, const wchar_t* filename )
     { return false; }
 
     MCIERROR ret;
-    MCI_OPEN_PARMS param;
+    MCI_OPEN_PARMSA param;
     param.lpstrElementName = filename;
 
-    auto ext = GetExtW( filename );
-    if ( ext == L"wave" || ext == L"wav" )
+    auto ext = GetExtA( filename );
+    if ( ext == "wave" || ext == "wav" )
     {
-        param.lpstrDeviceType = (LPCWSTR)MCI_DEVTYPE_WAVEFORM_AUDIO;
-        ret = mciSendCommandW( 0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_TYPE_ID | MCI_OPEN_ELEMENT, (DWORD_PTR)&param );
+        param.lpstrDeviceType = (LPCSTR)MCI_DEVTYPE_WAVEFORM_AUDIO;
+        ret = mciSendCommandA( 0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_TYPE_ID | MCI_OPEN_ELEMENT, (DWORD_PTR)&param );
     }
-    else if ( ext == L"midi" || ext == L"mid" )
+    else if ( ext == "midi" || ext == "mid" )
     {
-        param.lpstrDeviceType = (LPCWSTR)MCI_DEVTYPE_SEQUENCER;
-        ret = mciSendCommandW( 0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_TYPE_ID | MCI_OPEN_ELEMENT, (DWORD_PTR)&param );
+        param.lpstrDeviceType = (LPCSTR)MCI_DEVTYPE_SEQUENCER;
+        ret = mciSendCommandA( 0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_TYPE_ID | MCI_OPEN_ELEMENT, (DWORD_PTR)&param );
     }
-    else if ( ext == L"mp3" )
+    else if ( ext == "mp3" )
     {
-        param.lpstrDeviceType = L"MPEGVideo";
-        ret = mciSendCommandW( 0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD_PTR)&param );
+        param.lpstrDeviceType = "MPEGVideo";
+        ret = mciSendCommandA( 0, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD_PTR)&param );
     }
     else 
     { return false; }

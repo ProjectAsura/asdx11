@@ -796,7 +796,7 @@ bool Application::InitD2D()
     }
 
     // D2Dデバイスの生成.
-    hr = m_pFactory2D->CreateDevice( m_pDeviceDXGI.GetPtr(), m_pDevice2D.GetAddress() );
+    hr = m_pFactory2D->CreateDevice( DeviceContext::Instance().GetDXGIDevice(), m_pDevice2D.GetAddress() );
     if ( FAILED( hr ) )
     {
         ELOG( "Error : ID2D1Factory1::CreateDevice() Failed." );
@@ -1290,7 +1290,7 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
     case MM_MCINOTIFY:
         {
             // サウンドマネージャのコールバック.
-            SndMgr::GetInstance().OnNofity( (uint32_t)lp, (uint32_t)wp );
+            SndMgr::GetInstance().OnNofity( uint32_t(lp), uint32_t(wp) );
         }
         break;
     }
