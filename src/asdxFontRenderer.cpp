@@ -11,11 +11,15 @@
 #include <vector>
 #include <asdxFontRenderer.h>
 #include <asdxLogger.h>
+#include <asdxRenderState.h>
 #include "../external/imgui/imstb_truetype.h"   // For TTF Font.
 #include "../external/imgui/imstb_rectpack.h"   // For Texture Atlas.
 
 
 namespace {
+
+#include "../res/shaders/Compiled/FontVS.inc"
+#include "../res/shaders/Compiled/FontPS.inc"
 
 //-----------------------------------------------------------------------------
 // Constant Valules.
@@ -26,6 +30,12 @@ static const size_t   kIndexPerSprite    = 6;
 
 static const uint32_t kGlyphJapanese[] = {
     #include "GlyphJapanese.h"
+};
+
+static const D3D11_INPUT_ELEMENT_DESC kInputElements[] = {
+    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
 
 //-----------------------------------------------------------------------------
@@ -367,7 +377,7 @@ bool Font::Load
         stbtt_pack_context spc = {};
         stbtt_PackBegin(&spc, nullptr, textureWidth, kTexHeight, 0, padding, nullptr);
 
-        stbrp_pack_rects(reinterpret_cast<stbrp_context*>(&spc.pack_info), rects.data(), rects.size());
+        stbrp_pack_rects(reinterpret_cast<stbrp_context*>(&spc.pack_info), rects.data(), int(rects.size()));
 
         for(size_t i=0; i<rects.size(); ++i)
         {
@@ -392,7 +402,7 @@ bool Font::Load
         packRange.font_size                         = fontSize;
         packRange.first_unicode_codepoint_in_range  = 0;
         packRange.array_of_unicode_codepoints       = codes.data();
-        packRange.num_chars                         = codes.size();
+        packRange.num_chars                         = int(codes.size());
         packRange.chardata_for_range                = packedChars.data();
         packRange.h_oversample                      = 3;
         packRange.v_oversample                      = 1;
@@ -419,7 +429,7 @@ bool Font::Load
             auto posX = 0.0f;   // ダミー.
             auto posY = 0.0f;   // ダミー.
             stbtt_aligned_quad quad = {};
-            stbtt_GetPackedQuad(packedChars.data(), textureWidth, textureHeight, i, &posX, &posY, &quad, 0);
+            stbtt_GetPackedQuad(packedChars.data(), textureWidth, textureHeight, int(i), &posX, &posY, &quad, 0);
 
             // グリフを設定.
             Glyph glyph = {};
@@ -488,19 +498,19 @@ void Font::Term()
 //-----------------------------------------------------------------------------
 //      ベースラインから上方向の高さを取得します.
 //-----------------------------------------------------------------------------
-int Font::GetAscent() const
+float Font::GetAscent() const
 { return m_Ascent; }
 
 //-----------------------------------------------------------------------------
 //      ベースラインから下方向のたかあを取得します.
 //-----------------------------------------------------------------------------
-int Font::GetDescent() const
+float Font::GetDescent() const
 { return m_Descent; }
 
 //-----------------------------------------------------------------------------
 //      行間を取得します.
 //-----------------------------------------------------------------------------
-int Font::GetLineGap() const
+float Font::GetLineGap() const
 { return m_LineGap; }
 
 //-----------------------------------------------------------------------------
@@ -512,7 +522,7 @@ float Font::GetScale() const
 //-----------------------------------------------------------------------------
 //      一行あたりの高さを取得します.
 //-----------------------------------------------------------------------------
-int Font::GetHeight() const
+float Font::GetHeight() const
 { return (m_Ascent - m_Descent) + m_LineGap; }
 
 //-----------------------------------------------------------------------------
@@ -548,6 +558,7 @@ FontRenderer::FontRenderer()
 , m_MaxSpriteCount  (0)
 , m_SpriteCount     (0)
 , m_ScreenSize      (1.0f, 1.0f)
+, m_Transform       (Matrix::CreateIdentity())
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -568,17 +579,122 @@ bool FontRenderer::Init
 )
 {
     // 頂点シェーダ生成.
+    {
+        auto hr = pDevice->CreateVertexShader(
+            FontVS, sizeof(FontVS), nullptr, m_VS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOGA("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        hr = pDevice->CreateInputLayout(kInputElements, _countof(kInputElements), FontVS, sizeof(FontVS), m_IL.GetAddress());
+
+    }
 
     // ピクセルシェーダ生成.
+    {
+        auto hr = pDevice->CreatePixelShader(
+            FontPS, sizeof(FontPS), nullptr, m_PS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOGA("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+    }
 
-    // 頂点バッファ生成.
+    // 頂点バッファの生成.
+    {
+        // 頂点バッファの設定.
+        D3D11_BUFFER_DESC desc = {};
+        desc.BindFlags      = D3D11_BIND_VERTEX_BUFFER;
+        desc.Usage          = D3D11_USAGE_DYNAMIC;
+        desc.ByteWidth      = sizeof(Vertex) * m_MaxSpriteCount * kVertexPerSprite;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    // 定数バッファ生成.
+        // 頂点バッファの生成.
+        auto hr = pDevice->CreateBuffer(&desc, nullptr, m_VB.GetAddress());
+        if ( FAILED( hr ) )
+        {
+            // エラーログ出力.
+            ELOG( "Error : ID3D11Device::CreateBuffer() Failed." );
+            return false;
+        }
+    }
+
+    // インデックスバッファの生成.
+    {
+        // インデックスバッファの設定.
+        D3D11_BUFFER_DESC desc;
+        ZeroMemory( &desc, sizeof( D3D11_BUFFER_DESC ) );
+        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        desc.Usage     = D3D11_USAGE_DEFAULT;
+        desc.ByteWidth = sizeof(uint16_t) * m_MaxSpriteCount * kIndexPerSprite;
+
+        // インデックスバッファのメモリを確保.
+        std::vector<uint16_t> indices;
+        indices.reserve(m_MaxSpriteCount * kIndexPerSprite);
+
+        // インデックス設定.
+        for(uint16_t i=0; i<m_MaxSpriteCount * kIndexPerSprite; i+=kIndexPerSprite)
+        {
+            indices.push_back( i + 0 );
+            indices.push_back( i + 1 );
+            indices.push_back( i + 2 );
+
+            indices.push_back( i + 1 );
+            indices.push_back( i + 3 );
+            indices.push_back( i + 2 );
+        }
+
+        // サブリソースデータの設定.
+        D3D11_SUBRESOURCE_DATA res = {};
+        res.pSysMem = &indices.front();
+
+        // インデックスバッファ生成.
+        auto hr = pDevice->CreateBuffer(&desc, &res, m_IB.GetAddress());
+        if ( FAILED( hr ) )
+        {
+            // エラーログ出力.
+            ELOG( "Error : ID3D11Device::CreateBuffer() Failed." );
+
+            // インデックスをクリア.
+            indices.clear();
+
+            // 異常終了.
+            return false;
+        }
+
+        // インデックスをクリア.
+        indices.clear();
+    }
+
+    // 定数バッファの生成.
+    {
+        // 定数バッファの設定.
+        D3D11_BUFFER_DESC desc = {};
+        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        desc.ByteWidth = sizeof(asdx::Matrix);
+        desc.Usage     = D3D11_USAGE_DEFAULT;
+
+        // 定数バッファ生成.
+        auto hr = pDevice->CreateBuffer( &desc, nullptr, m_CB.GetAddress() );
+        if ( FAILED( hr ) )
+        {
+            // エラーログ出力.
+            ELOG( "Error : ID3D11Device::CreateBuffer() Failed." );
+
+            // 異常終了.
+            return false;
+        }
+    }
 
     m_MaxSpriteCount    = maxSpriteCount;
     m_ScreenSize.x      = float(w);
     m_ScreenSize.y      = float(h);
     m_SpriteCount       = 0;
+    m_Transform         = Matrix::CreateIdentity();
+
     m_Vertices.resize(m_MaxSpriteCount * kVertexPerSprite);
 
     return true;
@@ -595,6 +711,7 @@ void FontRenderer::Term()
     m_Color             = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     m_MaxSpriteCount    = 0;
     m_SpriteCount       = 0;
+    m_Transform         = Matrix::CreateIdentity();
 
     // メモリ解放.
     m_Vertices.clear();
@@ -648,6 +765,15 @@ void FontRenderer::SetScreenSize(int w, int h)
 {
     m_ScreenSize.x = float(w);
     m_ScreenSize.y = float(h);
+
+    float xScale = ( m_ScreenSize.x > 0.0f ) ? 2.0f / m_ScreenSize.x : 0.0f;
+    float yScale = ( m_ScreenSize.y > 0.0f ) ? 2.0f / m_ScreenSize.y : 0.0f;
+
+    m_Transform = Matrix(
+        xScale,     0.0f,   0.0f,   0.0f,
+         0.0f,   -yScale,   0.0f,   0.0f,
+         0.0f,      0.0f,   1.0f,   0.0f,
+        -1.0f,      1.0f,   0.0f,   1.0f );
 }
 
 //-----------------------------------------------------------------------------
@@ -661,6 +787,39 @@ Vector2 FontRenderer::GetScreenSize() const
 //-----------------------------------------------------------------------------
 void FontRenderer::Begin(ID3D11DeviceContext* pContext)
 {
+    if (m_Font == nullptr)
+    { return; }
+
+    m_SpriteCount = 0;
+
+    // プリミティブトポロジーを設定します.
+    pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // 入力レイアウトを設定します.
+    pContext->IASetInputLayout(m_IL.GetPtr());
+
+    // シェーダを設定します.
+    pContext->VSSetShader(m_VS.GetPtr(), nullptr, 0);
+    pContext->PSSetShader(m_PS.GetPtr(), nullptr, 0);
+    pContext->GSSetShader(nullptr, nullptr, 0);
+    pContext->HSSetShader(nullptr, nullptr, 0);
+    pContext->DSSetShader(nullptr, nullptr, 0);
+
+    uint32_t stride = sizeof(Vertex);
+    uint32_t offset = 0;
+
+    // 頂点バッファとインデックスバッファを設定します.
+    pContext->IASetVertexBuffers(0, 1, m_VB.GetAddress(), &stride, &offset);
+    pContext->IASetIndexBuffer(m_IB.GetPtr(), DXGI_FORMAT_R16_UINT, 0);
+
+    // 定数バッファを更新し，設定します.
+    pContext->UpdateSubresource(m_CB.GetPtr(), 0, nullptr, &m_Transform, 0, 0);
+    pContext->VSSetConstantBuffers(0, 1, m_CB.GetAddress());
+
+    auto pSmp = RenderState::GetInstance().GetSmp(LinearClamp);
+    auto pSRV = m_Font->GetSRV();
+    pContext->PSSetSamplers(0, 1, &pSmp);
+    pContext->PSSetShaderResources(0, 1, &pSRV);
 }
 
 //-----------------------------------------------------------------------------
@@ -681,15 +840,16 @@ void FontRenderer::DrawString(int x, int y, int z, const char* text)
     if (count == 0)
     { return; }
 
-    auto px = x;
-    auto py = y;
+    auto px = float(x);
+    auto py = float(y);
+    auto pz = float(z);
 
     for(size_t i=0; i<count; ++i)
     {
         // 改行コード.
         if (uint16_t(text[i]) == 0x0a)
         {
-            px = x;
+            px = float(x);
             py += m_Font->GetHeight();
         }
 
@@ -700,7 +860,7 @@ void FontRenderer::DrawString(int x, int y, int z, const char* text)
         auto glyph = m_Font->GetGlyph(code);
 
         // 頂点バッファ組み立て.
-        AddSprite(px, py, glyph);
+        AddSprite(px, py, pz, glyph);
 
         // 横方向に移動.
         px += glyph.Advance;
@@ -742,13 +902,48 @@ void FontRenderer::DrawFormat(int x, int y, int z, const char* format, ...)
 //-----------------------------------------------------------------------------
 void FontRenderer::End(ID3D11DeviceContext* pContext)
 {
-    // 描画キック.
+    if (m_Font == nullptr)
+    { return; }
+
+    D3D11_MAPPED_SUBRESOURCE mappedBuffer;
+
+    // マップします.
+    HRESULT hr = pContext->Map( m_VB.GetPtr(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer );
+    if ( FAILED( hr ) )
+    { return; }
+
+    // 頂点データのポインタ取得.
+    auto pVertices = reinterpret_cast<Vertex*>(mappedBuffer.pData);
+
+    // がばっとコピる.
+    memcpy(pVertices, m_Vertices.data(), sizeof(Vertex) * m_SpriteCount * kVertexPerSprite);
+
+    // アンマップします.
+    pContext->Unmap(m_VB.GetPtr(), 0);
+
+    // インデックス数.
+    uint32_t indexCount = m_SpriteCount * kIndexPerSprite;
+
+    // スプライトを描画.
+    pContext->DrawIndexed( indexCount, 0, 0 );
+
+    // シェーダをアンバイド.
+    pContext->VSSetShader( nullptr, nullptr, 0 );
+    pContext->PSSetShader( nullptr, nullptr, 0 );
+    pContext->GSSetShader( nullptr, nullptr, 0 );
+    pContext->HSSetShader( nullptr, nullptr, 0 );
+    pContext->DSSetShader( nullptr, nullptr, 0 );
+ 
+    ID3D11ShaderResourceView* pNullSRV[ 1 ] = { nullptr };
+    ID3D11SamplerState*       pNullSmp[ 1 ] = { nullptr };
+    pContext->PSSetShaderResources( 0, 1, pNullSRV );
+    pContext->PSSetSamplers( 0, 1, pNullSmp );
 }
 
 //-----------------------------------------------------------------------------
 //      スプライトを追加します.
 //-----------------------------------------------------------------------------
-void FontRenderer::AddSprite(int x, int y, const Glyph& glyph)
+void FontRenderer::AddSprite(float x, float y, float z, const Glyph& glyph)
 {
     // 登録できるかチェック.
     if ((m_SpriteCount + 1) > (m_MaxSpriteCount - 1))
@@ -758,9 +953,45 @@ void FontRenderer::AddSprite(int x, int y, const Glyph& glyph)
     auto pVertices = &m_Vertices[ m_SpriteCount * kVertexPerSprite ];
 
     // データ設定.
+    float x0 = x + glyph.P0.x;
+    float x1 = x + glyph.P1.x;
+    float y0 = y + glyph.P0.y;
+    float y1 = y + glyph.P1.y;
+    float u0 = glyph.UV0.x;
+    float u1 = glyph.UV1.x;
+    float v0 = glyph.UV0.y;
+    float v1 = glyph.UV1.y;
 
+    pVertices[0].Position.x = x0;
+    pVertices[0].Position.y = y0;
+    pVertices[0].Position.z = z;
+    pVertices[0].Color      = m_Color;
+    pVertices[0].TexCoord.x = u0;
+    pVertices[0].TexCoord.y = v1;
+
+    pVertices[1].Position.x = x1;
+    pVertices[1].Position.y = y0;
+    pVertices[1].Position.z = z;
+    pVertices[1].Color      = m_Color;
+    pVertices[1].TexCoord.x = u1;
+    pVertices[1].TexCoord.y = v1;
+
+    pVertices[2].Position.x = x0;
+    pVertices[2].Position.y = y1;
+    pVertices[2].Position.z = z;
+    pVertices[2].Color      = m_Color;
+    pVertices[2].TexCoord.x = u0;
+    pVertices[2].TexCoord.y = v0;
+
+    pVertices[3].Position.x = x1;
+    pVertices[3].Position.y = y1;
+    pVertices[3].Position.z = z;
+    pVertices[3].Color      = m_Color;
+    pVertices[3].TexCoord.x = u1;
+    pVertices[3].TexCoord.y = v0;
 
     // スプライト数をカウントアップ.
+    m_SpriteCount++;
 }
 
 } // namespace asdx
