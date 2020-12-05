@@ -11,6 +11,8 @@
 #include <vector>
 #include <asdxFontRenderer.h>
 #include <asdxLogger.h>
+#include "../external/imgui/imstb_truetype.h"   // For TTF Font.
+#include "../external/imgui/imstb_rectpack.h"   // For Texture Atlas.
 
 
 namespace {
@@ -22,60 +24,32 @@ static const uint32_t kBinaryVersion1    = 0x3;
 static const size_t   kVertexPerSprite   = 4;
 static const size_t   kIndexPerSprite    = 6;
 
-
-///////////////////////////////////////////////////////////////////////////////
-// DRAW_OPTION enum
-///////////////////////////////////////////////////////////////////////////////
-enum DRAW_OPTION
-{
-    DRAW_OPTION_NONE        = 0,
-    DRAW_OPTION_OUTLINE     = 0x1 << 0,
-    DRAW_OPTION_DROP_SHADOW = 0x1 << 1,
-    DRAW_OPTION_OUTER_GLOW  = 0x1 << 2,
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// FontHeader structure
-///////////////////////////////////////////////////////////////////////////////
-struct FontHeader
-{
-    uint8_t     Magic[4];       // マジック "FNT\0";
-    uint32_t    Version;        // バージョン.
-    int         Ascent;         // ベースラインからの上方向の高さ.
-    int         Descent;        // ベースラインからの下方向の高さ.
-    int         LineGap;        // 行間.
-    float       HeightScale;    // フォントスケール.
-    uint32_t    GlyphCount;     // グリフ数.
-    uint32_t    Width;          // テクスチャ横幅.
-    uint32_t    Height;         // テクスチャ縦幅.
-    uint64_t    PixelSize;      // ピクセルデータのサイズ(bytes).
-    // 後続データは
-    // * ResGlyphの配列.
-    // * テクスチャデータ.
-    // の順番.
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// ResGlyph structure
-///////////////////////////////////////////////////////////////////////////////
-struct ResGlyph
-{
-    uint32_t        Code;       // 文字コード.
-    asdx::Glyph     Glyph;      // グリフ.
+static const uint32_t kGlyphJapanese[] = {
+    #include "GlyphJapanese.h"
 };
 
 //-----------------------------------------------------------------------------
-//      フラグを設定します.
+//      任意の数以上の最小の2のべき乗を求めます.
 //-----------------------------------------------------------------------------
-inline void SetFlag(uint8_t& flag, uint8_t bit, bool enable)
+int NearPowerOf2(int n)
 {
-    if (enable)
-    { flag |= bit; }
-    else
-    { flag &= ~(bit); }
+    if (n <= 0)
+    { return 0; }
+
+    if ((n & (n -1)) == 0)
+    { return n; }
+
+    int ret = 1;
+    while(n > 0)
+    {
+        ret <<= 1;
+        n >>= 1;
+    }
+
+    return ret;
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //! @brief      2次元テクスチャを生成します.
 //!
 //! @param [in]     pDevice         デバイスです.
@@ -95,7 +69,7 @@ inline void SetFlag(uint8_t& flag, uint8_t bit, bool enable)
 //! @param [out]    ppSRV           シェーダリソースビューです.
 //! @retval true    生成に成功.
 //! @retval false   生成に失敗.
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool CreateTexture2D
 (
     ID3D11Device*               pDevice,
@@ -239,6 +213,31 @@ bool CreateTexture2D
     return false;
 }
 
+//-----------------------------------------------------------------------------
+//      ファイルをロードします.
+//-----------------------------------------------------------------------------
+bool LoadFile(const char* path, std::vector<uint8_t>& binary)
+{
+    FILE* pFile = nullptr;
+    auto err = fopen_s(&pFile, path, "rb");
+    if (err != 0)
+    {
+        return false;
+    }
+
+    auto pos = ftell(pFile);
+    fseek(pFile, SEEK_END, 0);
+    auto end = ftell(pFile);
+    fseek(pFile, SEEK_SET, 0);
+    auto size = end - pos;
+
+    binary.resize(size);
+    fread(binary.data(), size, 1, pFile);
+    fclose(pFile);
+
+    return true;
+}
+
 
 } // namespace
 
@@ -253,10 +252,10 @@ namespace asdx {
 //      コンストラクタです.
 //-----------------------------------------------------------------------------
 Font::Font()
-: m_Ascent      (0)
-, m_Descent     (0)
-, m_LineGap     (0)
-, m_HeightScale (0.0f)
+: m_Ascent  (0)
+, m_Descent (0)
+, m_LineGap (0)
+, m_Scale   (0.0f)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -272,93 +271,202 @@ bool Font::Load
 (
     ID3D11Device*           pDevice,
     ID3D11DeviceContext*    pContext,
-    const char*             path
+    const char*             path,
+    float                   fontSize
 )
 {
-    FILE* pFile = nullptr;
-    auto err = fopen_s(&pFile, path, "rb");
-    if (err != 0)
-    {
-        ELOGA("Error : File Open Failed. path = %s", path);
-        return false;
-    }
-
-    FontHeader header = {};
-    fread(&header, sizeof(header), 1, pFile);
-
-    if (header.Magic[0] != 'F' ||
-        header.Magic[1] != 'N' ||
-        header.Magic[2] != 'T' ||
-        header.Magic[3] != '\0')
-    {
-        ELOGA("Error : Invalid File Magic. path = %s", path);
-        fclose(pFile);
-        return false;
-    }
-
-    if (header.Version != kBinaryVersion1)
-    {
-        ELOGA("Error : Invalid File Verision. verison = %u", header.Version);
-        fclose(pFile);
-        return false;
-    }
-
-    m_Ascent        = header.Ascent;
-    m_Descent       = header.Descent;
-    m_LineGap       = header.LineGap;
-    m_HeightScale   = header.HeightScale;
-
-    // グリフ読み込み.
-    for(auto i=0u; i<header.GlyphCount; ++i)
-    {
-        ResGlyph res = {};
-        fread(&res, sizeof(res), 1, pFile);
-        m_Glyphs[res.Code] = res.Glyph;
-    }
-
-    // ピクセルデータ読み込み.
+    // テクスチャピクセル.
     std::vector<uint8_t> pixels;
-    pixels.resize(header.PixelSize);
-    fread(pixels.data(), header.PixelSize, 1, pFile);
 
-    // ファイルを閉じる.
-    fclose(pFile);
+    // テクスチャサイズ.
+    int textureWidth  = 0;
+    int textureHeight = 0;
 
-    // テクスチャ生成.
+    // フォント処理.
+    {
+        std::vector<uint8_t> binary;
+        if (!LoadFile(path, binary))
+        {
+            ELOGA("Error : LoadFile() Failed. path = %s", path);
+            return false;
+        }
+
+        auto offset = stbtt_GetFontOffsetForIndex(binary.data(), 0);
+
+        stbtt_fontinfo font;
+        if (!stbtt_InitFont(&font, binary.data(), offset))
+        {
+            ELOGA("Error : stbtt_InitFont() Failed.");
+            return false;
+        }
+
+        const auto fontScale = stbtt_ScaleForPixelHeight(&font, fontSize);
+
+        int ascent  = 0;
+        int descent = 0;
+        int lineGap = 0;
+        stbtt_GetFontVMetrics(&font, &ascent, &descent, &lineGap);
+
+        m_Ascent    = float(ascent);
+        m_Descent   = float(descent);
+        m_Scale     = fontScale;
+        m_FontSize  = fontSize;
+        m_LineGap   = float(lineGap);
+
+        auto padding = 1;
+        auto totalSurface = 0;
+
+        auto count = _countof(kGlyphJapanese);
+
+        std::vector<stbrp_rect> rects;
+        std::vector<int>        codes;
+        rects.reserve(count);
+        codes.reserve(count);
+
+        for(auto i=0u; i<count; ++i)
+        {
+            auto code = int(kGlyphJapanese[i]);
+            auto index = stbtt_FindGlyphIndex(&font, code);
+            if (index == 0)
+                continue;
+
+            int x0 = 0;
+            int y0 = 0;
+            int x1 = 0;
+            int y1 = 0;
+            stbtt_GetGlyphBitmapBoxSubpixel(
+                &font, index, m_Scale, m_Scale, 0.0f, 0.0f,
+                &x0, &y0,
+                &x1, &y1);
+
+            auto w = (x1 - x0) + padding;
+            auto h = (y1 - y0) + padding;
+
+            stbrp_rect rect = {};
+            rect.w  = stbrp_coord(w);
+            rect.h  = stbrp_coord(h);
+            rects.push_back(rect);
+            codes.push_back(int(code));
+
+            totalSurface += (w * h);
+        }
+
+        // テクスチャ横幅を計算.
+        const auto surfaceSqrt = sqrt(float(totalSurface)) + 1;
+
+        const int kTexHeight = 1024 * 32;
+        textureWidth = 512;
+        if (surfaceSqrt >= 4096 * 0.7f)
+        { textureWidth = 4096; }
+        else if (surfaceSqrt >= 2048 * 0.7f)
+        { textureWidth = 2048; }
+        else if (surfaceSqrt >= 1024 * 0.7f)
+        { textureWidth = 1024; }
+
+        // パック開始.
+        stbtt_pack_context spc = {};
+        stbtt_PackBegin(&spc, nullptr, textureWidth, kTexHeight, 0, padding, nullptr);
+
+        stbrp_pack_rects(reinterpret_cast<stbrp_context*>(&spc.pack_info), rects.data(), rects.size());
+
+        for(size_t i=0; i<rects.size(); ++i)
+        {
+            if (!rects[i].was_packed)
+                continue;
+
+            textureHeight = asdx::Max<int>(textureHeight, rects[i].y + rects[i].h);
+        }
+
+        // 2のべき乗にする.
+        textureHeight = NearPowerOf2(textureHeight);
+
+        // テクスチャメモリを確保.
+        size_t size  = textureWidth;
+               size *= textureHeight;
+        pixels.resize(size);
+
+        std::vector<stbtt_packedchar> packedChars;
+        packedChars.resize(codes.size());
+
+        stbtt_pack_range packRange = {};
+        packRange.font_size                         = fontSize;
+        packRange.first_unicode_codepoint_in_range  = 0;
+        packRange.array_of_unicode_codepoints       = codes.data();
+        packRange.num_chars                         = codes.size();
+        packRange.chardata_for_range                = packedChars.data();
+        packRange.h_oversample                      = 3;
+        packRange.v_oversample                      = 1;
+
+        spc.height = textureHeight;
+        spc.pixels = pixels.data();
+
+        // ラスタライズ.
+        stbtt_PackFontRangesRenderIntoRects(&spc, &font, &packRange, 1, rects.data());
+
+        // パック終了.
+        stbtt_PackEnd(&spc);
+
+        rects.clear();
+
+        auto offsetY = floor(m_Ascent + 0.5f);
+
+        // ランタイム用のグリフデータを構築.
+        for(size_t i=0; i<codes.size(); ++i)
+        {
+            const auto code = uint32_t(codes[i]);
+            const auto& pc = packedChars[i];
+
+            auto posX = 0.0f;   // ダミー.
+            auto posY = 0.0f;   // ダミー.
+            stbtt_aligned_quad quad = {};
+            stbtt_GetPackedQuad(packedChars.data(), textureWidth, textureHeight, i, &posX, &posY, &quad, 0);
+
+            // グリフを設定.
+            Glyph glyph = {};
+            glyph.P0.x      = quad.x0;
+            glyph.P0.y      = quad.y0 + offsetY;
+            glyph.P1.x      = quad.x1;
+            glyph.P1.y      = quad.y1 + offsetY;
+            glyph.UV0.x     = quad.s0;
+            glyph.UV0.y     = quad.t0;
+            glyph.UV1.x     = quad.s1;
+            glyph.UV1.y     = quad.t1;
+            glyph.Advance   = pc.xadvance;
+
+            // グリフ追加.
+            m_Glyphs[code] = glyph;
+        }
+    }
+
+    // D3D11テクスチャを生成.
     {
         D3D11_SUBRESOURCE_DATA res = {};
-        res.pSysMem          = pixels.data();
-        res.SysMemPitch      = header.Width * 4;
-        res.SysMemSlicePitch = header.Width * header.Height * 4;
-        
-        auto ret = CreateTexture2D(
-            pDevice,
-            pContext,
-            header.Width,
-            header.Height,
+        res.pSysMem             = pixels.data();
+        res.SysMemPitch         = UINT(textureWidth);
+        res.SysMemSlicePitch    = UINT(textureWidth * textureHeight);
+
+        auto ret = CreateTexture2D(pDevice, pContext,
+            uint32_t(textureWidth),
+            uint32_t(textureHeight),
             1,
             1,
             false,
-            DXGI_FORMAT_R8G8B8A8_UNORM,
+            DXGI_FORMAT_R8_UNORM,
             D3D11_USAGE_DEFAULT,
             D3D11_BIND_SHADER_RESOURCE,
             0,
             0,
-            &res,
+            &res, 
             m_Texture.GetAddress(),
             m_SRV.GetAddress());
-
-        pixels.clear();
 
         if (!ret)
         {
             ELOGA("Error : CreateTexture2D() Failed.");
-            Term();
             return false;
         }
     }
 
-    // 正常終了.
     return true;
 }
 
@@ -367,10 +475,10 @@ bool Font::Load
 //-----------------------------------------------------------------------------
 void Font::Term()
 {
-    m_Ascent        = 0;
-    m_Descent       = 0;
-    m_LineGap       = 0;
-    m_HeightScale   = 0.0f;
+    m_Ascent    = 0;
+    m_Descent   = 0;
+    m_LineGap   = 0;
+    m_Scale     = 0.0f;
 
     m_Glyphs .clear();
     m_Texture.Reset();
@@ -398,8 +506,8 @@ int Font::GetLineGap() const
 //-----------------------------------------------------------------------------
 //      フォントスケールを取得します.
 //-----------------------------------------------------------------------------
-float Font::GetHeightScale() const
-{ return m_HeightScale; }
+float Font::GetScale() const
+{ return m_Scale; }
 
 //-----------------------------------------------------------------------------
 //      一行あたりの高さを取得します.
@@ -440,7 +548,6 @@ FontRenderer::FontRenderer()
 , m_MaxSpriteCount  (0)
 , m_SpriteCount     (0)
 , m_ScreenSize      (1.0f, 1.0f)
-, m_Flags           (0)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -488,7 +595,6 @@ void FontRenderer::Term()
     m_Color             = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     m_MaxSpriteCount    = 0;
     m_SpriteCount       = 0;
-    m_Flags             = 0;
 
     // メモリ解放.
     m_Vertices.clear();
@@ -536,54 +642,6 @@ Vector4 FontRenderer::GetColor() const
 { return m_Color; }
 
 //-----------------------------------------------------------------------------
-//      スケールを設定します.
-//-----------------------------------------------------------------------------
-void FontRenderer::SetScale(float value)
-{ m_Scale = value; }
-
-//-----------------------------------------------------------------------------
-//      スケールを取得します.
-//-----------------------------------------------------------------------------
-float FontRenderer::GetScale() const
-{ return m_Scale; }
-
-//-----------------------------------------------------------------------------
-//      アウトラインフラグを設定します.
-//-----------------------------------------------------------------------------
-void FontRenderer::SetOutline(bool value)
-{ SetFlag(m_Flags, DRAW_OPTION_OUTLINE, value); }
-
-//-----------------------------------------------------------------------------
-//      アウトラインフラグを取得します.
-//-----------------------------------------------------------------------------
-bool FontRenderer::GetOutline() const
-{ return !!(m_Flags & DRAW_OPTION_OUTLINE); }
-
-//-----------------------------------------------------------------------------
-//      アウターグローフラグを設定します.
-//-----------------------------------------------------------------------------
-void FontRenderer::SetOuterGlow(bool value)
-{ SetFlag(m_Flags, DRAW_OPTION_OUTER_GLOW, value); }
-
-//-----------------------------------------------------------------------------
-//      アウターグローフラグを取得します.
-//-----------------------------------------------------------------------------
-bool FontRenderer::GetOuterGlow() const
-{ return !!(m_Flags & DRAW_OPTION_OUTER_GLOW); }
-
-//-----------------------------------------------------------------------------
-//      ドロップシャドウフラグを設定します.
-//-----------------------------------------------------------------------------
-void FontRenderer::SetDropShadow(bool value)
-{ SetFlag(m_Flags, DRAW_OPTION_DROP_SHADOW, value); }
-
-//-----------------------------------------------------------------------------
-//      ドロップシャドウフラグを取得します.
-//-----------------------------------------------------------------------------
-bool FontRenderer::GetDropShadow() const
-{ return !!(m_Flags & DRAW_OPTION_DROP_SHADOW); }
-
-//-----------------------------------------------------------------------------
 //      スクリーンサイズを設定します.
 //-----------------------------------------------------------------------------
 void FontRenderer::SetScreenSize(int w, int h)
@@ -629,7 +687,7 @@ void FontRenderer::DrawString(int x, int y, int z, const char* text)
     for(size_t i=0; i<count; ++i)
     {
         // 改行コード.
-        if (uint32_t(text[i]) == 0x0a)
+        if (uint16_t(text[i]) == 0x0a)
         {
             px = x;
             py += m_Font->GetHeight();
