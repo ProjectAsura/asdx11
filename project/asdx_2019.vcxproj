@@ -56,7 +56,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\include;$(ProjectDir)..\external\imgui</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib />
@@ -69,7 +69,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\include;$(ProjectDir)..\external\imgui</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -86,7 +86,6 @@
     <ClCompile Include="..\src\asdxDeviceContext.cpp" />
     <ClCompile Include="..\src\asdxFileWatcher.cpp" />
     <ClCompile Include="..\src\asdxFlatDoc.cpp" />
-    <ClCompile Include="..\src\asdxFontRenderer.cpp" />
     <ClCompile Include="..\src\asdxFrameHeap.cpp" />
     <ClCompile Include="..\src\asdxGuiMgr.cpp" />
     <ClCompile Include="..\src\asdxHash.cpp" />
@@ -125,7 +124,6 @@
     <ClInclude Include="..\include\asdxDisposer.h" />
     <ClInclude Include="..\include\asdxFileWatcher.h" />
     <ClInclude Include="..\include\asdxFlatDoc.h" />
-    <ClInclude Include="..\include\asdxFontRenderer.h" />
     <ClInclude Include="..\include\asdxFrameHeap.h" />
     <ClInclude Include="..\include\asdxHash.h" />
     <ClInclude Include="..\include\asdxHashString.h" />
