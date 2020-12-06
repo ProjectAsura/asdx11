@@ -79,6 +79,7 @@
     <ClCompile Include="..\src\asdxConstantBuffer.cpp" />
     <ClCompile Include="..\src\asdxFileWatcher.cpp" />
     <ClCompile Include="..\src\asdxFlatDoc.cpp" />
+    <ClCompile Include="..\src\asdxFont.cpp" />
     <ClCompile Include="..\src\asdxFrameHeap.cpp" />
     <ClCompile Include="..\src\asdxGuiMgr.cpp" />
     <ClCompile Include="..\src\asdxHash.cpp" />
@@ -114,6 +115,7 @@
     <ClInclude Include="..\include\asdxConstantBuffer.h" />
     <ClInclude Include="..\include\asdxFileWatcher.h" />
     <ClInclude Include="..\include\asdxFlatDoc.h" />
+    <ClInclude Include="..\include\asdxFont.h" />
     <ClInclude Include="..\include\asdxFrameHeap.h" />
     <ClInclude Include="..\include\asdxHash.h" />
     <ClInclude Include="..\include\asdxHashString.h" />
