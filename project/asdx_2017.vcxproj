@@ -124,6 +124,7 @@
     <ClInclude Include="..\include\asdxIncludeExpansion.h" />
     <ClInclude Include="..\include\asdxIndexBuffer.h" />
     <ClInclude Include="..\include\asdxLfuCache.h" />
+    <ClInclude Include="..\include\asdxList.h" />
     <ClInclude Include="..\include\asdxLocalization.h" />
     <ClInclude Include="..\include\asdxLogger.h" />
     <ClInclude Include="..\include\asdxLruCache.h" />
@@ -131,6 +132,7 @@
     <ClInclude Include="..\include\asdxMisc.h" />
     <ClInclude Include="..\include\asdxP4VHelper.h" />
     <ClInclude Include="..\include\asdxParamHistory.h" />
+    <ClInclude Include="..\include\asdxQueue.h" />
     <ClInclude Include="..\include\asdxRef.h" />
     <ClInclude Include="..\include\asdxRenderState.h" />
     <ClInclude Include="..\include\asdxResTexture.h" />
