@@ -57,7 +57,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\include;$(ProjectDir)..\external\imgui</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASDX_AUTO_LINK;ASDX_ENABLE_D2D;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
@@ -70,7 +70,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\include;$(ProjectDir)..\external\imgui</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASDX_AUTO_LINK;ASDX_ENABLE_D2D;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
