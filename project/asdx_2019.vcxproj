@@ -119,6 +119,7 @@
     <ClInclude Include="..\include\asdxApp.h" />
     <ClInclude Include="..\include\asdxCamera.h" />
     <ClInclude Include="..\include\asdxCameraUtil.h" />
+    <ClInclude Include="..\include\asdxColorMatrix.h" />
     <ClInclude Include="..\include\asdxConstantBuffer.h" />
     <ClInclude Include="..\include\asdxDeviceContext.h" />
     <ClInclude Include="..\include\asdxDisposer.h" />
