@@ -14,6 +14,14 @@ struct VSOutput
     float2  TexCoord : TEXCOORD0;   //!< テクスチャ座標です.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// CbFont constant buffer
+///////////////////////////////////////////////////////////////////////////////
+cbuffer CbFont : register(b0)
+{
+    float4 OutlineColor;    // 縁取りカラー.
+};
+
 //-----------------------------------------------------------------------------
 // Textures and Samplers.
 //-----------------------------------------------------------------------------
@@ -25,6 +33,29 @@ SamplerState        LinearClamp : register(s0);
 //-----------------------------------------------------------------------------
 float4 main(const VSOutput input) : SV_TARGET0
 {
-    float4 color = FontTexture.Sample(LinearClamp, input.TexCoord).rrrr;
-    return color * input.Color;
+    float4 result;
+    float alpha = FontTexture.Sample(LinearClamp, input.TexCoord);
+    if (alpha == 0.0f)
+    {
+        // 隣接ピクセルをチェックし，縁取り処理を行う.
+        float check = 0.0f;
+        check += FontTexture.Sample(LinearClamp, input.TexCoord, int2(-1, 1));
+        check += FontTexture.Sample(LinearClamp, input.TexCoord, int2( 0, 1));
+        check += FontTexture.Sample(LinearClamp, input.TexCoord, int2( 1, 1));
+
+        check += FontTexture.Sample(LinearClamp, input.TexCoord, int2(-1, 0));
+        check += FontTexture.Sample(LinearClamp, input.TexCoord, int2( 1, 0));
+
+        check += FontTexture.Sample(LinearClamp, input.TexCoord, int2(-1, -1));
+        check += FontTexture.Sample(LinearClamp, input.TexCoord, int2( 0, -1));
+        check += FontTexture.Sample(LinearClamp, input.TexCoord, int2( 1, -1));
+
+        result = (check > 0.0f) ? OutlineColor : float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    else
+    {
+        result = lerp(OutlineColor, input.Color, alpha);
+    }
+
+    return result;
 }

@@ -45,6 +45,12 @@ public:
             Pixels.clear();
             Pixels.shrink_to_fit();
         }
+
+        operator uint8_t* ()
+        { return Pixels.data(); }
+
+        operator const uint8_t* () const
+        { return Pixels.data(); }
     };
 
     //=========================================================================
