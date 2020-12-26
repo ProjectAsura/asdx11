@@ -816,35 +816,6 @@ bool Application::InitD2D()
         ELOG( "Error : ID2D1DeviceContext::CreateSolidBrush() Failed" );
         return false;
     }
-
-#if 0 // SwapChainフォーマットによって生成できないため，削除.
-    //// IDXGISurfaceを取得.
-    //IDXGISurface* pSurface;
-    //hr = m_pSwapChain->GetBuffer( 0, IID_IDXGISurface, (LPVOID*)&pSurface );
-    //if ( FAILED( hr ) )
-    //{
-    //    ELOG( "Error : IDXGISwapChain::GetBuffer() Failed." );
-    //    SafeRelease( pSurface );
-    //    return false;
-    //}
-
-    //// D2Dビットマップを生成.
-    //const auto bitmapProp = D2D1::BitmapProperties1(
-    //    D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-    //    D2D1::PixelFormat( m_SwapChainFormat, D2D1_ALPHA_MODE_PREMULTIPLIED ) );
-
-    //hr = m_pDeviceContext2D->CreateBitmapFromDxgiSurface( pSurface, bitmapProp, m_pBitmap2D.GetAddress() );
-    //if ( FAILED( hr ) )
-    //{
-    //    ELOG( "Error : ID2D1DeviceContext::CreateBitmapFromDxgiSurface() Failed." );
-    //    SafeRelease( pSurface );
-    //    return false;
-    //}
-
-    //SafeRelease( pSurface );
-#endif
-
-
 #endif//defined(ASDX_ENABLE_D2D)
 
     return true;
@@ -999,11 +970,6 @@ void Application::ResizeEvent( const ResizeEventArgs& param )
         // 深度ステンシルバッファを解放.
         m_DepthTarget2D.Release();
 
-    #if defined(ASDX_ENABLE_D2D)
-        // D2Dビットマップを解放.
-        //m_pBitmap2D.Reset();
-    #endif//defined(ASDX_ENABLE_D2D)
-
         HRESULT hr = S_OK;
 
         // バッファをリサイズ.
@@ -1053,35 +1019,6 @@ void Application::ResizeEvent( const ResizeEventArgs& param )
 
         // デバイスコンテキストにシザー矩形を設定.
         m_pDeviceContext->RSSetScissorRects( 1, &m_ScissorRect );
-
-    #if defined(ASDX_ENABLE_D2D)
-        //// D2Dビットマップを生成.
-        //{
-        //    // IDXGISurfaceを取得.
-        //    IDXGISurface* pSurface;
-        //    hr = m_pSwapChain->GetBuffer( 0, IID_IDXGISurface, (LPVOID*)&pSurface );
-        //    if ( FAILED( hr ) )
-        //    {
-        //        ELOG( "Error : IDXGISwapChain::GetBuffer() Failed." );
-        //        SafeRelease( pSurface );
-        //    }
-        //    else
-        //    {
-        //        // D2Dビットマップを生成.
-        //        const auto bitmapProp = D2D1::BitmapProperties1(
-        //        D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-        //        D2D1::PixelFormat( m_SwapChainFormat, D2D1_ALPHA_MODE_PREMULTIPLIED ) );
-
-        //        hr = m_pDeviceContext2D->CreateBitmapFromDxgiSurface( pSurface, bitmapProp, m_pBitmap2D.GetAddress() );
-        //        if ( FAILED( hr ) )
-        //        {
-        //            ELOG( "Error : ID2D1DeviceContext::CreateBitmapFromDxgiSurface() Failed." );
-        //        }
-        //    }
-
-        //    SafeRelease( pSurface );
-        //}
-    #endif//defined(ASDX_ENABLE_D2D)
     }
 
     // リサイズイベント呼び出し.
