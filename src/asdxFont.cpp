@@ -171,6 +171,21 @@ void Font::CalcSize(const wchar_t* text, uint32_t& w, uint32_t& h) const
 }
 
 //-----------------------------------------------------------------------------
+//      ラスタライズに必要なサイズをもめます.
+//-----------------------------------------------------------------------------
+void Font::CalcSize(const char* text, uint32_t& w, uint32_t& h) const
+{
+    wchar_t buffer[2048] = {};
+    auto length  = strlen(text);
+    assert(length < 2048);
+
+    auto count = MultiByteToWideChar(CP_UTF8, 0, text, int(length + 1), nullptr, 0);
+    MultiByteToWideChar(CP_UTF8, 0, text, int(length + 1), buffer, 2048);
+
+    CalcSize(buffer, w, h);
+}
+
+//-----------------------------------------------------------------------------
 //      ラスタライズ処理を行います.
 //-----------------------------------------------------------------------------
 Font::Bitmap Font::Rasterize(const wchar_t* text) const
@@ -191,18 +206,30 @@ Font::Bitmap Font::Rasterize(const wchar_t* text) const
 }
 
 //-----------------------------------------------------------------------------
-//      フォーマットを指定してラスタライズ処理を行います.
+//      ラスタライズ処理を行います.
 //-----------------------------------------------------------------------------
-Font::Bitmap Font::RasterizeFormat(const wchar_t* format, ...) const
+Font::Bitmap Font::Rasterize(const char* text) const
 {
+    assert(m_pBody != nullptr);
+    Font::Bitmap result;
+
     wchar_t buffer[2048] = {};
+    auto length  = strlen(text);
+    assert(length + 1 < 2048);
 
-    va_list arg;
-    va_start(arg, format);
-    vswprintf_s(buffer, format, arg);
-    va_end(arg);
+    auto count = MultiByteToWideChar(CP_UTF8, 0, text, int(length + 1), nullptr, 0);
+    MultiByteToWideChar(CP_UTF8, 0, text, int(length + 1), buffer, 2048);
 
-    return Rasterize(buffer);
+    // メモリサイズ計算.
+    CalcSize(buffer, result.Width, result.Height);
+
+    // メモリ確保.
+    result.Resize();
+
+    // ラスタライズ.
+    Rasterize(result, buffer);
+
+    return result;
 }
 
 //-----------------------------------------------------------------------------
@@ -266,16 +293,16 @@ void Font::Rasterize(Bitmap& bitmap, const wchar_t* text) const
 }
 
 //-----------------------------------------------------------------------------
-//      フォーマットを指定して指定されたメモリにラスタライズ処理を行います.
+//      指定されたメモリにラスタライズ処理を行います.
 //-----------------------------------------------------------------------------
-void Font::RasterizeFormat(Bitmap& bitmap, const wchar_t* format, ...) const
+void Font::Rasterize(Bitmap& bitmap, const char* text) const
 {
     wchar_t buffer[2048] = {};
+    auto length  = strlen(text);
+    assert(length + 1 < 2048);
 
-    va_list arg;
-    va_start(arg, format);
-    vswprintf_s(buffer, format, arg);
-    va_end(arg);
+    auto count = MultiByteToWideChar(CP_UTF8, 0, text, int(length + 1), nullptr, 0);
+    MultiByteToWideChar(CP_UTF8, 0, text, int(length + 1), buffer, 2048);
 
     Rasterize(bitmap, buffer);
 }

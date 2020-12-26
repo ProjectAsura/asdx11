@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------------
 #pragma once
 
+
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
@@ -250,10 +251,9 @@ protected:
     RefPtr<ID2D1Factory1>           m_pFactory2D;           //!< D2D1ファクトリーです.
     RefPtr<ID2D1Device>             m_pDevice2D;            //!< D2D1デバイスです.
     RefPtr<ID2D1DeviceContext>      m_pDeviceContext2D;     //!< D2D1デバイスコンテキストです.
-    RefPtr<ID2D1Bitmap1>            m_pBitmap2D;            //!< D2D1ビットマップです.
     RefPtr<IDWriteFactory>          m_pFactoryDW;           //!< DirectWriteファクトリーです.
     RefPtr<IDWriteTextFormat>       m_pDefaultTextFormat;   //!< デフォルトテキストフォーマットです.
-    RefPtr<ID2D1SolidColorBrush>    m_pDefaultBrush;
+    RefPtr<ID2D1SolidColorBrush>    m_pDefaultBrush;        //!< デフォルトブラシ.
 #endif//defined(ASDX_ENABLE_D2D)
 
     //=========================================================================

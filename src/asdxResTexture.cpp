@@ -995,6 +995,19 @@ void Parse16BitsGrayScaleRLE( FILE* pFile, uint32_t size, uint8_t* pPixles )
     }
 }
 
+//-----------------------------------------------------------------------------
+//      nullptrかどうかを考慮してdelete[]します.
+//-----------------------------------------------------------------------------
+template<typename T>
+void SafeDeleteArray(T*& ptr)
+{
+    if (ptr != nullptr)
+    {
+        delete[] ptr;
+        ptr = nullptr;
+    }
+}
+
 } // namespace /* anonymous */
 
 

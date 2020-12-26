@@ -13,16 +13,6 @@
 
 namespace asdx {
 
-template<typename T>
-void SafeDeleteArray(T*&ptr)
-{
-    if (ptr != nullptr)
-    {
-        delete[] ptr;
-        ptr = nullptr;
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // SUBRESOURCE_OPTION enum
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,8 +48,13 @@ struct SubResource
     //! @brief      解放処理を行います.
     //---------------------------------------------------------------------------------------------
     void Release()
-    { SafeDeleteArray( pPixels ); }
-
+    {
+        if (pPixels != nullptr)
+        {
+            delete[] pPixels;
+            pPixels = nullptr;
+        }
+    }
 };
 
 
@@ -101,7 +96,11 @@ struct ResTexture
         for( uint32_t i=0; i<SurfaceCount * mipCount; ++i )
         { pResources[i].Release(); }
 
-        SafeDeleteArray( pResources );
+        if (pResources != nullptr)
+        {
+            delete[] pResources;
+            pResources = nullptr;
+        }
     }
 
     //---------------------------------------------------------------------------------------------

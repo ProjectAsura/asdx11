@@ -191,6 +191,7 @@ bool VertexShader::Init
     if (FAILED(hr))
     {
         ELOG("Error : ID3D11Device::CreateVertexShader() Failed.");
+        Term();
         return false;
     }
 
@@ -198,6 +199,7 @@ bool VertexShader::Init
     if (FAILED(hr))
     {
         ELOG("Error : ID3D11Device::CreateInputLayout() Failed.");
+        Term();
         return false;
     }
 
@@ -205,6 +207,7 @@ bool VertexShader::Init
     if (FAILED(hr))
     {
         ELOG("Error : D3DReflect() Failed.");
+        Term();
         return false;
     }
 
@@ -251,6 +254,7 @@ bool VertexShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
 
@@ -306,6 +310,7 @@ bool VertexShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
 
@@ -380,6 +385,7 @@ bool PixelShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t bin
     if (FAILED(hr))
     {
         ELOG("Error : ID3D11Device::CreatePixelShader() Failed.");
+        Term();
         return false;
     }
 
@@ -387,6 +393,7 @@ bool PixelShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t bin
     if (FAILED(hr))
     {
         ELOG("Error : D3DReflect() Failed.");
+        Term();
         return false;
     }
 
@@ -431,6 +438,7 @@ bool PixelShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
  
@@ -481,6 +489,7 @@ bool PixelShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
  
@@ -549,6 +558,7 @@ bool GeometryShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t 
     if (FAILED(hr))
     {
         ELOG("Error : ID3D11Device::CreateGeometryShader() Failed.");
+        Term();
         return false;
     }
 
@@ -556,6 +566,7 @@ bool GeometryShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t 
     if (FAILED(hr))
     {
         ELOG("Error : D3DReflect() Failed.");
+        Term();
         return false;
     }
 
@@ -600,6 +611,7 @@ bool GeometryShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
  
@@ -650,6 +662,7 @@ bool GeometryShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
  
@@ -717,6 +730,7 @@ bool HullShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t bina
     if (FAILED(hr))
     {
         ELOG("Error : ID3D11Device::CreatePixelShader() Failed.");
+        Term();
         return false;
     }
 
@@ -724,6 +738,7 @@ bool HullShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t bina
     if (FAILED(hr))
     {
         ELOG("Error : D3DReflect() Failed.");
+        Term();
         return false;
     }
 
@@ -768,6 +783,7 @@ bool HullShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
  
@@ -818,6 +834,7 @@ bool HullShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
  
@@ -886,6 +903,7 @@ bool DomainShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t bi
     if (FAILED(hr))
     {
         ELOG("Error : ID3D11Device::CreateDomainShader() Failed.");
+        Term();
         return false;
     }
 
@@ -893,6 +911,7 @@ bool DomainShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t bi
     if (FAILED(hr))
     {
         ELOG("Error : D3DReflect() Failed.");
+        Term();
         return false;
     }
 
@@ -937,6 +956,7 @@ bool DomainShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
  
@@ -987,6 +1007,7 @@ bool DomainShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
  
@@ -1058,6 +1079,7 @@ bool ComputeShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t b
     if (FAILED(hr))
     {
         ELOG("Error : ID3D11Device::CreatePixelShader() Failed.");
+        Term();
         return false;
     }
 
@@ -1065,6 +1087,7 @@ bool ComputeShader::Init(ID3D11Device* pDevice, const uint8_t* pBinary, size_t b
     if (FAILED(hr))
     {
         ELOG("Error : D3DReflect() Failed.");
+        Term();
         return false;
     }
 
@@ -1111,6 +1134,7 @@ bool ComputeShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
 
@@ -1161,6 +1185,7 @@ bool ComputeShader::Init
         { ELOGA("Error : D3DCompileFromFile() Failed. msg = %s", pErrorBlob->GetBufferPointer()); }
 
         ELOGA("Error : D3DCompileFromFile() errcode = 0x%x", hr);
+        Term();
         return false;
     }
 
