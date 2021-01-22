@@ -67,7 +67,7 @@ public:
     //!
     //! @return     イミディエイトコンテキストを返却します.
     //-------------------------------------------------------------------------
-    ID3D11DeviceContext* GetContext() const;
+    ID3D11DeviceContext4* GetContext() const;
 
     //-------------------------------------------------------------------------
     //! @brief      ラスタライザーステートを取得します.
@@ -142,8 +142,8 @@ private:
     // private variables.
     //=========================================================================
     static DeviceContext                s_Instance;
-    RefPtr<ID3D11Device>                m_pDevice;
-    RefPtr<ID3D11DeviceContext>         m_pContext;
+    RefPtr<ID3D11Device5>               m_pDevice;
+    RefPtr<ID3D11DeviceContext4>        m_pContext;
     RefPtr<ID3D11RasterizerState>       m_DefaultRS;
     RefPtr<ID3D11DepthStencilState>     m_DefaultDSS;
     RefPtr<ID3D11BlendState>            m_DefaultBS;

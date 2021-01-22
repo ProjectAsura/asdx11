@@ -70,6 +70,9 @@ bool DeviceContext::Init()
 
     HRESULT hr = S_OK;
 
+    RefPtr<ID3D11Device>        device;
+    RefPtr<ID3D11DeviceContext> context;
+
     for(auto i=0u; i<driverTypeCount; ++i)
     {
         m_DriverType = driverTypes[i];
@@ -82,9 +85,9 @@ bool DeviceContext::Init()
             featureLevels,
             featureLevelCount,
             D3D11_SDK_VERSION,
-            m_pDevice.GetAddress(),
+            device.GetAddress(),
             &m_FeatureLevel,
-            m_pContext.GetAddress());
+            context.GetAddress());
 
         if (SUCCEEDED(hr))
         { break; }
@@ -93,6 +96,20 @@ bool DeviceContext::Init()
     if (FAILED(hr))
     {
         ELOG("Error : D3D11CreateDevice() Failed. errcode = 0x%x", hr);
+        return false;
+    }
+
+    hr = device->QueryInterface(IID_PPV_ARGS(m_pDevice.GetAddress()));
+    if (FAILED(hr))
+    {
+        ELOG("Error : ID3D11Device::QueryInterface() Failed. errcode = 0x%x", hr);
+        return false;
+    }
+
+    hr = context->QueryInterface(IID_PPV_ARGS(m_pContext.GetAddress()));
+    if (FAILED(hr))
+    {
+        ELOG("Error : ID3D11DeviceContext::QueryInterface() Failed. errcode = 0x%x", hr);
         return false;
     }
 
@@ -243,7 +260,7 @@ ID3D11Device* DeviceContext::GetDevice() const
 //-----------------------------------------------------------------------------
 //      イミディエイトコンテキストを取得します.
 //-----------------------------------------------------------------------------
-ID3D11DeviceContext* DeviceContext::GetContext() const
+ID3D11DeviceContext4* DeviceContext::GetContext() const
 { return m_pContext.GetPtr(); }
 
 //-----------------------------------------------------------------------------

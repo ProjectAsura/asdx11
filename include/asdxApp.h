@@ -220,7 +220,7 @@ protected:
     HINSTANCE                       m_hInst;                //!< インスタンスハンドルです.
     HWND                            m_hWnd;                 //!< ウィンドウハンドルです.
     ID3D11Device*                   m_pDevice;              //!< デバイスです.
-    ID3D11DeviceContext*            m_pDeviceContext;       //!< デバイスコンテキストです.
+    ID3D11DeviceContext4*           m_pDeviceContext;       //!< デバイスコンテキストです.
     uint32_t                        m_MultiSampleCount;     //!< マルチサンプリングのカウント数です.
     uint32_t                        m_MultiSampleQuality;   //!< マルチサンプリングの品質値です.
     uint32_t                        m_SwapChainCount;       //!< スワップチェインのバッファ数です.
