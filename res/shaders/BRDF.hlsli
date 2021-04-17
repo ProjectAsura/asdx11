@@ -611,7 +611,7 @@ float ProcedualHeightForEye(float radius, float anteriorChamberDepth)
 //-----------------------------------------------------------------------------
 //      屈折ベクトルを計算します.
 //-----------------------------------------------------------------------------
-float3 CalcRefraction(float n1, float n2 float3 N, float3 V)
+float3 CalcRefraction(float n1, float n2, float3 N, float3 V)
 {
     float NdotV = dot(N, V);
     float n = (NdotV > 0.0f) ? (n1 / n2) : (n2 / n1);
