@@ -184,14 +184,15 @@ bool SearchFilePathA( const char* filePath, std::string& result )
 std::wstring GetDirectoryPathW( const wchar_t* filePath )
 {
     std::wstring path = filePath;
-    auto idx = path.find_last_of( L"/" );
+
+    auto idx = path.find_last_of( L"\\" );
     if ( idx != std::wstring::npos )
     {
         auto result = path.substr( 0, idx + 1 );
         return result;
     }
 
-    idx = path.find_last_of( L"\\" );
+    idx = path.find_last_of( L"/" );
     if ( idx != std::wstring::npos )
     {
         auto result = path.substr( 0, idx + 1 );
@@ -207,14 +208,14 @@ std::wstring GetDirectoryPathW( const wchar_t* filePath )
 std::string GetDirectoryPathA( const char* filePath )
 {
     std::string path = filePath;
-    auto idx = path.find_last_of( "/" );
+    auto idx = path.find_last_of( "\\" );
     if ( idx != std::string::npos )
     {
         auto result = path.substr( 0, idx + 1 );
         return result;
     }
 
-    idx = path.find_last_of( "\\" );
+    idx = path.find_last_of( "/" );
     if ( idx != std::string::npos )
     {
         auto result = path.substr( 0, idx + 1 );
@@ -230,14 +231,14 @@ std::string GetDirectoryPathA( const char* filePath )
 std::wstring RemoveDirectoryPathW( const wchar_t* filePath )
 {
     std::wstring path = filePath;
-    auto idx = path.find_last_of( L"/" );
+    auto idx = path.find_last_of( L"\\" );
     if ( idx != std::wstring::npos )
     {
         auto result = path.substr( idx + 1 );
         return result;
     }
 
-    idx = path.find_last_of( L"\\" );
+    idx = path.find_last_of( L"/" );
     if ( idx != std::wstring::npos )
     {
         auto result = path.substr( idx + 1 );
@@ -253,14 +254,14 @@ std::wstring RemoveDirectoryPathW( const wchar_t* filePath )
 std::string RemoveDirectoryPathA( const char* filePath )
 {
     std::string path = filePath;
-    auto idx = path.find_last_of( "/" );
+    auto idx = path.find_last_of( "\\" );
     if ( idx != std::string::npos )
     {
         auto result = path.substr( idx + 1 );
         return result;
     }
 
-    idx = path.find_last_of( "\\" );
+    idx = path.find_last_of( "/" );
     if ( idx != std::string::npos )
     {
         auto result = path.substr( idx + 1 );
