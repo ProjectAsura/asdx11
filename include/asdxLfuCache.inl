@@ -44,19 +44,19 @@ void LfuCache<T>::Add(const T& item)
     }
     else
     {
-        auto iter = m_Cache.begin();
-        auto mini = (*iter).second;
+        auto itr = m_Cache.begin();
+        auto mini = (*itr).second;
 
         for(auto& it = m_Cache.begin(); it != m_Cache.end(); ++it )
         {
             if ((*it).second < mini )
             {
                 mini = (*it).second;
-                iter = it;
+                itr = it;
             }
         }
 
-        m_Cache.erase(iter);
+        m_Cache.erase(itr);
         m_Cache[item] = 1;
     }
 }
@@ -67,9 +67,9 @@ void LfuCache<T>::Add(const T& item)
 template<typename T> inline
 void LfuCache<T>::Remove(const T& item)
 {
-    auto iter = m_Cache.find(item);
-    if (iter != m_Cache.end())
-    { m_Cache.erase(iter); }
+    auto itr = m_Cache.find(item);
+    if (itr != m_Cache.end())
+    { m_Cache.erase(itr); }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -92,9 +92,9 @@ bool LfuCache<T>::Contains(const T& item) const
 template<typename T> inline
 void LfuCache<T>::Copy(T* pArray, size_t offset) const
 {
-    for( auto& itr = m_Cache.cbegin(); itr != m_Cache.cend(); ++itr )
+    for(auto& itr : m_Cache)
     {
-        pArray[offset] = (*itr).first;
+        pArray[offset] = itr.first;
         offset++;
     }
 }

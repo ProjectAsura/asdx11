@@ -25,6 +25,9 @@ class List
     /* NOTHING */
 
 public:
+    class Node;
+    using ListNode = Node;
+
     ///////////////////////////////////////////////////////////////////////////
     // Node class
     ///////////////////////////////////////////////////////////////////////////
@@ -49,8 +52,8 @@ public:
         //! @brief      コンストラクタです.
         //---------------------------------------------------------------------
         Node()
-        : m_NextListNode(nullptr)
-        , m_PrevListNode(nullptr)
+        : m_Next(nullptr)
+        , m_Prev(nullptr)
         { /* DO_NOTHING */ }
 
         //---------------------------------------------------------------------
@@ -58,49 +61,61 @@ public:
         //---------------------------------------------------------------------
         ~Node()
         {
-            auto prev = m_PrevListNode;
-            auto next = m_NextListNode;
+            auto prev = m_Prev;
+            auto next = m_Next;
 
             if (prev != nullptr)
-            { prev->m_NextListNode = next; }
+            { prev->ListNode::m_Next = next; }
 
             if (next != nullptr)
-            { next->m_PrevListNode = prev; }
+            { next->ListNode::m_Prev = prev; }
 
-            m_PrevListNode = nullptr;
-            m_NextListNode = nullptr;
+            m_Prev = nullptr;
+            m_Next = nullptr;
         }
 
         //---------------------------------------------------------------------
         //! @brief      次のノードを取得します.
         //---------------------------------------------------------------------
-        T* GetNext() const
-        { return m_NextListNode; }
+        T* GetNext()
+        { return m_Next; }
 
         //---------------------------------------------------------------------
         //! @brief      前のノードを取得します.
         //---------------------------------------------------------------------
-        T* GetPrev() const
-        { return m_PrevListNode; }
+        T* GetPrev()
+        { return m_Prev; }
+
+        //---------------------------------------------------------------------
+        //! @brief      次のノードを取得します.
+        //---------------------------------------------------------------------
+        const T* GetNext() const
+        { return m_Next; }
+
+        //---------------------------------------------------------------------
+        //! @brief      前のノードを取得します.
+        //---------------------------------------------------------------------
+        const T* GetPrev() const
+        { return m_Prev; }
 
         //---------------------------------------------------------------------
         //! @brief      次のノードを持つかチェックします.
         //---------------------------------------------------------------------
         bool HasNext() const
-        { return m_NextListNode != nullptr; }
+        { return m_Next != nullptr; }
 
         //---------------------------------------------------------------------
         //! @brief      前のノードを持つかチェックします.
         //---------------------------------------------------------------------
         bool HasPrev() const
-        { return m_PrevListNode != nullptr; }
+        { return m_Prev != nullptr; }
 
     private:
         //=====================================================================
         // private variables.
         //=====================================================================
-        T*  m_NextListNode = nullptr;       //!< 次のノード.
-        T*  m_PrevListNode = nullptr;       //!< 前のノード.
+        T*  m_Next = nullptr;       //!< 次のノード.
+        T*  m_Prev = nullptr;       //!< 前のノード.
 
         //---------------------------------------------------------------------
         //! @brief      リンクを設定します.
@@ -110,8 +125,8 @@ public:
             if (lhs == nullptr || rhs == nullptr)
             { return; }
 
-            lhs->m_NextListNode = rhs;
-            rhs->m_PrevListNode = lhs;
+            lhs->ListNode::m_Next = rhs;
+            rhs->ListNode::m_Prev = lhs;
         }
 
         //---------------------------------------------------------------------
@@ -122,19 +137,224 @@ public:
             if (node == nullptr)
             { return; }
 
-            auto prev = node->m_PrevListNode;
-            auto next = node->m_NextListNode;
+            auto prev = node->ListNode::m_Prev;
+            auto next = node->ListNode::m_Next;
 
             if (prev != nullptr)
-            { prev->m_NextListNode = next; }
+            { prev->ListNode::m_Next = next; }
 
             if (next != nullptr)
-            { next->m_PrevListNode = prev; }
+            { next->ListNode::m_Prev = prev; }
 
-            node->m_PrevListNode = nullptr;
-            node->m_NextListNode = nullptr;
+            node->ListNode::m_Prev = nullptr;
+            node->ListNode::m_Next = nullptr;
         }
     };
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Iterator class
+    ///////////////////////////////////////////////////////////////////////////
+    class Iterator
+    {
+        //=====================================================================
+        // list of friend classes and methods.
+        //=====================================================================
+        /* NOTHING */
+
+    public:
+        //=====================================================================
+        // public variables.
+        //=====================================================================
+        /* NOTHING */
+
+        //=====================================================================
+        // public methods.
+        //=====================================================================
+
+        //---------------------------------------------------------------------
+        //! @brief      引数付きコンストラクタです.
+        //---------------------------------------------------------------------
+        explicit Iterator(T* node)
+        : m_Node(node)
+        { /* DO_NOTHING */ }
+
+        //---------------------------------------------------------------------
+        //! @brief      後置インクリメントです.
+        //---------------------------------------------------------------------
+        Iterator& operator ++ ()
+        {
+            if (m_Node != nullptr)
+            { m_Node = m_Node->GetNext(); }
+            return *this;
+        }
+
+        //---------------------------------------------------------------------
+        //! @brief      後置デクリメントです.
+        //---------------------------------------------------------------------
+        Iterator& operator -- ()
+        {
+            if (m_Node != nullptr)
+            { m_Node = m_Node->GetPrev(); }
+            return *this;
+        }
+
+        //---------------------------------------------------------------------
+        //! @brief      前置インクリメントです.
+        //---------------------------------------------------------------------
+        Iterator operator ++ (int)
+        {
+            auto node = m_Node;
+            if (node != nullptr)
+            { node = node->GetNext(); }
+            return Iterator(node);
+        }
+
+        //---------------------------------------------------------------------
+        //! @brief      前置デクリメントです.
+        //---------------------------------------------------------------------
+        Iterator operator -- (int)
+        {
+            auto node = m_Node;
+            if (node != nullptr)
+            { node = node->GetPrev(); }
+            return Iterator(node);
+        }
+
+        //---------------------------------------------------------------------
+        //! @brief      operator * 演算子です.
+        //---------------------------------------------------------------------
+        T& operator * ()
+        { return *m_Node; }
+
+        //---------------------------------------------------------------------
+        //! @brief      operator * 演算子です.
+        //---------------------------------------------------------------------
+        const T& operator * () const
+        { return *m_Node; }
+
+        //---------------------------------------------------------------------
+        //! @brief      等価比較演算子です.
+        //---------------------------------------------------------------------
+        bool operator == (const Iterator& value) const
+        { return m_Node == value.m_Node; }
+
+        //---------------------------------------------------------------------
+        //! @brief      非等価比較演算子です.
+        //---------------------------------------------------------------------
+        bool operator != (const Iterator& value) const
+        { return m_Node != value.m_Node; }
+
+    private:
+        //=====================================================================
+        // private variables.
+        //=====================================================================
+        T*  m_Node = nullptr;
+
+        //=====================================================================
+        // private methods.
+        //=====================================================================
+        /* NOTHING */
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    // ConstIterator class
+    ///////////////////////////////////////////////////////////////////////////
+    class ConstIterator
+    {
+        //=====================================================================
+        // list of friend classes and methods.
+        //=====================================================================
+        /* NOTHING */
+
+    public:
+        //=====================================================================
+        // public variables.
+        //=====================================================================
+        /* NOTHING */
+
+        //=====================================================================
+        // public methods.
+        //=====================================================================
+
+        //---------------------------------------------------------------------
+        //! @brief      引数付きコンストラクタです.
+        //---------------------------------------------------------------------
+        explicit ConstIterator(const T* node)
+        : m_Node(node)
+        { /* DO_NOTHING */ }
+
+        //---------------------------------------------------------------------
+        //! @brief      後置インクリメントです.
+        //---------------------------------------------------------------------
+        ConstIterator& operator ++ ()
+        {
+            if (m_Node != nullptr)
+            { m_Node = m_Node->GetNext(); }
+            return *this;
+        }
+
+        //---------------------------------------------------------------------
+        //! @brief      後置デクリメントです.
+        //---------------------------------------------------------------------
+        ConstIterator& operator -- ()
+        {
+            if (m_Node != nullptr)
+            { m_Node = m_Node->GetPrev(); }
+            return *this;
+        }
+
+        //---------------------------------------------------------------------
+        //! @brief      前置インクリメントです.
+        //---------------------------------------------------------------------
+        ConstIterator operator ++ (int)
+        {
+            auto node = m_Node;
+            if (node != nullptr)
+            { node = node->GetNext(); }
+            return ConstIterator(node);
+        }
+
+        //---------------------------------------------------------------------
+        //! @brief      前置デクリメントです.
+        //---------------------------------------------------------------------
+        ConstIterator operator -- (int)
+        {
+            auto node = m_Node;
+            if (node != nullptr)
+            { node = node->GetPrev(); }
+            return ConstIterator(node);
+        }
+
+        //---------------------------------------------------------------------
+        //! @brief      operator * 演算子です.
+        //---------------------------------------------------------------------
+        const T& operator * () const
+        { return *m_Node; }
+
+        //---------------------------------------------------------------------
+        //! @brief      等価比較演算子です.
+        //---------------------------------------------------------------------
+        bool operator == (const ConstIterator& value) const
+        { return m_Node == value.m_Node; }
+
+        //---------------------------------------------------------------------
+        //! @brief      非等価比較演算子です.
+        //---------------------------------------------------------------------
+        bool operator != (const ConstIterator& value) const
+        { return m_Node != value.m_Node; }
+
+    private:
+        //=====================================================================
+        // private variables.
+        //=====================================================================
+        const T*  m_Node = nullptr;
+
+        //=====================================================================
+        // private methods.
+        //=====================================================================
+        /* NOTHING */
+    };
+
 
     //=========================================================================
     // public variables.
@@ -151,7 +371,6 @@ public:
     List()
     : m_Head(nullptr)
     , m_Tail(nullptr)
-    , m_Count(0)
     { /* DO_NOTHING */ }
 
     //-------------------------------------------------------------------------
@@ -169,12 +388,8 @@ public:
         while(itr != nullptr)
         {
             auto node = itr;
-            Node::Unlink(node);
-
-            if (!itr->HasNext())
-            { break; }
-
             itr = itr->GetNext();
+            ListNode::Unlink(node);
         }
 
         m_Head = nullptr;
@@ -192,7 +407,7 @@ public:
         { return; }
 
         // 継承チェック.
-        assert(static_cast<List<T>::Node*>(node) != nullptr);
+        assert(static_cast<ListNode*>(node) != nullptr);
 
         if (m_Head == nullptr)
         {
@@ -201,7 +416,7 @@ public:
         }
         else
         {
-            Node::Link(node, m_Head);
+            ListNode::Link(node, m_Head);
             m_Head = node;
         }
         m_Count++;
@@ -216,7 +431,7 @@ public:
         { return; }
 
         // 継承チェック.
-        assert(static_cast<List<T>::Node*>(node) != nullptr);
+        assert(static_cast<ListNode*>(node) != nullptr);
 
         if (m_Head == nullptr)
         {
@@ -225,7 +440,7 @@ public:
         }
         else
         {
-            Node::Link(m_Tail, node);
+            ListNode::Link(m_Tail, node);
             m_Tail = node;
         }
         m_Count++;
@@ -240,10 +455,8 @@ public:
         { return nullptr; }
 
         auto head = m_Head;
-        auto next = m_Head->GetNext();
-        Node::Unlink(head);
-        m_Head = next;
-        m_Count--;
+        Remove(head);
+
         return head;
     }
 
@@ -256,22 +469,38 @@ public:
         { return nullptr; }
 
         auto tail = m_Tail;
-        auto prev = m_Tail->GetPrev();
-        Node::Unlink(tail);
-        m_Tail = prev;
-        m_Count--;
+        Remove(tail);
+
         return tail;
     }
 
     //-------------------------------------------------------------------------
     //! @brief      ノードを挿入します.
     //-------------------------------------------------------------------------
-    void Insert(T* target, T* node)
+    void InsertBefore(T* target, T* node)
     {
         if (target == nullptr || node == nullptr)
         { return; }
 
-        Node::Link(target, node);
+        ListNode::Link(node, target);
+        if (target == m_Head)
+        { m_Head = node; }
+
+        m_Count++;
+    }
+
+    //-------------------------------------------------------------------------
+    //! @brief      ノードを挿入します.
+    //-------------------------------------------------------------------------
+    void InsertAfter(T* target, T* node)
+    {
+        if (target == nullptr || node == nullptr)
+        { return; }
+
+        ListNode::Link(target, node);
+        if (target == m_Tail)
+        { m_Tail = node; }
+
         m_Count++;
     }
 
@@ -283,7 +512,12 @@ public:
         if (node == nullptr)
         { return; }
 
-        Node::Unlink(node);
+        if (node == m_Tail)
+        { m_Tail = node->GetPrev(); }
+        else if (node == m_Head)
+        { m_Head = node->GetNext(); }
+
+        ListNode::Unlink(node);
         m_Count--;
     }
 
@@ -300,9 +534,6 @@ public:
         {
             if (itr == node)
             { return true; }
-
-            if (!itr->HasNext())
-            { break; }
 
             itr = itr->GetNext();
         }
@@ -333,6 +564,30 @@ public:
     //-------------------------------------------------------------------------
     size_t GetCount() const
     { return m_Count; }
+
+    //-------------------------------------------------------------------------
+    //! @brief      先頭イテレータを取得します.
+    //-------------------------------------------------------------------------
+    Iterator begin()
+    { return Iterator(m_Head); }
+
+    //-------------------------------------------------------------------------
+    //! @brief      末尾イテレータを取得します.
+    //-------------------------------------------------------------------------
+    Iterator end()
+    { return Iterator(nullptr); }
+
+    //-------------------------------------------------------------------------
+    //! @brief      先頭イテレータを取得します.
+    //-------------------------------------------------------------------------
+    ConstIterator begin() const
+    { return ConstIterator(m_Head); }
+
+    //-------------------------------------------------------------------------
+    //! @brief      末尾イテレータを取得します.
+    //-------------------------------------------------------------------------
+    ConstIterator end() const
+    { return ConstIterator(nullptr); }
 
 private:
     //=========================================================================

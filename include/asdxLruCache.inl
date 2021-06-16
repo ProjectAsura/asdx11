@@ -32,21 +32,21 @@ LruCache<T>::~LruCache()
 //      要素を追加します.
 //-------------------------------------------------------------------------------------------------
 template<typename T> inline
-void LruCache<T>::Add(const T& item)
+void LruCache<T>::Add(T* item)
 {
     if ( Contains(item) )
     {
-        m_Cache.remove(item);
-        m_Cache.push_back(item);
+        m_Cache.Remove(item);
+        m_Cache.PushBack(item);
     }
     else if ( m_Cache.size() < m_Capacity )
     {
-        m_Cache.push_back(item);
+        m_Cache.PushBack(item);
     }
     else
     {
-        m_Cache.pop_front();
-        m_Cache.push_back(item);
+        m_Cache.PopFront();
+        m_Cache.PushBack(item);
     }
 }
 
@@ -54,22 +54,32 @@ void LruCache<T>::Add(const T& item)
 //      要素を削除します.
 //-------------------------------------------------------------------------------------------------
 template<typename T> inline
-void LruCache<T>::Remove(const T& item)
-{ m_Cache.remove(item); }
+void LruCache<T>::Remove(T* item)
+{ m_Cache.Remove(item); }
 
 //-------------------------------------------------------------------------------------------------
 //      全要素を削除します.
 //-------------------------------------------------------------------------------------------------
 template<typename T> inline
 void LruCache<T>::Clear()
-{ m_Cache.clear(); }
+{ m_Cache.Clear(); }
 
 //-------------------------------------------------------------------------------------------------
 //      要素が含まれているか判定します.
 //-------------------------------------------------------------------------------------------------
 template<typename T> inline
-bool LruCache<T>::Contains(const T& item) const
-{ return std::find(m_Cache.cbegin(), m_Cache.cend(), item) != m_Cache.cend(); }
+bool LruCache<T>::Contains(T* item) const
+{
+    auto itr = m_Cache.GetHead();
+    while(itr != nullptr)
+    {
+        if (itr == item)
+        { return true; }
+
+        itr = itr->GetNext();
+    }
+    return false;
+}
 
 //-------------------------------------------------------------------------------------------------
 //      配列にコピーします.
@@ -77,10 +87,12 @@ bool LruCache<T>::Contains(const T& item) const
 template<typename T> inline
 void LruCache<T>::Copy(T* pArray, size_t offset) const
 {
-    for( auto& itr = m_Cache.cbegin(); itr != m_Cache.cend(); itr++ )
+    auto itr = m_Cache.GetHead();
+    while(itr != nullptr)
     {
-        pArray[offset] = *itr;
+        pArray[offset] = itr;
         offset++;
+        itr = itr->GetNext();
     }
 }
 
@@ -96,14 +108,20 @@ size_t LruCache<T>::GetCapacity() const
 //--------------------------------------------------------------------------------------------------
 template<typename T> inline
 size_t LruCache<T>::GetCount() const
-{ return m_Cache.size(); }
+{ return m_Cache.GetCount(); }
 
+//-------------------------------------------------------------------------------------------------
+//      先頭要素を取得します.
+//-------------------------------------------------------------------------------------------------
 template<typename T> inline
-T LruCache<T>::GetFront() const
-{ return *m_Cache.cend(); }
+T* LruCache<T>::GetHead() const
+{ return m_Cache.GetHead(); }
 
+//-------------------------------------------------------------------------------------------------
+//      末尾要素を取得します.
+//-------------------------------------------------------------------------------------------------
 template<typename T> inline
-T LruCache<T>::GetBack() const
-{ return *m_Cache.cbegin();}
+T* LruCache<T>::GetTail() const
+{ return m_Cache.GetTail(); }
 
 } // namespace asdx
