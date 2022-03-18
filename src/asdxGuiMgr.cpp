@@ -514,12 +514,16 @@ void GuiMgr::OnDraw( ImDrawData* pDrawData )
     D3D11_MAPPED_SUBRESOURCE resIB;
     auto ret = m_pContext->Map( m_pVB.GetPtr(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resVB );
     if ( FAILED( ret ) )
-    { return; }
+    {
+        m_pContext->Unmap( m_pVB.GetPtr(), 0 );
+        return;
+    }
 
     ret = m_pContext->Map( m_pIB.GetPtr(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resIB );
     if ( FAILED( ret ) )
     {
         m_pContext->Unmap( m_pVB.GetPtr(), 0 );
+        m_pContext->Unmap( m_pIB.GetPtr(), 0 );
         return;
     }
 
@@ -620,6 +624,8 @@ void GuiMgr::OnDraw( ImDrawData* pDrawData )
                         { m_pContext->PSSetShader(m_pPS.GetPtr(), nullptr, 0); }
 
                         m_pContext->PSSetShaderResources(0, 1, &pSRV);
+
+                        pRes->Release();
                     }
                     else
                     {
