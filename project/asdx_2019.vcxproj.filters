@@ -111,9 +111,6 @@
     <ClCompile Include="..\src\asdxShader.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\asdxGuiMgr.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\asdxDeviceContext.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>

@@ -45,13 +45,15 @@ struct ResMesh
 {
     std::string                         MeshName;
     std::string                         MaterialName;
-    std::vector<asdx::Vector3>          Positions;          // R32G32B32A32_FLOAT
-    std::vector<uint32_t>               TangentSpaces;      // R10B10G10A2_UINTで圧縮済み.
-    std::vector<uint32_t>               Colors;             // R8G8B8A8_UNORMで圧縮済み.
-    std::vector<uint32_t>               TexCoords[4];       // R16R16_FLOATで圧縮済み.
-    std::vector<ResBoneIndex>           BoneIndices;        // R16G16B16A16_UINT.
-    std::vector<asdx::Vector4>          BoneWeights;        // R32G32B32A32_FLOAT
-    std::vector<uint32_t>               Indices;            // VertexIndices
+    std::vector<asdx::Vector3>          Positions;
+    std::vector<asdx::Vector3>          Normals;
+    std::vector<asdx::Vector3>          Tangents;
+    std::vector<asdx::Vector3>          Bitangents;
+    std::vector<asdx::Vector4>          Colors;
+    std::vector<asdx::Vector2>          TexCoords[4];
+    std::vector<ResBoneIndex>           BoneIndices;
+    std::vector<asdx::Vector4>          BoneWeights;
+    std::vector<uint32_t>               Indices;
 };
 
 

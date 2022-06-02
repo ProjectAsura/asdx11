@@ -152,7 +152,6 @@
     <ClCompile Include="..\src\asdxFlatDoc.cpp" />
     <ClCompile Include="..\src\asdxFont.cpp" />
     <ClCompile Include="..\src\asdxFrameHeap.cpp" />
-    <ClCompile Include="..\src\asdxGuiMgr.cpp" />
     <ClCompile Include="..\src\asdxHistory.cpp" />
     <ClCompile Include="..\src\asdxIncludeExpansion.cpp" />
     <ClCompile Include="..\src\asdxIndexBuffer.cpp" />

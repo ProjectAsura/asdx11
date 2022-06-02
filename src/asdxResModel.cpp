@@ -80,8 +80,14 @@ void Dispose(ResMesh& resource)
     resource.Positions.clear();
     resource.Positions.shrink_to_fit();
 
-    resource.TangentSpaces.clear();
-    resource.TangentSpaces.shrink_to_fit();
+    resource.Normals.clear();
+    resource.Normals.shrink_to_fit();
+
+    resource.Tangents.clear();
+    resource.Tangents.shrink_to_fit();
+
+    resource.Bitangents.clear();
+    resource.Bitangents.shrink_to_fit();
 
     resource.Colors.clear();
     resource.Colors.shrink_to_fit();
