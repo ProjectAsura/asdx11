@@ -11,7 +11,10 @@
 #include <cstdint>
 #include <vector>
 #include <asdxMath.h>
+#include <asdxResMaterial.h>
 
+
+#define MAX_LAYER_COUNT (4)
 
 namespace asdx {
 
@@ -20,10 +23,10 @@ namespace asdx {
 ///////////////////////////////////////////////////////////////////////////////
 struct ResBoneIndex
 {
-    uint16_t     Index0;    //!< ボーン番号0.
-    uint16_t     Index1;    //!< ボーン番号1.
-    uint16_t     Index2;    //!< ボーン番号2.
-    uint16_t     Index3;    //!< ボーン番号3.
+    uint16_t     x;    //!< ボーン番号0.
+    uint16_t     y;    //!< ボーン番号1.
+    uint16_t     z;    //!< ボーン番号2.
+    uint16_t     w;    //!< ボーン番号3.
 
     //-------------------------------------------------------------------------
     //! @brief      コンストラクタです.
@@ -34,7 +37,7 @@ struct ResBoneIndex
     //! @brief      引数付きコンストラクタです.
     //-------------------------------------------------------------------------
     ResBoneIndex(uint16_t i0, uint16_t i1, uint16_t i2, uint16_t i3)
-   : Index0(i0), Index1(i1), Index2(i2), Index3(i3)
+   : x(i0), y(i1), z(i2), w(i3)
     { /* DO_NOTHING */ }
 };
 
@@ -50,7 +53,7 @@ struct ResMesh
     std::vector<asdx::Vector3>          Tangents;
     std::vector<asdx::Vector3>          Bitangents;
     std::vector<asdx::Vector4>          Colors;
-    std::vector<asdx::Vector2>          TexCoords[4];
+    std::vector<asdx::Vector2>          TexCoords[MAX_LAYER_COUNT];
     std::vector<ResBoneIndex>           BoneIndices;
     std::vector<asdx::Vector4>          BoneWeights;
     std::vector<uint32_t>               Indices;
@@ -63,6 +66,7 @@ struct ResMesh
 struct ResModel
 {
     std::vector<ResMesh>        Meshes;
+    std::vector<ResMaterial>    Materials;
 };
 
 //-----------------------------------------------------------------------------
