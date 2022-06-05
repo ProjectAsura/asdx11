@@ -153,6 +153,7 @@
     <ClInclude Include="..\include\asdxSprite.h" />
     <ClInclude Include="..\include\asdxStepTimer.h" />
     <ClInclude Include="..\include\asdxStopWatch.h" />
+    <ClInclude Include="..\include\asdxStringView.h" />
     <ClInclude Include="..\include\asdxStructuredBuffer.h" />
     <ClInclude Include="..\include\asdxTarget.h" />
     <ClInclude Include="..\include\asdxTcpConnector.h" />

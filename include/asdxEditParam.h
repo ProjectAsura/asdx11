@@ -18,7 +18,7 @@ namespace asdx {
 // Forward Declarations.
 //-----------------------------------------------------------------------------
 struct IHistory;
-
+class  Localization;
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditBool class
@@ -169,6 +169,14 @@ public:
     //! @param[in]      count           アイテム数.
     //------------------------------------------------------------------------
     void DrawCombo(const char* label, bool (*items_getter)(void* data, int idx, const char** out_text), int count);
+    //-------------------------------------------------------------------------
+    //! @brief      コンボボックスを描画します.
+    //!
+    //! @param[in]      label       表示名.
+    //! @param[in]      count       アイテム数.
+    //! @param[in]      items       アイテム名.
+    //-------------------------------------------------------------------------
+    void DrawCombo(const char* label, int count, const Localization* items);
 
 private:
     //=========================================================================

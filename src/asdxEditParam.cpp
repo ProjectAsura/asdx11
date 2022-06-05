@@ -12,6 +12,7 @@
 #include <asdxParamHistory.h>
 #include <asdxAppHistoryMgr.h>
 #include <asdxMisc.h>
+#include <asdxLocalization.h>
 
 
 #ifdef ASDX_ENABLE_IMGUI
@@ -189,6 +190,19 @@ private:
     //=========================================================================
     /* NOTHING */
 };
+
+//-----------------------------------------------------------------------------
+//      ComboBox用ゲッターです.
+//-----------------------------------------------------------------------------
+static bool LocalizationGetter(void* data, int idx, const char** out_text)
+{
+    auto items = reinterpret_cast<asdx::Localization*>(data);
+    if (items == nullptr)
+    { return false; }
+
+    *out_text = items[idx].c_str();
+    return true;
+}
 
 } // namespace 
 
@@ -374,6 +388,25 @@ void EditInt::DrawCombo(const char* tag, bool (*items_getter)(void* data, int id
     ASDX_UNUSED(tag);
     ASDX_UNUSED(items_getter);
     ASDX_UNUSED(count);
+#endif
+}
+
+//-----------------------------------------------------------------------------
+//      コンボボックスを描画します.
+//-----------------------------------------------------------------------------
+void EditInt::DrawCombo(const char* tag, int count, const Localization* items)
+{
+#ifdef ASDX_ENABLE_IMGUI
+    auto data = const_cast<Localization*>(items);
+    auto user = reinterpret_cast<void*>(data);
+
+    auto value = m_Value;
+    if (ImGui::Combo(tag, &value, LocalizationGetter, user, count))
+    { AppHistoryMgr::GetInstance().Add(new ParamHistory<int>(&m_Value, value, m_Prev)); }
+#else
+    ASDX_UNUSED(tag);
+    ASDX_UNUSED(count);
+    ASDX_UNUSED(items);
 #endif
 }
 
