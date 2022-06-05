@@ -233,4 +233,220 @@ void DecodeTBN(uint32_t encoded, Vector3& tangent, Vector3& bitangent, Vector3& 
     bitangent = (packed.BinormalHandedness == 0) ? bitangent : -bitangent;
 }
 
+//-----------------------------------------------------------------------------
+//      法線ベクトルを計算します.
+//-----------------------------------------------------------------------------
+void CalcNormals(ResMesh& resource)
+{
+    auto vertexCount = resource.Positions.size();
+    std::vector<asdx::Vector3> normals;
+    normals.resize(vertexCount);
+
+    // 法線データ初期化.
+    for(size_t i=0; i<vertexCount; ++i)
+    {
+        normals[i] = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    }
+
+    auto indexCount = resource.Indices.size();
+    for(size_t i=0; i<indexCount - 3; i+=3)
+    {
+        auto i0 = resource.Indices[i + 0];
+        auto i1 = resource.Indices[i + 1];
+        auto i2 = resource.Indices[i + 2];
+
+        auto p0 = resource.Positions[i0];
+        auto p1 = resource.Positions[i1];
+        auto p2 = resource.Positions[i2];
+
+        // エッジ.
+        auto e0 = p1 - p0;
+        auto e1 = p2 - p0;
+
+        // 面法線を算出.
+        auto fn = asdx::Vector3::Cross(e0, e1);
+        fn = asdx::Vector3::SafeNormalize(fn, fn);
+
+        // 面法線を加算.
+        normals[i0] += fn;
+        normals[i1] += fn;
+        normals[i2] += fn;
+    }
+
+    // 加算した法線を正規化し，頂点法線を求める.
+    for(size_t i=0; i<vertexCount; ++i)
+    {
+        normals[i] = asdx::Vector3::SafeNormalize(normals[i], normals[i]);
+    }
+
+    const auto SMOOTHING_ANGLE = 59.7f;
+    auto cosSmooth = cosf(asdx::ToDegree(SMOOTHING_ANGLE));
+
+    // メモリ確保.
+    resource.Normals.resize(vertexCount);
+
+    // スムージング処理.
+    for(size_t i=0; i<indexCount - 3; i+=3)
+    {
+        auto i0 = resource.Indices[i + 0];
+        auto i1 = resource.Indices[i + 1];
+        auto i2 = resource.Indices[i + 2];
+
+        auto p0 = resource.Positions[i0];
+        auto p1 = resource.Positions[i1];
+        auto p2 = resource.Positions[i2];
+
+        // エッジ.
+        auto e0 = p1 - p0;
+        auto e1 = p2 - p0;
+
+        // 面法線を算出.
+        auto fn = asdx::Vector3::Cross(e0, e1);
+        fn = asdx::Vector3::SafeNormalize(fn, fn);
+
+        // 頂点法線と面法線のなす角度を算出.
+        auto c0 = asdx::Vector3::Dot(normals[i0], fn);
+        auto c1 = asdx::Vector3::Dot(normals[i1], fn);
+        auto c2 = asdx::Vector3::Dot(normals[i2], fn);
+
+        // スムージング処理.
+        resource.Normals[i0] = (c0 >= cosSmooth) ? normals[i0] : fn;
+        resource.Normals[i1] = (c1 >= cosSmooth) ? normals[i1] : fn;
+        resource.Normals[i2] = (c2 >= cosSmooth) ? normals[i2] : fn;
+    }
+
+    normals.clear();
+}
+
+//-----------------------------------------------------------------------------
+//      法線ベクトルを計算します.
+//-----------------------------------------------------------------------------
+void CalcNormals(ResModel& resource)
+{
+    for(auto& mesh : resource.Meshes)
+    { CalcNormals(mesh); }
+}
+
+//-----------------------------------------------------------------------------
+//      接線ベクトルを計算します.
+//-----------------------------------------------------------------------------
+bool CalcTangents(ResMesh& resource)
+{
+    // テクスチャ座標が無い場合は接線ベクトルを計算できないので終了.
+    if (resource.TexCoords[0].empty())
+    { return false; }
+
+    auto vertexCount = resource.Positions.size();
+    resource.Tangents.resize(vertexCount);
+
+    // 接線ベクトルを初期化.
+    for(size_t i=0; i<vertexCount; ++i)
+    {
+        resource.Tangents[i] = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    }
+
+    auto indexCount = resource.Indices.size();
+    for(size_t i=0; i<indexCount - 3; i+=3)
+    {
+        auto i0 = resource.Indices[i + 0];
+        auto i1 = resource.Indices[i + 1];
+        auto i2 = resource.Indices[i + 2];
+
+        auto p0 = resource.Positions[i0];
+        auto p1 = resource.Positions[i1];
+        auto p2 = resource.Positions[i2];
+
+        auto t0 = resource.TexCoords[0][i0];
+        auto t1 = resource.TexCoords[0][i1];
+        auto t2 = resource.TexCoords[0][i2];
+
+        asdx::Vector3 e0, e1;
+        e0.x = p1.x - p0.x;
+        e0.y = t1.x - t0.x;
+        e0.z = t1.y - t0.y;
+
+        e1.x = p2.x - p0.x;
+        e1.y = t2.x - t0.x;
+        e1.z = t2.y - t0.y;
+
+        auto crs = asdx::Vector3::Cross(e0, e1);
+        crs = asdx::Vector3::SafeNormalize(crs, crs);
+        if (fabs(crs.x) < 1e-4f)
+        { crs.x = 1.0f; }
+
+        asdx::Vector3 tan0;
+        asdx::Vector3 tan1;
+        asdx::Vector3 tan2;
+
+        auto tanX = -crs.y / crs.x;
+
+        tan0.x = tanX;
+        tan1.x = tanX;
+        tan2.x = tanX;
+
+        e0.x = p1.y - p0.y;
+        e1.x = p2.y - p0.y;
+        crs = asdx::Vector3::Cross(e0, e1);
+        crs = asdx::Vector3::SafeNormalize(crs, crs);
+        if (fabs(crs.x) < 1e-4f) 
+        { crs.x = 1.0f; }
+
+        auto tanY = -crs.y / crs.x;
+        tan0.y = tanY;
+        tan1.y = tanY;
+        tan2.y = tanY;
+
+        e0.x = p1.z - p0.z;
+        e1.x = p2.z - p0.z;
+        crs = asdx::Vector3::Cross(e0, e1);
+        crs = asdx::Vector3::SafeNormalize(crs, crs);
+        if (fabs(crs.x) < 1e-4f) 
+        { crs.x = 1.0f; }
+
+        auto tanZ = -crs.y / crs.x;
+        tan0.z = tanZ;
+        tan1.z = tanZ;
+        tan2.z = tanZ;
+
+        auto n0 = resource.Normals[i0];
+        auto n1 = resource.Normals[i1];
+        auto n2 = resource.Normals[i2];
+
+        auto dp0 = asdx::Vector3::Dot(tan0, n0);
+        auto dp1 = asdx::Vector3::Dot(tan1, n1);
+        auto dp2 = asdx::Vector3::Dot(tan2, n2);
+
+        tan0 -= n0 * dp0;
+        tan1 -= n1 * dp1;
+        tan2 -= n2 * dp2;
+
+        tan0 = asdx::Vector3::SafeNormalize(tan0, tan0);
+        tan1 = asdx::Vector3::SafeNormalize(tan1, tan1);
+        tan2 = asdx::Vector3::SafeNormalize(tan2, tan2);
+
+        resource.Tangents[i0] = tan0;
+        resource.Tangents[i1] = tan1;
+        resource.Tangents[i2] = tan2;
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      接線ベクトルを計算します.
+//-----------------------------------------------------------------------------
+bool CalcTangents(ResModel& resource)
+{
+    for(auto& mesh : resource.Meshes)
+    {
+        if (mesh.TexCoords[0].empty())
+        { return false; }
+    }
+
+    for(auto& mesh : resource.Meshes)
+    { CalcTangents(mesh); }
+
+    return true;
+}
+
 } // namespace asdx

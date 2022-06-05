@@ -304,10 +304,10 @@ bool RenderState::Init( ID3D11Device* pDevice )
         };
 
         ArgDSS args[] = {
-            { DepthType::None,             false, false, false },
             { DepthType::Default,          true,  true,  false },
-            { DepthType::Readonly,         true,  false, false },
+            { DepthType::ReadOnly,         true,  false, false },
             { DepthType::WriteOnly,        false, true,  false },
+            { DepthType::None,             false, false, false },
             { DepthType::DefaultReverseZ,  true,  true,  true  },
             { DepthType::ReadonlyReverseZ, true,  false, true  },
         };

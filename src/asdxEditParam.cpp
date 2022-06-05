@@ -27,6 +27,10 @@
 
 namespace {
 
+static const asdx::Localization kTagNoTexture(u8"テクスチャ無し", u8"NO TEXTURE");
+static const asdx::Localization kTagLoad(u8"設定", u8"Load");
+static const asdx::Localization kTagDelete(u8"破棄", u8"Delete");
+
 ///////////////////////////////////////////////////////////////////////////////
 // ParamHistory
 ///////////////////////////////////////////////////////////////////////////////
@@ -1221,8 +1225,7 @@ void EditTexture2D::DrawControl
     const char* label,
     const char* defaultPath,
     uint32_t    width,
-    uint32_t    height,
-    bool        jp
+    uint32_t    height
 )
 {
 #if ASDX_ENABLE_IMGUI
@@ -1240,7 +1243,7 @@ void EditTexture2D::DrawControl
             { ImGui::SetTooltip("%s", m_Path.c_str()); }
         }
         else
-        { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), jp ? u8"テクスチャ無し" : u8"NO TEXTURE"); }
+        { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), kTagNoTexture.c_str()); }
 
         ImGui::NextColumn();
         ImGui::Text(label);
@@ -1253,7 +1256,7 @@ void EditTexture2D::DrawControl
             ImGui::BulletText(u8"%s", asdx::GetString(desc.Format));
             ImGui::BulletText(u8"%u mips", desc.MipLevels);
         }
-        if (ImGui::Button(jp ? u8"設定" : u8"Load"))
+        if (ImGui::Button(kTagLoad.c_str()))
         {
             std::string path;
             if (OpenFileDlg(
@@ -1265,7 +1268,7 @@ void EditTexture2D::DrawControl
         if (descriptor != nullptr)
         {
             ImGui::SameLine();
-            if (ImGui::Button(jp ? u8"破棄" : u8"Delete"))
+            if (ImGui::Button(kTagDelete.c_str()))
             { SetPath("", true); }
         }
 

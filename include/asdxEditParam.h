@@ -816,8 +816,7 @@ public:
         const char* label,
         const char* defaultPath,
         uint32_t width  = 64,
-        uint32_t height = 64,
-        bool     jp     = true);
+        uint32_t height = 64);
 
     //-------------------------------------------------------------------------
     //! @brief      リソースを取得します.
