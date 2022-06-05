@@ -151,6 +151,7 @@ private:
     RefPtr<IDXGIAdapter>                m_DXGIAdapter;
     RefPtr<IDXGIFactory2>               m_DXGIFactory;
     RefPtr<ID3DUserDefinedAnnotation>   m_Annotation;
+    RefPtr<ID3D11InfoQueue>             m_pInfoQueue;
     D3D_DRIVER_TYPE                     m_DriverType    = D3D_DRIVER_TYPE_HARDWARE;
     D3D_FEATURE_LEVEL                   m_FeatureLevel  = D3D_FEATURE_LEVEL_11_0;
 

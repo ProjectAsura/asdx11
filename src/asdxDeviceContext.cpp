@@ -106,6 +106,18 @@ bool DeviceContext::Init()
         return false;
     }
 
+#if defined(DEBUG) || defined(_DEBUG)
+    hr = m_pDevice->QueryInterface(IID_PPV_ARGS(m_pInfoQueue.GetAddress()));
+    if (SUCCEEDED(hr))
+    {
+        // エラー発生時にブレークさせる.
+        m_pInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, TRUE);
+
+        // 警告発生時にブレークさせる.
+        m_pInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, TRUE);
+    }
+#endif
+
     hr = context->QueryInterface(IID_PPV_ARGS(m_pContext.GetAddress()));
     if (FAILED(hr))
     {
@@ -234,6 +246,7 @@ void DeviceContext::Term()
     if (m_pContext.GetPtr() != nullptr)
     { m_pContext->Flush(); }
 
+    m_pInfoQueue    .Reset();
     m_DefaultBS     .Reset();
     m_DefaultDSS    .Reset();
     m_DefaultRS     .Reset();
