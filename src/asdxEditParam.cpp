@@ -27,9 +27,13 @@
 
 namespace {
 
+//-----------------------------------------------------------------------------
+// Constant Values.
+//-----------------------------------------------------------------------------
 static const asdx::Localization kTagNoTexture(u8"テクスチャ無し", u8"NO TEXTURE");
 static const asdx::Localization kTagLoad(u8"設定", u8"Load");
 static const asdx::Localization kTagDelete(u8"破棄", u8"Delete");
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // ParamHistory
@@ -1260,7 +1264,7 @@ void EditTexture2D::DrawControl
         {
             std::string path;
             if (OpenFileDlg(
-                "Texture(*.tga, *.dds)\0*.tga;*.dds\0\0",
+                "Texture(*.bmp, *.jpg, *.png, *.gif, *.tga, *.dds)\0*.bmp;*.jpg;*.png;*.gif;*.tga;*.dds\0\0",
                 path, defaultPath))
             { SetPath(path.c_str(), true); }
         }
