@@ -105,7 +105,7 @@ struct ResTexture
 
     //---------------------------------------------------------------------------------------------
     //! @brief      ファイルからテクスチャリソースを生成します.
-    //!             読み込み可能なファイルはDDS, BMP, JPG, PNG, TIFF, GIF, HDP, TGAです.
+    //!             読み込み可能なファイルはDDS, BMP, JPG, PNG, TIFF, GIF, HDP, TGA, HDRです.
     //!
     //! @param[in]      filename        ファイル名です.
     //! @retval true    リソース生成に成功.
@@ -115,7 +115,7 @@ struct ResTexture
 
     //---------------------------------------------------------------------------------------------
     //! @brief      ファイルからテクスチャリソースを生成します.
-    //!             読み込み可能なファイルはDDS, BMP, JPG, PNG, TIFF, GIF, HDP, TGAです.
+    //!             読み込み可能なファイルはDDS, BMP, JPG, PNG, TIFF, GIF, HDP, TGA, HDRです.
     //!
     //! @param[in]      filename        ファイル名です.
     //! @retval true    リソース生成に成功.
@@ -132,7 +132,7 @@ struct ResTexture
     //! @retval true    リソース生成に成功.
     //! @retval false   リソース生成に失敗.
     //---------------------------------------------------------------------------------------------
-    bool LoadFromMemory( const uint8_t* pBuffer, const uint32_t bufferSize );
+    bool LoadFromMemory( const uint8_t* pBuffer, uint32_t bufferSize );
 };
 
 
