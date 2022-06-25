@@ -10,7 +10,6 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <cstdint>
-#include <mutex>
 #include <vector>
 #include <string>
 
@@ -22,6 +21,7 @@
 #include <asdxTarget.h>
 #include <asdxTimer.h>
 #include <asdxHid.h>
+#include <asdxSpinLock.h>
 
 #if defined(ASDX_ENABLE_D2D)
 #include <d2d1_1.h>
@@ -431,13 +431,13 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    bool                m_IsStopRendering;      //!< 描画を停止するかどうかのフラグ. 停止する場合はtrueを指定.
-    bool                m_IsStandbyMode;        //!< スタンバイモードかどうかを示すフラグです.
-    DWORD               m_FrameCount;           //!< フレームカウントです.
-    float               m_FPS;                  //!< FPS(1秒あたりのフレーム描画回数)です.
-    double              m_LatestUpdateTime;     //!< 最後の更新時間です.
-    std::mutex          m_Mutex;                //!< ミューテックスです.
-    DXGI_OUTPUT_DESC1   m_DisplayDesc;          //!< 出力先の設定です.
+    bool                    m_IsStopRendering;      //!< 描画を停止するかどうかのフラグ. 停止する場合はtrueを指定.
+    bool                    m_IsStandbyMode;        //!< スタンバイモードかどうかを示すフラグです.
+    DWORD                   m_FrameCount;           //!< フレームカウントです.
+    float                   m_FPS;                  //!< FPS(1秒あたりのフレーム描画回数)です.
+    double                  m_LatestUpdateTime;     //!< 最後の更新時間です.
+    SpinLock                m_SpinLock;             //!< スピンロック.
+    DXGI_OUTPUT_DESC1       m_DisplayDesc;          //!< 出力先の設定です.
 
     //=========================================================================
     // private methods.

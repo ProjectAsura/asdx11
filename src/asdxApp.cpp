@@ -105,47 +105,8 @@ namespace asdx  {
 //      コンストラクタです.
 //-----------------------------------------------------------------------------
 Application::Application()
-: m_hInst               ( nullptr )
-, m_hWnd                ( nullptr )
-, m_pDevice             ( nullptr )
-, m_pDeviceContext      ( nullptr )
-, m_MultiSampleCount    ( 4 )
-, m_MultiSampleQuality  ( 0 )
-, m_SwapChainCount      ( 2 )
-, m_SwapChainFormat     ( DXGI_FORMAT_B8G8R8A8_UNORM_SRGB )
-, m_DepthStencilFormat  ( DXGI_FORMAT_D24_UNORM_S8_UINT )
-, m_pSwapChain          ( nullptr )
-, m_ColorTarget2D       ()
-, m_DepthTarget2D       ()
-, m_Width               ( 960 )
-, m_Height              ( 540 )
-, m_AspectRatio         ( 1.7777f )
-, m_Title               ( L"asdxApplication" )
-, m_Timer               ()
-, m_FrameCount          ( 0 )
-, m_FPS                 ( 0.0f )
-, m_LatestUpdateTime    ( 0.0f )
-, m_IsStopRendering     ( false )
-, m_IsStandbyMode       ( false )
-, m_hIcon               ( nullptr )
-, m_hMenu               ( nullptr )
-, m_hAccel              ( nullptr )
-#if ASDX_IS_DEBUG
-, m_pD3D11Debug         ( nullptr )
-#endif//ASDX_IS_DEBUG
-#if defined(ASDX_ENABLE_D2D)
-, m_pFactory2D          ( nullptr )
-, m_pDevice2D           ( nullptr )
-, m_pDeviceContext2D    ( nullptr )
-, m_pFactoryDW          ( nullptr )
-, m_pDefaultBrush       ( nullptr )
-#endif//defined(ASDX_ENABLE_D2D)
-{
-    m_ClearColor[0] = 0.392156899f;
-    m_ClearColor[1] = 0.584313750f;
-    m_ClearColor[2] = 0.929411829f;
-    m_ClearColor[3] = 1.000000000f;
-}
+: Application(L"asdxApplication", 960, 540, nullptr, nullptr, nullptr)
+{ /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
 //      引数付きコンストラクタです.
@@ -186,6 +147,12 @@ Application::Application( LPCWSTR title, UINT width, UINT height, HICON hIcon, H
 , m_pDefaultBrush       ( nullptr )
 #endif//defined(ASDX_ENABLE_D2D)
 {
+    // タイマーを開始します.
+    m_Timer.Start();
+
+    // 開始時刻を取得.
+    m_LatestUpdateTime = m_Timer.GetElapsedTime();
+
     m_ClearColor[0] = 0.392156899f;
     m_ClearColor[1] = 0.584313750f;
     m_ClearColor[2] = 0.929411829f;
@@ -203,7 +170,7 @@ Application::~Application()
 //-----------------------------------------------------------------------------
 void Application::SetStopRendering( bool isStopRendering )
 {
-    std::lock_guard<std::mutex> locker(m_Mutex);
+    ScopedLock locker(&m_SpinLock);
     m_IsStopRendering = isStopRendering;
 }
 
@@ -335,12 +302,6 @@ void Application::TermApp()
 //-----------------------------------------------------------------------------
 bool Application::InitWnd()
 {
-    // タイマーを開始します.
-    m_Timer.Start();
-
-    // 開始時刻を取得.
-    m_LatestUpdateTime = m_Timer.GetElapsedTime();
-
     // インスタンスハンドルを取得.
     HINSTANCE hInst = GetModuleHandle( nullptr );
     if ( !hInst )
