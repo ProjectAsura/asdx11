@@ -88,8 +88,8 @@ void CalcNormals(ResModel& resource);
 //-----------------------------------------------------------------------------
 //      接線ベクトルを計算します.
 //-----------------------------------------------------------------------------
-bool CalcTangents(ResMesh& resource);
-bool CalcTangents(ResModel& resource);
+void CalcTangents(ResMesh& resource);
+void CalcTangents(ResModel& resource);
 
 //-----------------------------------------------------------------------------
 //      八面体ラップ処理を行います.

@@ -149,8 +149,8 @@ CameraEvent CameraUpdater::MakeEventFromMouse( int wheelDelta )
                              -( m_MouseRight.X - m_MouseRight.prevX ) ) * m_Gain[m_Type].Dolly;
         }
 
-        // 左＋右ボタンボタンドラッグでトラック処理.
-        if ( m_MouseLeft.isClick && m_MouseLeft.isPrevClick && m_MouseRight.isClick && m_MouseRight.isPrevClick )
+        // 中ボタンドラッグでトラック処理.
+        if ( m_MouseMiddle.isClick && m_MouseMiddle.isPrevClick )
         {
             flags |= CameraEvent::EVENT_TRUCK;
 

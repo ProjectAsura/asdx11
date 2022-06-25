@@ -330,11 +330,29 @@ void CalcNormals(ResModel& resource)
 //-----------------------------------------------------------------------------
 //      接線ベクトルを計算します.
 //-----------------------------------------------------------------------------
-bool CalcTangents(ResMesh& resource)
+void CalcTangentsRoughly(ResMesh& mesh)
 {
-    // テクスチャ座標が無い場合は接線ベクトルを計算できないので終了.
+    auto vertexCount = mesh.Positions.size();
+    mesh.Tangents.resize(vertexCount);
+    for(size_t i=0; i<vertexCount; ++i)
+    {
+        asdx::Vector3 T, B;
+        asdx::CalcONB(mesh.Normals[i], T, B);
+        mesh.Tangents[i] = T;
+    }
+}
+//-----------------------------------------------------------------------------
+//      接線ベクトルを計算します.
+//-----------------------------------------------------------------------------
+void CalcTangents(ResMesh& resource)
+{
+    // テクスチャ座標が無い場合は接線ベクトルをきちんと計算できないので，
+    // 雑に計算する.
     if (resource.TexCoords[0].empty())
-    { return false; }
+    {
+        CalcTangentsRoughly(resource);
+        return;
+    }
 
     auto vertexCount = resource.Positions.size();
     resource.Tangents.resize(vertexCount);
@@ -428,25 +446,17 @@ bool CalcTangents(ResMesh& resource)
         resource.Tangents[i1] = tan1;
         resource.Tangents[i2] = tan2;
     }
-
-    return true;
 }
+
+
 
 //-----------------------------------------------------------------------------
 //      接線ベクトルを計算します.
 //-----------------------------------------------------------------------------
-bool CalcTangents(ResModel& resource)
+void CalcTangents(ResModel& resource)
 {
     for(auto& mesh : resource.Meshes)
-    {
-        if (mesh.TexCoords[0].empty())
-        { return false; }
-    }
-
-    for(auto& mesh : resource.Meshes)
     { CalcTangents(mesh); }
-
-    return true;
 }
 
 } // namespace asdx

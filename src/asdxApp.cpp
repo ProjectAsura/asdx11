@@ -1102,16 +1102,16 @@ LRESULT CALLBACK Application::MsgProc( HWND hWnd, UINT uMsg, WPARAM wp, LPARAM l
         if ( ( uMsg == WM_MOUSEHWHEEL )
           || ( uMsg == OLD_WM_MOUSEWHEEL ) )
         {
-            POINT pt;
-            pt.x = x;
-            pt.y = y;
-
-            ScreenToClient( hWnd, &pt );
-            x = pt.x;
-            y = pt.y;
-
             wheelDelta += (short)HIWORD( wp );
         }
+
+        POINT pt = {};
+        pt.x = x;
+        pt.y = y;
+
+        ScreenToClient( hWnd, &pt );
+        x = pt.x;
+        y = pt.y;
 
         int  buttonState = LOWORD( wp );
         bool isLeftButtonDown   = ( ( buttonState & MK_LBUTTON  ) != 0 );
