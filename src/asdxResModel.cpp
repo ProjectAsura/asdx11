@@ -378,73 +378,31 @@ void CalcTangents(ResMesh& resource)
         auto t1 = resource.TexCoords[0][i1];
         auto t2 = resource.TexCoords[0][i2];
 
-        asdx::Vector3 e0, e1;
-        e0.x = p1.x - p0.x;
-        e0.y = t1.x - t0.x;
-        e0.z = t1.y - t0.y;
+        auto e1 = p1 - p0;
+        auto e2 = p2 - p0;
 
-        e1.x = p2.x - p0.x;
-        e1.y = t2.x - t0.x;
-        e1.z = t2.y - t0.y;
+        float x1 = t1.x - t0.x;
+        float x2 = t2.x - t0.x;
 
-        auto crs = asdx::Vector3::Cross(e0, e1);
-        crs = asdx::Vector3::SafeNormalize(crs, crs);
-        if (fabs(crs.x) < 1e-4f)
-        { crs.x = 1.0f; }
+        float y1 = t1.y - t0.y;
+        float y2 = t2.y - t0.y;
 
-        asdx::Vector3 tan0;
-        asdx::Vector3 tan1;
-        asdx::Vector3 tan2;
+        float r = 1.0f / (x1 * y2 - x2 * y1);
 
-        auto tanX = -crs.y / crs.x;
+        asdx::Vector3 T = (e1 * y2 - e2 * y1) * r;
 
-        tan0.x = tanX;
-        tan1.x = tanX;
-        tan2.x = tanX;
+        resource.Tangents[i0] += T;
+        resource.Tangents[i1] += T;
+        resource.Tangents[i2] += T;
+    }
 
-        e0.x = p1.y - p0.y;
-        e1.x = p2.y - p0.y;
-        crs = asdx::Vector3::Cross(e0, e1);
-        crs = asdx::Vector3::SafeNormalize(crs, crs);
-        if (fabs(crs.x) < 1e-4f) 
-        { crs.x = 1.0f; }
-
-        auto tanY = -crs.y / crs.x;
-        tan0.y = tanY;
-        tan1.y = tanY;
-        tan2.y = tanY;
-
-        e0.x = p1.z - p0.z;
-        e1.x = p2.z - p0.z;
-        crs = asdx::Vector3::Cross(e0, e1);
-        crs = asdx::Vector3::SafeNormalize(crs, crs);
-        if (fabs(crs.x) < 1e-4f) 
-        { crs.x = 1.0f; }
-
-        auto tanZ = -crs.y / crs.x;
-        tan0.z = tanZ;
-        tan1.z = tanZ;
-        tan2.z = tanZ;
-
-        auto n0 = resource.Normals[i0];
-        auto n1 = resource.Normals[i1];
-        auto n2 = resource.Normals[i2];
-
-        auto dp0 = asdx::Vector3::Dot(tan0, n0);
-        auto dp1 = asdx::Vector3::Dot(tan1, n1);
-        auto dp2 = asdx::Vector3::Dot(tan2, n2);
-
-        tan0 -= n0 * dp0;
-        tan1 -= n1 * dp1;
-        tan2 -= n2 * dp2;
-
-        tan0 = asdx::Vector3::SafeNormalize(tan0, tan0);
-        tan1 = asdx::Vector3::SafeNormalize(tan1, tan1);
-        tan2 = asdx::Vector3::SafeNormalize(tan2, tan2);
-
-        resource.Tangents[i0] = tan0;
-        resource.Tangents[i1] = tan1;
-        resource.Tangents[i2] = tan2;
+    for(size_t i=0; i<vertexCount; ++i)
+    {
+        // Reject = a - b * Dot(a, b);
+        auto a = resource.Tangents[i];
+        auto b = resource.Normals[i];
+        auto T = a - b * asdx::Vector3::Dot(a, b);
+        resource.Tangents[i] = asdx::Vector3::SafeNormalize(T, T);
     }
 }
 

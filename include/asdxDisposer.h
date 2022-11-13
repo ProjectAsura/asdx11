@@ -9,7 +9,6 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <list>
-#include <mutex>
 #include <asdxSpinLock.h>
 
 
@@ -59,7 +58,7 @@ public:
         if (pObject == nullptr)
         { return; }
 
-        std::lock_guard<SpinLock> locker(m_SpinLock);
+        ScopedLock locker(&m_SpinLock);
 
         Item item;
         item.pObject    = pObject;
@@ -74,7 +73,7 @@ public:
     //-------------------------------------------------------------------------
     void FrameSync()
     {
-        std::lock_guard<SpinLock> locker(m_SpinLock);
+        ScopedLock locker(&m_SpinLock);
 
         auto itr = m_List.begin();
         while(itr != m_List.end())
@@ -102,7 +101,7 @@ public:
     //-------------------------------------------------------------------------
     void Clear()
     {
-        std::lock_guard<SpinLock> locker(m_SpinLock);
+        ScopedLock locker(&m_SpinLock);
 
         auto itr = m_List.begin();
         while(itr != m_List.end())
