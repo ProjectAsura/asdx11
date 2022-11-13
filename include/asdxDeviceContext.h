@@ -12,6 +12,10 @@
 #include <dxgi1_6.h>
 #include <asdxRef.h>
 
+#if defined(ASDX_ENABLE_D3D11ON12)
+#include <d3d12.h>
+#endif
+
 
 namespace asdx {
 
@@ -137,6 +141,22 @@ public:
     //-------------------------------------------------------------------------
     ID3D11DeviceContext* operator ->() const;
 
+#if ASDX_ENABLE_D3D11ON12
+    //-------------------------------------------------------------------------
+    //! @brief      D3D12デバイスを取得します.
+    //! 
+    //! @return     D3D12デバイスを返却します.
+    //-------------------------------------------------------------------------
+    ID3D12Device* GetD3D12Device() const;
+
+    //-------------------------------------------------------------------------
+    //! @brief      D3D12グラフィックスキューを取得します.
+    //! 
+    //! @return     D3D12グラフィックスキューを返却します.
+    //-------------------------------------------------------------------------
+    ID3D12CommandQueue* GetD3D12GraphicsQueue() const;
+#endif
+
 private:
     //=========================================================================
     // private variables.
@@ -154,6 +174,11 @@ private:
     RefPtr<ID3D11InfoQueue>             m_pInfoQueue;
     D3D_DRIVER_TYPE                     m_DriverType    = D3D_DRIVER_TYPE_HARDWARE;
     D3D_FEATURE_LEVEL                   m_FeatureLevel  = D3D_FEATURE_LEVEL_11_0;
+#if ASDX_ENABLE_D3D11ON12
+    RefPtr<ID3D12Device>                m_D3D12Device;
+    RefPtr<ID3D12CommandQueue>          m_D3D12GraphicsQueue;
+    RefPtr<ID3D12InfoQueue>             m_D3D12InfoQueue;
+#endif
 
     //=========================================================================
     // private methods.
@@ -162,6 +187,11 @@ private:
     ~DeviceContext();
     DeviceContext               (const DeviceContext&) = delete;
     DeviceContext& operator =   (const DeviceContext&) = delete;
+
+#if ASDX_ENABLE_D3D11ON12
+    bool InitD3D12();
+    void TermD3D12();
+#endif
 };
 
 } // namespace asdx

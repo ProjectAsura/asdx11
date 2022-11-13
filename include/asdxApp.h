@@ -19,8 +19,7 @@
 
 #include <asdxRef.h>
 #include <asdxTarget.h>
-#include <asdxTimer.h>
-#include <asdxHid.h>
+#include <asdxStopWatch.h>
 #include <asdxSpinLock.h>
 
 #if defined(ASDX_ENABLE_D2D)
@@ -47,6 +46,10 @@
 #pragma comment( lib, "d2d1.lib" )
 #pragma comment( lib, "dwrite.lib" )
 #endif//defined(ASDX_ENABLE_D2D)
+
+#if defined(ASDX_ENABLE_D3D11ON12)
+#pragma comment( lib, "d3d12.lib" )
+#endif
 
 #endif//ASDX_AUTO_LINK
 
@@ -131,30 +134,6 @@ struct ResizeEventArgs
     : Width      ( 0 )
     , Height     ( 0 )
     , AspectRatio( 0.0f )
-    { /* DO_NOTHING */ }
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// FrameEventArgs struture
-///////////////////////////////////////////////////////////////////////////////
-struct FrameEventArgs
-{
-    ID3D11DeviceContext*    pDeviceContext; //!< デバイスコンテキストです.
-    double                  Time;           //!< アプリケーション開始からの相対時間です.
-    double                  ElapsedTime;    //!< 前のフレームからの経過時間(秒)です.
-    float                   FPS;            //!< １秒当たりフレーム更新回数です.
-    bool                    IsStopDraw;     //!< 描画停止フラグです.
-
-    //-------------------------------------------------------------------------
-    //! @brief      コンストラクタです.
-    //-------------------------------------------------------------------------
-    FrameEventArgs()
-    : pDeviceContext( nullptr )
-    , Time          ( 0 )
-    , ElapsedTime   ( 0 )
-    , FPS           ( 0.0f )
-    , IsStopDraw    ( false )
     { /* DO_NOTHING */ }
 };
 
@@ -249,7 +228,7 @@ protected:
     uint32_t                        m_Height;               //!< 画面の縦幅です.
     float                           m_AspectRatio;          //!< 画面のアスペクト比です.
     LPCWSTR                         m_Title;                //!< アプリケーションのタイトル名です.
-    Timer                           m_Timer;                //!< タイマーです.
+    StopWatch                       m_Timer;                //!< タイマーです.
     D3D11_VIEWPORT                  m_Viewport;             //!< ビューポートです.
     D3D11_RECT                      m_ScissorRect;          //!< シザー矩形です.
     HICON                           m_hIcon;                //!< アイコンハンドルです.
@@ -279,30 +258,28 @@ protected:
     //!
     //! @note       派生クラスにて実装を行います.
     //-------------------------------------------------------------------------
-    virtual bool OnInit       ();
+    virtual bool OnInit();
 
     //-------------------------------------------------------------------------
     //! @brief      終了時に実行する処理です.
     //!
     //! @note       派生クラスにて実装を行います.
     //-------------------------------------------------------------------------
-    virtual void OnTerm       ();
+    virtual void OnTerm();
 
     //-------------------------------------------------------------------------
     //! @brief      フレーム遷移時に実行する処理です.
     //!
-    //! @param [in]     param       フレームインベントパラメータです.
     //! @note       派生クラスにて実装を行います.
     //-------------------------------------------------------------------------
-    virtual void OnFrameMove  ( FrameEventArgs& param );
+    virtual void OnFrameMove();
 
     //-------------------------------------------------------------------------
     //! @brief      フレーム描画時に実行する処理です.
     //!
-    //! @param [in]     param       フレームインベントパラメータです.
     //! @note       派生クラスにて実装を行います.
     //-------------------------------------------------------------------------
-    virtual void OnFrameRender( FrameEventArgs& param );
+    virtual void OnFrameRender();
 
     //-------------------------------------------------------------------------
     //! @brief      リサイズ時に実行する処理です.
@@ -310,7 +287,7 @@ protected:
     //! @param [in]     param       リサイズイベントパラメータです.
     //! @note       派生クラスにて実装を行います.
     //-------------------------------------------------------------------------
-    virtual void OnResize     ( const ResizeEventArgs& param );
+    virtual void OnResize(const ResizeEventArgs& param);
 
     //-------------------------------------------------------------------------
     //! @brief      キーイベント通知時に実行する処理です.
@@ -318,7 +295,7 @@ protected:
     //! @param [in]     param       キーイベントパラメータです.
     //! @note       派生クラスにて実装を行います.
     //-------------------------------------------------------------------------
-    virtual void OnKey        ( const KeyEventArgs&    param );
+    virtual void OnKey(const KeyEventArgs& param);
 
     //-------------------------------------------------------------------------
     //! @brief      マウスイベント通知時に実行する処理です.
@@ -326,19 +303,19 @@ protected:
     //! @param [in]     param       マウスイベントパラメータです.
     //! @note       派生クラスにて実装を行います.
     //-------------------------------------------------------------------------
-    virtual void OnMouse      ( const MouseEventArgs&  param );
+    virtual void OnMouse(const MouseEventArgs& param);
 
     //-------------------------------------------------------------------------
     //! @brief      タイピング時の処理です.
     //-------------------------------------------------------------------------
-    virtual void OnTyping     ( uint32_t keyCode );
+    virtual void OnTyping(uint32_t keyCode);
 
     //-------------------------------------------------------------------------
     //! @brief      ウィンドウへのドラッグアンドドロップされたと時に実行する処理です.
     //!
     //! @param[in]      dropFiles     ドラッグアンドドロップされたファイル名です.
     //-------------------------------------------------------------------------
-    virtual void OnDrop        ( const std::vector<std::string>& dropFiles );
+    virtual void OnDrop(const std::vector<std::string>& dropFiles);
 
     //-------------------------------------------------------------------------
     //! @brief      メッセージプロシージャの処理です.
@@ -348,22 +325,7 @@ protected:
     //! @param[in]      wp          メッセージの追加情報.
     //! @param[in]      lp          メッセージの追加情報.
     //-------------------------------------------------------------------------
-    virtual void OnMsgProc( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp );
-
-    //-------------------------------------------------------------------------
-    //! @brief      描画停止フラグを設定します.
-    //!
-    //! @param [in]     isStopRendering     描画を停止するかどうか.停止する場合はtrueを指定します.
-    //-------------------------------------------------------------------------
-    void SetStopRendering( bool isStopRendering );
-
-    //-------------------------------------------------------------------------
-    //! @brief      描画停止フラグを取得します.
-    //!
-    //! @retval true    描画処理を呼び出しません.
-    //! @retval false   描画処理を呼び出します.
-    //-------------------------------------------------------------------------
-    bool IsStopRendering();
+    virtual void OnMsgProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp);
 
     //-------------------------------------------------------------------------
     //! @brief      スタンバイモードかどうかチェックします.
@@ -431,7 +393,6 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    bool                    m_IsStopRendering;      //!< 描画を停止するかどうかのフラグ. 停止する場合はtrueを指定.
     bool                    m_IsStandbyMode;        //!< スタンバイモードかどうかを示すフラグです.
     DWORD                   m_FrameCount;           //!< フレームカウントです.
     float                   m_FPS;                  //!< FPS(1秒あたりのフレーム描画回数)です.

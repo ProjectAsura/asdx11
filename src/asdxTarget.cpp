@@ -287,11 +287,11 @@ bool ColorTarget2D::CreateFromBackBuffer( ID3D11Device* pDevice, IDXGISwapChain*
     HRESULT hr = S_OK;
 
     // バックバッファを取得.
-    hr = pSwapChain->GetBuffer( 0, IID_ID3D11Texture2D, (LPVOID*)m_pTexture.GetAddress() );
+    hr = pSwapChain->GetBuffer( 0, IID_PPV_ARGS(m_pTexture.GetAddress()) );
     if( FAILED( hr ) )
     {
         // エラーログを出力.
-        OutputDebugStringA( "Error : IDXGISwapChain->GetBuffer() Failed. call from ColorTarget::CreateFromBackBuffer()" );
+        ELOG( "Error : IDXGISwapChain->GetBuffer() Failed. call from ColorTarget::CreateFromBackBuffer()" );
 
         // 失敗.
         return false;
@@ -386,8 +386,7 @@ bool ColorTarget2D::Create( ID3D11Device* pDevice, const TargetDesc2D& desc )
     //SetDebugObjectName( m_pTexture.GetPtr(), "ColorTarget2D::m_pTexture" );
 
     // レンダーターゲットビューの設定.
-    D3D11_RENDER_TARGET_VIEW_DESC rtvd;
-    ZeroMemory( &rtvd, sizeof( D3D11_RENDER_TARGET_VIEW_DESC ) );
+    D3D11_RENDER_TARGET_VIEW_DESC rtvd = {};
     rtvd.Format = desc.Format;
 
     // 配列サイズが1の場合.
@@ -441,8 +440,7 @@ bool ColorTarget2D::Create( ID3D11Device* pDevice, const TargetDesc2D& desc )
     //SetDebugObjectName( m_pRTV.GetPtr(), "ColorTarget2D::m_pRTV" );
 
     // シェーダリソースビューの設定.
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-    ZeroMemory( &srvd, sizeof( D3D11_SHADER_RESOURCE_VIEW_DESC ) );
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvd = {};
     srvd.Format = desc.Format;
 
     // 配列サイズが1の場合.
@@ -591,7 +589,7 @@ bool ColorTarget3D::Create( ID3D11Device* pDevice, const TargetDesc3D& desc )
     ConvertColorFormat( desc.Format, textureFormat );
 
     // テクスチャの設定.
-    D3D11_TEXTURE3D_DESC td;
+    D3D11_TEXTURE3D_DESC td = {};
     td.Width                = desc.Width;
     td.Height               = desc.Height;
     td.Depth                = desc.Depth;
@@ -639,8 +637,7 @@ bool ColorTarget3D::Create( ID3D11Device* pDevice, const TargetDesc3D& desc )
     //SetDebugObjectName( m_pRTV.GetPtr(), "ColorTarget3D::m_pRTV" );
 
     // シェーダリソースビューの設定.
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-    ZeroMemory( &srvd, sizeof( D3D11_SHADER_RESOURCE_VIEW_DESC ) );
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvd = {};
     srvd.Format                     = desc.Format;
     srvd.Texture3D.MipLevels        = desc.MipLevels;
     srvd.Texture3D.MostDetailedMip  = 0;
@@ -758,8 +755,7 @@ bool DepthTarget2D::Create( ID3D11Device* pDevice, const TargetDesc2D& desc )
     ConvertDepthFormat( desc.Format, textureFormat, resourceFormat );
 
     // テクスチャの設定.
-    D3D11_TEXTURE2D_DESC td;
-    ZeroMemory( &td, sizeof( D3D11_TEXTURE2D_DESC ) );
+    D3D11_TEXTURE2D_DESC td = {};
     td.Width                = desc.Width;
     td.Height               = desc.Height;
     td.MipLevels            = desc.MipLevels;
@@ -840,8 +836,7 @@ bool DepthTarget2D::Create( ID3D11Device* pDevice, const TargetDesc2D& desc )
     //SetDebugObjectName( m_pDSV.GetPtr(), "DepthTarget2D::m_pDSV" );
 
     // シェーダリソースビューの設定.
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-    ZeroMemory( &srvd, sizeof( D3D11_SHADER_RESOURCE_VIEW_DESC ) );
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvd = {};
     srvd.Format = resourceFormat;
 
     // 配列サイズが1の場合.

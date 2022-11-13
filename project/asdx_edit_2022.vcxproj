@@ -15,10 +15,15 @@
     <ClInclude Include="..\external\imgui\imgui.h" />
     <ClInclude Include="..\external\imgui\imgui_internal.h" />
     <ClInclude Include="..\external\tinyxml2\tinyxml2.h" />
-    <ClInclude Include="..\include\asdxAppHistoryMgr.h" />
-    <ClInclude Include="..\include\asdxEditParam.h" />
-    <ClInclude Include="..\include\asdxGuiMgr.h" />
-    <ClInclude Include="..\include\asdxImGuiExtension.h" />
+    <ClInclude Include="..\include\edit\asdxAppHistoryMgr.h" />
+    <ClInclude Include="..\include\edit\asdxEditParam.h" />
+    <ClInclude Include="..\include\edit\asdxFileWatcher.h" />
+    <ClInclude Include="..\include\edit\asdxHistory.h" />
+    <ClInclude Include="..\include\edit\asdxLocalization.h" />
+    <ClInclude Include="..\include\edit\asdxP4VHelper.h" />
+    <ClInclude Include="..\include\edit\asdxParamHistory.h" />
+    <ClInclude Include="..\include\edit\asdxTablet.h" />
+    <ClInclude Include="..\include\edit\asdxTcpConnector.h" />
     <ClInclude Include="..\src\GlyphJapanese.h" />
   </ItemGroup>
   <ItemGroup>
@@ -26,11 +31,14 @@
     <ClCompile Include="..\external\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp" />
-    <ClCompile Include="..\src\asdxAppHistoryMgr.cpp" />
-    <ClCompile Include="..\src\asdxEditParam.cpp" />
-    <ClCompile Include="..\src\asdxGuiMgr.cpp" />
-    <ClCompile Include="..\src\asdxHistory.cpp" />
-    <ClCompile Include="..\src\asdxImGuiExtension.cpp" />
+    <ClCompile Include="..\src\edit\asdxAppHistoryMgr.cpp" />
+    <ClCompile Include="..\src\edit\asdxEditParam.cpp" />
+    <ClCompile Include="..\src\edit\asdxFileWatcher.cpp" />
+    <ClCompile Include="..\src\edit\asdxHistory.cpp" />
+    <ClCompile Include="..\src\edit\asdxLocalization.cpp" />
+    <ClCompile Include="..\src\edit\asdxP4VHelper.cpp" />
+    <ClCompile Include="..\src\edit\asdxTablet.cpp" />
+    <ClCompile Include="..\src\edit\asdxTcpConnector.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -39,16 +39,31 @@
     <ClInclude Include="..\src\GlyphJapanese.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\asdxAppHistoryMgr.h">
+    <ClInclude Include="..\include\edit\asdxAppHistoryMgr.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\asdxEditParam.h">
+    <ClInclude Include="..\include\edit\asdxEditParam.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\asdxGuiMgr.h">
+    <ClInclude Include="..\include\edit\asdxFileWatcher.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\asdxImGuiExtension.h">
+    <ClInclude Include="..\include\edit\asdxHistory.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\edit\asdxLocalization.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\edit\asdxP4VHelper.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\edit\asdxParamHistory.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\edit\asdxTablet.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\edit\asdxTcpConnector.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -65,20 +80,29 @@
     <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp">
       <Filter>ソース ファイル\external\tinyxml2</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\asdxAppHistoryMgr.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\edit\asdxAppHistoryMgr.cpp">
+      <Filter>ソース ファイル\external</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\asdxEditParam.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\edit\asdxEditParam.cpp">
+      <Filter>ソース ファイル\external</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\asdxGuiMgr.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\edit\asdxFileWatcher.cpp">
+      <Filter>ソース ファイル\external</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\asdxHistory.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\edit\asdxHistory.cpp">
+      <Filter>ソース ファイル\external</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\asdxImGuiExtension.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\edit\asdxLocalization.cpp">
+      <Filter>ソース ファイル\external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\edit\asdxP4VHelper.cpp">
+      <Filter>ソース ファイル\external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\edit\asdxTablet.cpp">
+      <Filter>ソース ファイル\external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\edit\asdxTcpConnector.cpp">
+      <Filter>ソース ファイル\external</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
