@@ -8,11 +8,11 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <asdxDeviceContext.h>
-#include <asdxEditParam.h>
-#include <asdxParamHistory.h>
-#include <asdxAppHistoryMgr.h>
 #include <asdxMisc.h>
-#include <asdxLocalization.h>
+#include <edit/asdxEditParam.h>
+#include <edit/asdxParamHistory.h>
+#include <edit/asdxAppHistoryMgr.h>
+#include <edit/asdxLocalization.h>
 
 
 #ifdef ASDX_ENABLE_IMGUI

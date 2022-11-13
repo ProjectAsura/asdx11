@@ -13,7 +13,6 @@
 #include <asdxMath.h>
 #include <asdxLogger.h>
 #include <asdxMisc.h>
-#include <asdxRenderState.h>
 #include <asdxSound.h>
 #include <asdxDeviceContext.h>
 
@@ -131,7 +130,6 @@ Application::Application( LPCWSTR title, UINT width, UINT height, HICON hIcon, H
 , m_FrameCount          ( 0 )
 , m_FPS                 ( 0.0f )
 , m_LatestUpdateTime    ( 0.0f )
-, m_IsStopRendering     ( false )
 , m_IsStandbyMode       ( false )
 , m_hIcon               ( hIcon )
 , m_hMenu               ( hMenu )
@@ -151,7 +149,8 @@ Application::Application( LPCWSTR title, UINT width, UINT height, HICON hIcon, H
     m_Timer.Start();
 
     // 開始時刻を取得.
-    m_LatestUpdateTime = m_Timer.GetElapsedTime();
+    m_Timer.End();
+    m_LatestUpdateTime = m_Timer.GetElapsedSec();
 
     m_ClearColor[0] = 0.392156899f;
     m_ClearColor[1] = 0.584313750f;
@@ -164,21 +163,6 @@ Application::Application( LPCWSTR title, UINT width, UINT height, HICON hIcon, H
 //-----------------------------------------------------------------------------
 Application::~Application()
 { TermApp(); }
-
-//-----------------------------------------------------------------------------
-//      描画停止フラグを設定します.
-//-----------------------------------------------------------------------------
-void Application::SetStopRendering( bool isStopRendering )
-{
-    ScopedLock locker(&m_SpinLock);
-    m_IsStopRendering = isStopRendering;
-}
-
-//-----------------------------------------------------------------------------
-//      描画停止フラグを取得します.
-//-----------------------------------------------------------------------------
-bool Application::IsStopRendering()
-{ return m_IsStopRendering; }
 
 //-----------------------------------------------------------------------------
 //      フレームカウントを取得します.
@@ -390,9 +374,6 @@ bool Application::InitWnd()
 //-----------------------------------------------------------------------------
 void Application::TermWnd()
 {
-    // タイマーを止めます.
-    m_Timer.Stop();
-
     // ウィンドウクラスの登録を解除.
     if ( m_hInst != nullptr )
     { UnregisterClass( ASDX_WND_CLASSNAME, m_hInst ); }
@@ -474,7 +455,14 @@ bool Application::InitD3D()
     sd.SwapEffect           = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     sd.AlphaMode            = DXGI_ALPHA_MODE_UNSPECIFIED;
 
-    hr = pDXGIFactory->CreateSwapChainForHwnd(m_pDevice, m_hWnd, &sd, nullptr, nullptr, m_pSwapChain.GetAddress());
+    IUnknown* pDevice = nullptr;
+#if ASDX_ENABLE_D3D11ON12
+    pDevice = DeviceContext::Instance().GetD3D12GraphicsQueue();
+#else
+    pDevice = m_pDevice;
+#endif
+
+    hr = pDXGIFactory->CreateSwapChainForHwnd(pDevice, m_hWnd, &sd, nullptr, nullptr, m_pSwapChain.GetAddress());
     if (FAILED(hr))
     {
         ELOG("Error : IDXGIFactory::CreateSwapChain() Failed. errcode = 0x%x", hr);
@@ -550,9 +538,6 @@ bool Application::InitD3D()
     // デバイスコンテキストにシザー矩形を設定.
     m_pDeviceContext->RSSetScissorRects( 1, &m_ScissorRect );
 
-    // レンダーステートの初期化.
-    RenderState::GetInstance().Init( m_pDevice );
-
     return true;
 }
 
@@ -566,9 +551,6 @@ void Application::TermD3D()
 
     // 深度ステンシルバッファを解放.
     m_DepthTarget2D.Release();
-
-    // レンダーステートの終了処理.
-    RenderState::GetInstance().Term();
 
     // スワップチェインを解放.
     m_pSwapChain.Reset();
@@ -682,8 +664,6 @@ void Application::MainLoop()
 {
     MSG msg = { 0 };
 
-    FrameEventArgs frameEventArgs;
-
     auto frameCount = 0;
 
     while( WM_QUIT != msg.message )
@@ -707,12 +687,9 @@ void Application::MainLoop()
               || ( m_pSwapChain     == nullptr ) )
             { continue; }
 
-            double time;
-            double absTime;
-            double elapsedTime;
-
             // 時間を取得.
-            m_Timer.Update( time, absTime, elapsedTime );
+            m_Timer.End();
+            auto time = m_Timer.GetElapsedSec();
 
             // 0.5秒ごとにFPSを更新.
             auto interval = float( time - m_LatestUpdateTime );
@@ -727,30 +704,17 @@ void Application::MainLoop()
                 frameCount = 0;
             }
 
-            frameEventArgs.pDeviceContext  = m_pDeviceContext;
-            frameEventArgs.FPS             = 1.0f / (float)elapsedTime;   // そのフレームにおけるFPS.
-            frameEventArgs.Time            = time;
-            frameEventArgs.ElapsedTime     = elapsedTime;
-            frameEventArgs.IsStopDraw      = m_IsStopRendering;
-
             // フレーム遷移処理.
-            OnFrameMove( frameEventArgs );
+            OnFrameMove();
 
-            // 描画停止フラグが立っていない場合.
-            if ( !IsStopRendering() )
-            {
-                // フレーム描画処理.
-                OnFrameRender( frameEventArgs );
+            // フレーム描画処理.
+            OnFrameRender();
 
-                // フレームカウントをインクリメント.
-                m_FrameCount++;
-            }
-
+            // フレームカウントをインクリメント.
+            m_FrameCount++;
             frameCount++;
         }
     }
-
-    frameEventArgs.pDeviceContext = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -1092,7 +1056,7 @@ void Application::OnTerm()
 //-----------------------------------------------------------------------------
 //      フレーム遷移時の処理.
 //-----------------------------------------------------------------------------
-void Application::OnFrameMove( FrameEventArgs& )
+void Application::OnFrameMove()
 {
     /* DO_NOTHING */
 }
@@ -1100,7 +1064,7 @@ void Application::OnFrameMove( FrameEventArgs& )
 //-----------------------------------------------------------------------------
 //      フレーム描画字の処理.
 //-----------------------------------------------------------------------------
-void Application::OnFrameRender( FrameEventArgs& )
+void Application::OnFrameRender()
 {
     // レンダーターゲットビュー・深度ステンシルビューを取得.
     ID3D11RenderTargetView* pRTV = m_ColorTarget2D.GetTargetView();

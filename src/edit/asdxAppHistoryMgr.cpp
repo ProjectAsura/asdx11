@@ -6,8 +6,8 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <asdxAppHistoryMgr.h>
-#include <asdxEditParam.h>
+#include <edit/asdxAppHistoryMgr.h>
+#include <edit/asdxEditParam.h>
 
 
 namespace asdx {

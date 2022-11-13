@@ -9,6 +9,9 @@
 //-----------------------------------------------------------------------------
 #include <asdxDeviceContext.h>
 #include <asdxLogger.h>
+#if ASDX_ENABLE_D3D11ON12
+#include <d3d11on12.h>
+#endif
 
 
 namespace asdx {
@@ -41,6 +44,18 @@ DeviceContext::~DeviceContext()
 //-----------------------------------------------------------------------------
 bool DeviceContext::Init()
 {
+#if ASDX_ENABLE_D3D11ON12
+    if (!InitD3D12())
+    {
+        ELOG("Error : InitD3D12() Failed.");
+        return false;
+    }
+
+    IUnknown* commandQueues[] = {
+        m_D3D12GraphicsQueue.GetPtr()
+    };
+#endif
+
     // デバイス生成フラグ.
     UINT createDeviceFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
@@ -77,6 +92,19 @@ bool DeviceContext::Init()
     {
         m_DriverType = driverTypes[i];
 
+#if ASDX_ENABLE_D3D11ON12
+        hr = D3D11On12CreateDevice(
+            m_D3D12Device.GetPtr(),
+            createDeviceFlags,
+            featureLevels,
+            featureLevelCount,
+            commandQueues,
+            _countof(commandQueues),
+            0,
+            device.GetAddress(),
+            context.GetAddress(),
+            &m_FeatureLevel);
+#else
         hr = D3D11CreateDevice(
             nullptr,
             m_DriverType,
@@ -88,6 +116,7 @@ bool DeviceContext::Init()
             device.GetAddress(),
             &m_FeatureLevel,
             context.GetAddress());
+#endif
 
         if (SUCCEEDED(hr))
         { break; }
@@ -256,6 +285,10 @@ void DeviceContext::Term()
     m_DXGIDevice    .Reset();
     m_Annotation    .Reset();
     m_pDevice       .Reset();
+
+#if ASDX_ENABLE_D3D11ON12
+    TermD3D12();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -335,5 +368,83 @@ D3D_FEATURE_LEVEL DeviceContext::GetFeatureLevel() const
 //-----------------------------------------------------------------------------
 ID3D11DeviceContext* DeviceContext::operator->() const
 { return m_pContext.GetPtr(); }
+
+#if ASDX_ENABLE_D3D11ON12
+//-----------------------------------------------------------------------------
+//      D3D12の初期化処理.
+//-----------------------------------------------------------------------------
+bool DeviceContext::InitD3D12()
+{
+    auto hr = D3D12CreateDevice(
+        nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(m_D3D12Device.GetAddress()));
+    if (FAILED(hr))
+    {
+        ELOG("Error : D3D12CreateDevice() Failed. errcode = 0x%x", hr);
+        return false;
+    }
+
+#if defined(DEBUG) || defined(_DEBUG)
+    // ID3D12InfoQueueに変換.
+    {
+        hr = m_D3D12Device->QueryInterface(IID_PPV_ARGS(m_D3D12InfoQueue.GetAddress()));
+        if (SUCCEEDED(hr))
+        {
+            // エラー発生時にブレークさせる.
+            m_D3D12InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+
+            // 警告発生時にブレークさせる.
+            m_D3D12InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
+
+            // 無視するメッセージID.
+            D3D12_MESSAGE_ID denyIds[] = {
+                D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
+                D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE,
+            };
+
+            // 無視するメッセージレベル.
+            D3D12_MESSAGE_SEVERITY severities[] = {
+                D3D12_MESSAGE_SEVERITY_INFO
+            };
+
+            D3D12_INFO_QUEUE_FILTER filter = {};
+            filter.DenyList.NumIDs          = _countof(denyIds);
+            filter.DenyList.pIDList         = denyIds;
+            filter.DenyList.NumSeverities   = _countof(severities);
+            filter.DenyList.pSeverityList   = severities;
+
+            m_D3D12InfoQueue->PushStorageFilter(&filter);
+        }
+    }
+#endif
+
+    // グラフィックスキューの生成.
+    {
+        D3D12_COMMAND_QUEUE_DESC desc = {};
+        desc.Type       = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        desc.Priority   = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+        desc.Flags      = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+        hr = m_D3D12Device->CreateCommandQueue(&desc, IID_PPV_ARGS(m_D3D12GraphicsQueue.GetAddress()));
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D12Device::CreateCommandQueue() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      D3D12の終了処理です.
+//-----------------------------------------------------------------------------
+void DeviceContext::TermD3D12()
+{
+    m_D3D12GraphicsQueue.Reset();
+    m_D3D12InfoQueue    .Reset();
+    m_D3D12Device       .Reset();
+}
+
+#endif
 
 } // namespace asdx

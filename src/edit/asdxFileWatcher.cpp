@@ -10,8 +10,8 @@
 #include <vector>
 #include <string>
 #include <Windows.h>
-#include <asdxFileWatcher.h>
 #include <asdxLogger.h>
+#include <edit/asdxFileWatcher.h>
 
 
 namespace {

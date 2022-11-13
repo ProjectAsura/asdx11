@@ -7,7 +7,7 @@
 //-------------------------------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------------------------------
-#include <asdxTcpConnector.h>
+#include <edit/asdxTcpConnector.h>
 #include <asdxLogger.h>
 #include <WinSock2.h>
 #include <ws2tcpip.h>

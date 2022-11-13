@@ -9,8 +9,8 @@
 //-----------------------------------------------------------------------------
 #include <algorithm>
 #include <cassert>
-#include <asdxHistory.h>
 #include <asdxLogger.h>
+#include <edit/asdxHistory.h>
 
 
 namespace asdx {

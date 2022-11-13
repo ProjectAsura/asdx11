@@ -7,7 +7,7 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <asdxTablet.h>
+#include <edit/asdxTablet.h>
 
 #ifdef ASDX_ENABLE_PENTAB
 #include <asdxLogger.h>

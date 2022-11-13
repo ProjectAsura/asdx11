@@ -7,11 +7,11 @@
 //-------------------------------------------------------------------------------------------------
 // Includes
 //-------------------------------------------------------------------------------------------------
-#include <Windows.h>
-#include <Xinput.h>
-#include <asdxHid.h>
 #include <cassert>
 #include <cmath>
+#include <Windows.h>
+#include <Xinput.h>
+#include <asdxGamePad.h>
 
 
 namespace /* anonymous */ {
