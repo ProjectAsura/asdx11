@@ -10,27 +10,27 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
-		DebugD3D12|x64 = DebugD3D12|x64
+		Debug12|x64 = Debug12|x64
 		Release|x64 = Release|x64
-		ReleaseD3D12|x64 = ReleaseD3D12|x64
+		Release12|x64 = Release12|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{67B58761-5030-4192-98E8-B13E86A33C87}.Debug|x64.ActiveCfg = Debug|x64
 		{67B58761-5030-4192-98E8-B13E86A33C87}.Debug|x64.Build.0 = Debug|x64
-		{67B58761-5030-4192-98E8-B13E86A33C87}.DebugD3D12|x64.ActiveCfg = DebugD3D12|x64
-		{67B58761-5030-4192-98E8-B13E86A33C87}.DebugD3D12|x64.Build.0 = DebugD3D12|x64
+		{67B58761-5030-4192-98E8-B13E86A33C87}.Debug12|x64.ActiveCfg = Debug12|x64
+		{67B58761-5030-4192-98E8-B13E86A33C87}.Debug12|x64.Build.0 = Debug12|x64
 		{67B58761-5030-4192-98E8-B13E86A33C87}.Release|x64.ActiveCfg = Release|x64
 		{67B58761-5030-4192-98E8-B13E86A33C87}.Release|x64.Build.0 = Release|x64
-		{67B58761-5030-4192-98E8-B13E86A33C87}.ReleaseD3D12|x64.ActiveCfg = ReleaseD3D12|x64
-		{67B58761-5030-4192-98E8-B13E86A33C87}.ReleaseD3D12|x64.Build.0 = ReleaseD3D12|x64
+		{67B58761-5030-4192-98E8-B13E86A33C87}.Release12|x64.ActiveCfg = Release12|x64
+		{67B58761-5030-4192-98E8-B13E86A33C87}.Release12|x64.Build.0 = Release12|x64
 		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.Debug|x64.ActiveCfg = Debug|x64
 		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.Debug|x64.Build.0 = Debug|x64
-		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.DebugD3D12|x64.ActiveCfg = Debug|x64
-		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.DebugD3D12|x64.Build.0 = Debug|x64
+		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.Debug12|x64.ActiveCfg = Debug|x64
+		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.Debug12|x64.Build.0 = Debug|x64
 		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.Release|x64.ActiveCfg = Release|x64
 		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.Release|x64.Build.0 = Release|x64
-		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.ReleaseD3D12|x64.ActiveCfg = Release|x64
-		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.ReleaseD3D12|x64.Build.0 = Release|x64
+		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.Release12|x64.ActiveCfg = Release|x64
+		{1ED9D121-BF18-49D2-8C94-A194C4BB70CE}.Release12|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

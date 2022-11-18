@@ -15,6 +15,7 @@
     <ClInclude Include="..\external\imgui\imgui.h" />
     <ClInclude Include="..\external\imgui\imgui_internal.h" />
     <ClInclude Include="..\external\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="..\include\asdxGuiMgr.h" />
     <ClInclude Include="..\include\edit\asdxAppHistoryMgr.h" />
     <ClInclude Include="..\include\edit\asdxEditParam.h" />
     <ClInclude Include="..\include\edit\asdxFileWatcher.h" />
@@ -31,6 +32,7 @@
     <ClCompile Include="..\external\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="..\src\asdxGuiMgr.cpp" />
     <ClCompile Include="..\src\edit\asdxAppHistoryMgr.cpp" />
     <ClCompile Include="..\src\edit\asdxEditParam.cpp" />
     <ClCompile Include="..\src\edit\asdxFileWatcher.cpp" />
