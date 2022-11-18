@@ -108,7 +108,6 @@ void Dispose(ResMesh& resource)
     resource.Indices.shrink_to_fit();
 }
 
-
 //-----------------------------------------------------------------------------
 //      モデルの破棄処理を行います.
 //-----------------------------------------------------------------------------
@@ -255,9 +254,9 @@ void CalcNormals(ResMesh& resource)
         auto i1 = resource.Indices[i + 1];
         auto i2 = resource.Indices[i + 2];
 
-        auto p0 = resource.Positions[i0];
-        auto p1 = resource.Positions[i1];
-        auto p2 = resource.Positions[i2];
+        const auto& p0 = resource.Positions[i0];
+        const auto& p1 = resource.Positions[i1];
+        const auto& p2 = resource.Positions[i2];
 
         // エッジ.
         auto e0 = p1 - p0;
@@ -292,9 +291,9 @@ void CalcNormals(ResMesh& resource)
         auto i1 = resource.Indices[i + 1];
         auto i2 = resource.Indices[i + 2];
 
-        auto p0 = resource.Positions[i0];
-        auto p1 = resource.Positions[i1];
-        auto p2 = resource.Positions[i2];
+        const auto& p0 = resource.Positions[i0];
+        const auto& p1 = resource.Positions[i1];
+        const auto& p2 = resource.Positions[i2];
 
         // エッジ.
         auto e0 = p1 - p0;
@@ -406,8 +405,6 @@ void CalcTangents(ResMesh& resource)
     }
 }
 
-
-
 //-----------------------------------------------------------------------------
 //      接線ベクトルを計算します.
 //-----------------------------------------------------------------------------
@@ -415,6 +412,33 @@ void CalcTangents(ResModel& resource)
 {
     for(auto& mesh : resource.Meshes)
     { CalcTangents(mesh); }
+}
+
+//-----------------------------------------------------------------------------
+//      カラーを圧縮します.
+//-----------------------------------------------------------------------------
+uint32_t EncodeColor(const asdx::Vector4& value)
+{
+    Unorm8888 packed = {};
+    packed.r = uint8_t(value.x * 255.0f);
+    packed.g = uint8_t(value.y * 255.0f);
+    packed.b = uint8_t(value.z * 255.0f);
+    packed.a = uint8_t(value.w * 255.0f);
+    return packed.c;
+}
+
+//-----------------------------------------------------------------------------
+//      圧縮されたカラーを展開します.
+//-----------------------------------------------------------------------------
+asdx::Vector4 DecodeColor(uint32_t value)
+{
+    Unorm8888 packed = {};
+    packed.c = value;
+    return Vector4(
+        float(packed.r) / 255.0f,
+        float(packed.g) / 255.0f,
+        float(packed.b) / 255.0f,
+        float(packed.a) / 255.0f);
 }
 
 } // namespace asdx

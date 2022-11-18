@@ -149,7 +149,6 @@
     <ClCompile Include="..\src\asdxApp.cpp" />
     <ClCompile Include="..\src\asdxBuffer.cpp" />
     <ClCompile Include="..\src\asdxCamera.cpp" />
-    <ClCompile Include="..\src\asdxCameraUtil.cpp" />
     <ClCompile Include="..\src\asdxDeviceContext.cpp" />
     <ClCompile Include="..\src\asdxFrameHeap.cpp" />
     <ClCompile Include="..\src\asdxGamePad.cpp" />
@@ -169,7 +168,6 @@
     <ClInclude Include="..\include\asdxApp.h" />
     <ClInclude Include="..\include\asdxBuffer.h" />
     <ClInclude Include="..\include\asdxCamera.h" />
-    <ClInclude Include="..\include\asdxCameraUtil.h" />
     <ClInclude Include="..\include\asdxDeviceContext.h" />
     <ClInclude Include="..\include\asdxDisposer.h" />
     <ClInclude Include="..\include\asdxFrameHeap.h" />
@@ -180,9 +178,7 @@
     <ClInclude Include="..\include\asdxMath.h" />
     <ClInclude Include="..\include\asdxMisc.h" />
     <ClInclude Include="..\include\asdxPipelineState.h" />
-    <ClInclude Include="..\include\asdxQueue.h" />
     <ClInclude Include="..\include\asdxRef.h" />
-    <ClInclude Include="..\include\asdxResMaterial.h" />
     <ClInclude Include="..\include\asdxResModel.h" />
     <ClInclude Include="..\include\asdxResTexture.h" />
     <ClInclude Include="..\include\asdxSky.h" />

@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <vector>
 #include <asdxMath.h>
-#include <asdxResMaterial.h>
 
 
 #define MAX_LAYER_COUNT (4)
@@ -66,7 +65,6 @@ struct ResMesh
 struct ResModel
 {
     std::vector<ResMesh>        Meshes;
-    std::vector<ResMaterial>    Materials;
 };
 
 //-----------------------------------------------------------------------------
