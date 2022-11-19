@@ -438,4 +438,134 @@ ID3D11UnorderedAccessView* const StructuredBuffer::GetUAV() const
 ID3D11Buffer* const StructuredBuffer::operator -> () const
 { return m_Buffer.GetPtr(); }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// RawBuffer class
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+RawBuffer::RawBuffer()
+: m_Buffer  ()
+, m_SRV     ()
+, m_UAV     ()
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      デストラクタです.
+//-----------------------------------------------------------------------------
+RawBuffer::~RawBuffer()
+{ Term(); }
+
+//-----------------------------------------------------------------------------
+//      初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool RawBuffer::Init(ID3D11Device* pDevice, uint32_t size, const void* pInitData, bool uav)
+{
+    if ( pDevice == nullptr || size == 0 )
+    {
+        ELOG( "Error : Invalid Argument." );
+        return false;
+    }
+
+    uint32_t bindFlags = D3D11_BIND_SHADER_RESOURCE;
+    if (uav)
+    { bindFlags |= D3D11_BIND_UNORDERED_ACCESS; }
+
+    D3D11_BUFFER_DESC desc = {};
+    desc.BindFlags           = bindFlags;
+    desc.ByteWidth           = size;
+
+    if ( pInitData != nullptr )
+    {
+        D3D11_SUBRESOURCE_DATA res;
+        ZeroMemory( &res, sizeof(res) );
+        res.pSysMem = pInitData;
+
+        auto hr = pDevice->CreateBuffer( &desc, &res, m_Buffer.GetAddress() );
+        if ( FAILED(hr) )
+        {
+            ELOG( "Error : ID3D11Device::CreateBuffer() Failed." );
+            return false;
+        }
+    }
+    else
+    {
+        auto hr = pDevice->CreateBuffer( &desc, nullptr, m_Buffer.GetAddress() );
+        if ( FAILED(hr) )
+        {
+            ELOG( "Error : ID3D11Device::CreateBuffer() Failed." );
+            return false;
+        }
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension           = D3D11_SRV_DIMENSION_BUFFEREX;
+    srvDesc.Format                  = DXGI_FORMAT_R32_TYPELESS;
+    srvDesc.BufferEx.FirstElement   = 0;
+    srvDesc.BufferEx.NumElements    = size / 4;
+    srvDesc.BufferEx.Flags          = D3D11_BUFFEREX_SRV_FLAG_RAW;
+
+    auto hr = pDevice->CreateShaderResourceView( m_Buffer.GetPtr(), &srvDesc, m_SRV.GetAddress() );
+    if ( FAILED(hr) )
+    {
+        ELOG( "Error : ID3D11Device::CreateShaderResourceView() Failed." );
+        return false;
+    }
+
+    if (uav)
+    {
+        D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        uavDesc.Format              = DXGI_FORMAT_R32_TYPELESS;
+        uavDesc.ViewDimension       = D3D11_UAV_DIMENSION_BUFFER;
+        uavDesc.Buffer.FirstElement = 0;
+        uavDesc.Buffer.NumElements  = size / 4;
+        uavDesc.Buffer.Flags        = D3D11_BUFFER_UAV_FLAG_RAW;
+
+        hr = pDevice->CreateUnorderedAccessView( m_Buffer.GetPtr(), &uavDesc, m_UAV.GetAddress() );
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateUnorderedAccessView() Failed.");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void RawBuffer::Term()
+{
+    m_SRV.Reset();
+    m_UAV.Reset();
+    m_Buffer.Reset();
+}
+
+//-----------------------------------------------------------------------------
+//      バッファを取得します.
+//-----------------------------------------------------------------------------
+ID3D11Buffer* const RawBuffer::GetBuffer() const
+{ return m_Buffer.GetPtr(); }
+
+//-----------------------------------------------------------------------------
+//      シェーダリソースビューを取得します.
+//-----------------------------------------------------------------------------
+ID3D11ShaderResourceView* const RawBuffer::GetSRV() const
+{ return m_SRV.GetPtr(); }
+
+//-----------------------------------------------------------------------------
+//      アンオーダードアクセスビューを取得します.
+//-----------------------------------------------------------------------------
+ID3D11UnorderedAccessView* const RawBuffer::GetUAV() const
+{ return m_UAV.GetPtr(); }
+
+//-----------------------------------------------------------------------------
+//      アロー演算子です.
+//-----------------------------------------------------------------------------
+ID3D11Buffer* const RawBuffer::operator -> () const
+{ return m_Buffer.GetPtr(); }
+
 } // namespace asdx
