@@ -12,6 +12,18 @@
 #include <cfloat>
 
 
+namespace {
+
+#include "../res/shaders/Compiled/FullScreenVS.inc"
+#include "../res/shaders/Compiled/CopyPS.inc"
+
+static const D3D11_INPUT_ELEMENT_DESC kFullScreenElements[] = {
+    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
+
+} // namespace
+
 namespace asdx {
 
 //-----------------------------------------------------------------------------
@@ -263,6 +275,39 @@ D3D11_SAMPLER_DESC GetSamplerDesc(SamplerState type, uint32_t maxAnisotropy, D3D
     return result;
 }
 
+//-----------------------------------------------------------------------------
+//      フルスクリーン描画用頂点シェーダを取得します.
+//-----------------------------------------------------------------------------
+Shader GetFullScreenVS()
+{
+    Shader result = {};
+    result.Size     = sizeof(FullScreenVS);
+    result.pBinary  = FullScreenVS;
+    return result;
+}
+
+//-----------------------------------------------------------------------------
+//      コピー用ピクセルシェーダを取得します.
+//-----------------------------------------------------------------------------
+Shader GetCopyPS()
+{
+    Shader result = {};
+    result.Size     = sizeof(CopyPS);
+    result.pBinary  = CopyPS;
+    return result;
+}
+
+//-----------------------------------------------------------------------------
+//      フルスクリーン描画用入力レイアウトを取得します.
+//-----------------------------------------------------------------------------
+InputLayoutDesc GetFullScreenLayout()
+{
+    InputLayoutDesc result = {};
+    result.ElementCount = _countof(kFullScreenElements);
+    result.pElements    = kFullScreenElements;
+    return result;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // GraphicsPipelineState class
 ///////////////////////////////////////////////////////////////////////////////
@@ -335,7 +380,7 @@ bool GraphicsPipelineState::Init(ID3D11Device* pDevice, const GraphicsPipelineSt
         return false;
     }
 
-    hr = pDevice->CreateInputLayout(desc.pElements, desc.ElementCount, desc.VS.pBinary, desc.VS.Size, m_IL.GetAddress());
+    hr = pDevice->CreateInputLayout(desc.InputLayout.pElements, desc.InputLayout.ElementCount, desc.VS.pBinary, desc.VS.Size, m_IL.GetAddress());
     if (FAILED(hr))
     {
         ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);

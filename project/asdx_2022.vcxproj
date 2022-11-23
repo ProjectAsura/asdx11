@@ -96,6 +96,11 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>6.0</ShaderModel>
+      <VariableName>%(Filename)</VariableName>
+      <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">
     <ClCompile>
@@ -109,6 +114,11 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>6.0</ShaderModel>
+      <VariableName>%(Filename)</VariableName>
+      <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -126,6 +136,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>6.0</ShaderModel>
+      <VariableName>%(Filename)</VariableName>
+      <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">
     <ClCompile>
@@ -143,6 +158,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>6.0</ShaderModel>
+      <VariableName>%(Filename)</VariableName>
+      <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\external\xxhash\xxhash.c" />
@@ -160,7 +180,6 @@
     <ClCompile Include="..\src\asdxResTexture.cpp" />
     <ClCompile Include="..\src\asdxSky.cpp" />
     <ClCompile Include="..\src\asdxSound.cpp" />
-    <ClCompile Include="..\src\asdxSprite.cpp" />
     <ClCompile Include="..\src\asdxTarget.cpp" />
     <ClCompile Include="..\src\asdxTexture.cpp" />
   </ItemGroup>
@@ -184,7 +203,6 @@
     <ClInclude Include="..\include\asdxSky.h" />
     <ClInclude Include="..\include\asdxSound.h" />
     <ClInclude Include="..\include\asdxSpinLock.h" />
-    <ClInclude Include="..\include\asdxSprite.h" />
     <ClInclude Include="..\include\asdxStopWatch.h" />
     <ClInclude Include="..\include\asdxStringView.h" />
     <ClInclude Include="..\include\asdxTarget.h" />
@@ -192,6 +210,50 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\include\asdxMath.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\res\shaders\CopyPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\FullScreenVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\SkyBoxPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\SkyBoxVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\SkySphereFlowPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\SkySpherePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\SkySphereVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

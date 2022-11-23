@@ -19,22 +19,20 @@ static const float F_1DIVPI = 0.31830988618379067153776752674503f;
 cbuffer LightBuffer : register( b0 )
 {
     float3 CameraPosition       : packoffset( c0 );     // カメラ位置です.
-    float  DirectLightIntensity : packoffset( c0.w );   // 直接光の強さです.
+    float  IBLIntensity         : packoffset( c0.w );   // IBLの強さです.
     float3 DirectLightDirection : packoffset( c1 );     // ライトの照射方向です.
-    float  IBLIntensity         : packoffset( c1.w );   // IBLの強さです.
+    float  DirectLightIntensity : packoffset( c1.w );   // 直接光の強さです.
 };
 
 //-----------------------------------------------------------------------------
 //  Textures and Samplers.
 //-----------------------------------------------------------------------------
-TextureCube     RadianceEnvMap  : register(t0);     // Radiance Environment Map.
-SamplerState    RadianceEnvSmp  : register(s0);
-
-TextureCube     IrradianceEnvMap: register(t1);     // Irrdiance Environment Map.
-SamplerState    IrradianceEnvSmp: register(s1);
-
-Texture2D       AmbientBRDFMap  : register(t2);     // Ambient BRDF Map.
-SamplerState    AmbientBRDFSmp  : register(s2);
+TextureCube     DiffuseLDMap  : register(t0);     // Irrdiance Environment Map.
+SamplerState    DiffuseLDSmp  : register(s0);
+TextureCube     SpecularLDMap : register(t1);     // Radiance Environment Map.
+SamplerState    SpecularLDSmp : register(s1);
+Texture2D       DFGMap        : register(t2);     // Ambient BRDF Map.
+SamplerState    DFGSmp        : register(s2);
 
 
 //-----------------------------------------------------------------------------
@@ -127,14 +125,13 @@ float3 EvaluateIBL(float3 N, float3 V, float3 Kd, float3 Ks, float roughness)
 {
     // Diffuse  : Lambert.
     // Specular : GGX
-    float3 diffuse   = EvaluateDiffuse(N, Kd);
-    float3 specular  = EvaluateSpecular(V, N, roughness);
-    float  shininess = 1.0f - roughness;
+    float3 irradiance = EvaluateDiffuse(N, Kd);
+    float3 radiance   = EvaluateSpecular(V, N, roughness);
+    float  shininess  = 1.0f - roughness;
 
-    float3 ambientBRDF = AmbientBRDFMap.SampleLevel(AmbientBRDFSmp, float2(dot(V, N), shininess), 0).rgb;
-    float3 ambientBRDFSpecular = Ks * ambientBRDF.r + ambientBRDF.g;
+    float3 DFG = AmbientBRDFMap.SampleLevel(AmbientBRDFSmp, float2(dot(V, N), shininess), 0).rgb;
 
-    return (diffuse + specular * ambientBRDFSpecular);
+    return (irradiance + radiance * (Ks * DFG.r + DFG.g));
 }
 
 //-----------------------------------------------------------------------------

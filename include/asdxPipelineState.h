@@ -71,6 +71,24 @@ enum SamplerState
     NumSamplerType,
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Shader structure
+///////////////////////////////////////////////////////////////////////////////
+struct Shader
+{
+    const void* pBinary;
+    size_t      Size;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// InputLayoutDesc structure
+///////////////////////////////////////////////////////////////////////////////
+struct InputLayoutDesc
+{
+    uint32_t                        ElementCount;
+    const D3D11_INPUT_ELEMENT_DESC* pElements;
+};
+
 //-----------------------------------------------------------------------------
 //! @brief      ブレンド設定を取得します.
 //-----------------------------------------------------------------------------
@@ -91,15 +109,21 @@ D3D11_RASTERIZER_DESC GetRasterizerDesc(RasterizerState type, bool multiSample =
 //-----------------------------------------------------------------------------
 D3D11_SAMPLER_DESC GetSamplerDesc(SamplerState type, uint32_t maxAnisotropy = 16, D3D11_COMPARISON_FUNC compare = D3D11_COMPARISON_NEVER);
 
+//-----------------------------------------------------------------------------
+//! @brief      フルスクリーン描画用頂点シェーダを取得します.
+//-----------------------------------------------------------------------------
+Shader GetFullScreenVS();
 
-///////////////////////////////////////////////////////////////////////////////
-// Shader structure
-///////////////////////////////////////////////////////////////////////////////
-struct Shader
-{
-    const void* pBinary;
-    size_t      Size;
-};
+//-----------------------------------------------------------------------------
+//! @brief      コピー用ピクセルシェーダを取得します.
+//-----------------------------------------------------------------------------
+Shader GetCopyPS();
+
+//-----------------------------------------------------------------------------
+//! @brief      フルスクリーン描画用入力レイアウトを取得します.
+//-----------------------------------------------------------------------------
+InputLayoutDesc GetFullScreenLayout();
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // GraphicsPipelineState structure
@@ -113,8 +137,7 @@ struct GraphicsPipelineStateDesc
     D3D11_BLEND_DESC            BlendState          = {};
     D3D11_RASTERIZER_DESC       RasterizerState     = {};
     D3D11_DEPTH_STENCIL_DESC    DepthStencilState   = {};
-    uint32_t                    ElementCount        = 0;
-    D3D11_INPUT_ELEMENT_DESC*   pElements           = nullptr;
+    InputLayoutDesc             InputLayout         = {};
     D3D11_PRIMITIVE_TOPOLOGY    PrimitiveTopology   = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };
 
