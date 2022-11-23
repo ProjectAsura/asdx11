@@ -108,7 +108,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <FxCompile>
-      <ShaderModel>6.0</ShaderModel>
+      <ShaderModel>5.0</ShaderModel>
       <VariableName>%(Filename)</VariableName>
       <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
     </FxCompile>
@@ -130,7 +130,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <FxCompile>
-      <ShaderModel>6.0</ShaderModel>
+      <ShaderModel>5.0</ShaderModel>
       <VariableName>%(Filename)</VariableName>
       <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
     </FxCompile>

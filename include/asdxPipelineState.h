@@ -85,8 +85,8 @@ struct Shader
 ///////////////////////////////////////////////////////////////////////////////
 struct InputLayoutDesc
 {
-    uint32_t                        ElementCount;
     const D3D11_INPUT_ELEMENT_DESC* pElements;
+    uint32_t                        ElementCount;
 };
 
 //-----------------------------------------------------------------------------

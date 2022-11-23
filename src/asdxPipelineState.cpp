@@ -110,7 +110,7 @@ D3D11_BLEND_DESC GetBlendDesc(BlendState type)
 //-----------------------------------------------------------------------------
 //      深度ステンシルステートを取得します.
 //-----------------------------------------------------------------------------
-D3D11_DEPTH_STENCIL_DESC GetDepthStencilState(DepthState type, D3D11_COMPARISON_FUNC compare)
+D3D11_DEPTH_STENCIL_DESC GetDepthStencilDesc(DepthState type, D3D11_COMPARISON_FUNC compare)
 {
     BOOL depthEnable;
     D3D11_DEPTH_WRITE_MASK depthWriteMask;
@@ -159,7 +159,7 @@ D3D11_DEPTH_STENCIL_DESC GetDepthStencilState(DepthState type, D3D11_COMPARISON_
 //-----------------------------------------------------------------------------
 //      ラスタライザーステートを取得します.
 //-----------------------------------------------------------------------------
-D3D11_RASTERIZER_DESC GetRasterizerState(RasterizerState type, bool multiSample)
+D3D11_RASTERIZER_DESC GetRasterizerDesc(RasterizerState type, bool multiSample)
 {
     D3D11_CULL_MODE cullMode;
     D3D11_FILL_MODE fillMode;
