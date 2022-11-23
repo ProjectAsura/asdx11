@@ -124,7 +124,7 @@ ID3D11Buffer* const VertexBuffer::GetBuffer() const
 //-----------------------------------------------------------------------------
 //      シェーダリソースビューを取得します.
 //-----------------------------------------------------------------------------
-ID3D11ShaderResourceView* const VertexBuffer::GetShaderResource() const
+ID3D11ShaderResourceView* const VertexBuffer::GetSRV() const
 { return m_SRV.GetPtr(); }
 
 //-----------------------------------------------------------------------------
@@ -139,6 +139,27 @@ uint32_t VertexBuffer::GetStride() const
 ID3D11Buffer* const VertexBuffer::operator -> () const
 { return m_Buffer.GetPtr(); }
 
+//-----------------------------------------------------------------------------
+//      バインドします.
+//-----------------------------------------------------------------------------
+void VertexBuffer::Bind(ID3D11DeviceContext* pContext, uint32_t slot)
+{
+    auto pVB    = m_Buffer.GetPtr();
+    auto stride = m_Stride;
+    auto offset = 0u;
+    pContext->IASetVertexBuffers(slot, 1, &pVB, &stride, &offset);
+}
+
+//-----------------------------------------------------------------------------
+//      バインドを解除します.
+//-----------------------------------------------------------------------------
+void VertexBuffer::Unbind(ID3D11DeviceContext* pContext, uint32_t slot)
+{
+    ID3D11Buffer* pVB[] = {nullptr};
+    UINT stride[] = {0};
+    UINT offset[] = {0};
+    pContext->IASetVertexBuffers(slot, 1, pVB, stride, offset);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // IndexBuffer class
@@ -236,7 +257,7 @@ ID3D11Buffer* const IndexBuffer::GetBuffer() const
 //-----------------------------------------------------------------------------
 //      シェーダリソースビューを取得します.
 //-----------------------------------------------------------------------------
-ID3D11ShaderResourceView* const IndexBuffer::GetShaderResource() const
+ID3D11ShaderResourceView* const IndexBuffer::GetSRV() const
 { return m_SRV.GetPtr(); }
 
 //-----------------------------------------------------------------------------
@@ -244,6 +265,18 @@ ID3D11ShaderResourceView* const IndexBuffer::GetShaderResource() const
 //-----------------------------------------------------------------------------
 ID3D11Buffer* const IndexBuffer::operator -> () const
 { return m_Buffer.GetPtr(); }
+
+//-----------------------------------------------------------------------------
+//      バインドします.
+//-----------------------------------------------------------------------------
+void IndexBuffer::Bind(ID3D11DeviceContext* pContext)
+{ pContext->IASetIndexBuffer(m_Buffer.GetPtr(), DXGI_FORMAT_R32_UINT, 0); }
+
+//-----------------------------------------------------------------------------
+//      バインドを解除します.
+//-----------------------------------------------------------------------------
+void IndexBuffer::Unbind(ID3D11DeviceContext* pContext)
+{ pContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0); }
 
 
 ///////////////////////////////////////////////////////////////////////////////
