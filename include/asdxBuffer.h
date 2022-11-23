@@ -157,7 +157,11 @@ public:
     //! @retval true    初期化に成功.
     //! @retval false   初期化に失敗.
     //-------------------------------------------------------------------------
-    bool Init(ID3D11Device* pDevice, size_t size, const uint32_t* pInitData, bool isDynamic = false);
+    bool Init(
+        ID3D11Device*   pDevice,
+        size_t          size,
+        const uint32_t* pInitData,
+        bool            isDynamic = false);
 
     //-------------------------------------------------------------------------
     //! @brief      終了処理を行います.

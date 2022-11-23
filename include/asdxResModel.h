@@ -41,6 +41,22 @@ struct ResBoneIndex
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+// ResMaterial structure
+///////////////////////////////////////////////////////////////////////////////
+struct ResMaterial
+{
+    std::string MaterialName;
+    std::string BaseColorMap;
+    std::string OrmMap;             // R:Occlusion, G:Roughness, B:Metalness.
+    std::string EmissiveMap;
+
+    float   BaseColorIntensity;
+    float   OcclusionIntensity;
+    float   RoughnessIntensity;
+    float   EmissiveIntensity;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // ResMesh structure
 ///////////////////////////////////////////////////////////////////////////////
 struct ResMesh
@@ -65,6 +81,7 @@ struct ResMesh
 struct ResModel
 {
     std::vector<ResMesh>        Meshes;
+    std::vector<ResMaterial>    Materials;
 };
 
 //-----------------------------------------------------------------------------
