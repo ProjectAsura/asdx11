@@ -343,7 +343,7 @@ void EditInt::DrawSlider(const char* tag, int step, int mini, int maxi)
     }
     else if (ImGui::IsItemActive())
     {
-        m_Dragged = ImGui::IsMouseDragging();
+        m_Dragged = ImGui::IsMouseDragging(0);
     }
 #else
     ASDX_UNUSED(tag);
@@ -489,7 +489,7 @@ void EditFloat::DrawSlider(const char* tag, float step, float mini, float maxi)
     }
     else if (ImGui::IsItemActive())
     {
-        m_Dragged = ImGui::IsMouseDragging();
+        m_Dragged = ImGui::IsMouseDragging(0);
     }
 #else
     ASDX_UNUSED(tag);
@@ -585,7 +585,7 @@ void EditFloat2::DrawSlider(const char* tag, float step, float mini, float maxi)
     }
     else if (ImGui::IsItemActive())
     {
-        m_Dragged = ImGui::IsMouseDragging();
+        m_Dragged = ImGui::IsMouseDragging(0);
     }
 #else
     ASDX_UNUSED(tag);
@@ -681,7 +681,7 @@ void EditFloat3::DrawSlider(const char* tag, float step, float mini, float maxi)
     }
     else if (ImGui::IsItemActive())
     {
-        m_Dragged = ImGui::IsMouseDragging();
+        m_Dragged = ImGui::IsMouseDragging(0);
     }
 #else
     ASDX_UNUSED(tag);
@@ -779,7 +779,7 @@ void EditFloat4::DrawSlider(const char* tag, float step, float mini, float maxi)
     }
     else if (ImGui::IsItemActive())
     {
-        m_Dragged = ImGui::IsMouseDragging();
+        m_Dragged = ImGui::IsMouseDragging(0);
     }
 #else
     ASDX_UNUSED(tag);
