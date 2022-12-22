@@ -191,6 +191,8 @@
     <ClInclude Include="..\include\asdxFrameHeap.h" />
     <ClInclude Include="..\include\asdxGamePad.h" />
     <ClInclude Include="..\include\asdxHash.h" />
+    <ClInclude Include="..\include\asdxHelper2D.h" />
+    <ClInclude Include="..\include\asdxLight.h" />
     <ClInclude Include="..\include\asdxList.h" />
     <ClInclude Include="..\include\asdxLogger.h" />
     <ClInclude Include="..\include\asdxMath.h" />
