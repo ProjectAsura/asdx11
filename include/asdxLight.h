@@ -18,13 +18,26 @@ namespace asdx {
 ///////////////////////////////////////////////////////////////////////////////
 class DirectionalLight
 {
+    //=========================================================================
+    // list of friend classes and methods.
+    //=========================================================================
+    /* NOTHING */
+
 public:
+    //=========================================================================
+    // public variables.
+    //=========================================================================
+    /* NOTHING */
+
+    //=========================================================================
+    // public methods.
+    //=========================================================================
     DirectionalLight() = default;
 
     DirectionalLight(const Vector3& dir, const Vector3& color, float intensity = 1.0f)
-    : m_Direction(dir)
-    , m_Color(color)
-    , m_Intensity(intensity)
+    : m_Direction   (dir)
+    , m_Color       (color)
+    , m_Intensity   (intensity)
     { /* DO_NOTHING */ }
 
     void SetDirection(const Vector3& value)
@@ -49,9 +62,17 @@ public:
     { return m_Intensity; }
 
 private:
+    //=========================================================================
+    // private variables.
+    //=========================================================================
     Vector3 m_Direction = Vector3(0.0f, -1.0f, 0.0f);   // 照射方向.
     Vector3 m_Color     = Vector3(1.0f, 1.0f, 1.0f);    // ライトカラー.
     float   m_Intensity = 1.0f;                         // 強度.
+
+    //=========================================================================
+    // private methods.
+    //=========================================================================
+    /* NOTHING */
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,14 +80,27 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class PointLight
 {
+    //=========================================================================
+    // list of friend classes and methods.
+    //=========================================================================
+    /* NOTHING */
+
 public:
+    //=========================================================================
+    // public variables.
+    //=========================================================================
+    /* NOTHING */
+
+    //=========================================================================
+    // public methods.
+    //=========================================================================
     PointLight() = default;
 
     PointLight(const Vector3& center, float radius, const Vector3& color,float intensity = 1.0f)
-        : m_Center(center)
-        , m_Radius(radius)
-        , m_Color(color)
-        , m_Intensity(intensity)
+    : m_Center      (center)
+    , m_Radius      (radius)
+    , m_Color       (color)
+    , m_Intensity   (intensity)
     { /* DO_NOTHING */ }
 
     void SetCenter(const Vector3& value)
@@ -119,10 +153,18 @@ public:
     }
 
 private:
-    Vector3     m_Center;       // 中心座標.
-    float       m_Radius;       // 半径.
-    Vector3     m_Color;        // ライトカラー.
-    float       m_Intensity;    // 強度.
+    //=========================================================================
+    // private variables.
+    //=========================================================================
+    Vector3     m_Center    = Vector3(0.0f, 0.0f, 0.0f);    // 中心座標.
+    float       m_Radius    = 1.0f;                         // 半径.
+    Vector3     m_Color     = Vector3(1.0f, 1.0f, 1.0f);    // ライトカラー.
+    float       m_Intensity = 1.0f;                         // 強度.
+
+    //=========================================================================
+    // private methods.
+    //=========================================================================
+    /* NOTHING */
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,7 +172,20 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class SpotLight
 {
+    //=========================================================================
+    // list of friend classes and methods.
+    //=========================================================================
+    /* NOTHING */
+
 public:
+    //=========================================================================
+    // public variables.
+    //=========================================================================
+    /* NOTHING */
+
+    //=========================================================================
+    // public methods.
+    //=========================================================================
     SpotLight() = default;
 
     SpotLight(
@@ -141,13 +196,13 @@ public:
         float           outerAngle,
         const Vector3&  color,
         float           intensity = 1.0f)
-    : m_Position(position)
-    , m_Forward(forward)
-    , m_Radius(radius)
-    , m_InnerAngle(innerAngle)
-    , m_OuterAngle(outerAngle)
-    , m_Color(color)
-    , m_Intensity(intensity)
+    : m_Position    (position)
+    , m_Forward     (forward)
+    , m_Radius      (radius)
+    , m_InnerAngle  (innerAngle)
+    , m_OuterAngle  (outerAngle)
+    , m_Color       (color)
+    , m_Intensity   (intensity)
     { /* DO_NOTHING */ }
 
     void SetPosition(const Vector3& value)
@@ -240,13 +295,21 @@ public:
     }
 
 private:
-    Vector3     m_Position;     // 位置座標.
-    float       m_Radius;       // 半径.
-    Vector3     m_Forward;      // 照射方向.
-    float       m_InnerAngle;   // 内角(rad)
-    float       m_OuterAngle;   // 外角(rad)
-    Vector3     m_Color;        // ライトカラー.
-    float       m_Intensity;    // 強度.
+    //=========================================================================
+    // private variables.
+    //=========================================================================
+    Vector3     m_Position      = Vector3(0.0f, 0.0f, 0.0f);    // 位置座標.
+    float       m_Radius        = 1.0f;                         // 半径.
+    Vector3     m_Forward       = Vector3(0.0f, -1.0f, 0.0f);   // 照射方向.
+    float       m_InnerAngle    = ToRadian(45.0f);              // 内角(rad)
+    float       m_OuterAngle    = ToRadian(60.0f);;             // 外角(rad)
+    Vector3     m_Color         = Vector3(1.0f, 1.0f, 1.0f);    // ライトカラー.
+    float       m_Intensity     = 1.0f;                         // 強度.
+
+    //=========================================================================
+    // private methods.
+    //=========================================================================
+    /* NOTHING */
 };
 
 } // namespace asdx
