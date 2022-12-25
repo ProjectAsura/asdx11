@@ -20,6 +20,7 @@ enum SUBRESOURCE_OPTION
 {
     SUBRESOURCE_OPTION_CUBEMAP = 0x1 << 0,      //!< キューブマップです.
     SUBRESOURCE_OPTION_VOLUME  = 0x1 << 1,      //!< ボリュームテクスチャです.
+    SUBRESOURCE_OPTION_SRGB    = 0x1 << 2,      //!< sRGBフォーマットを可能であれば指定します.
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

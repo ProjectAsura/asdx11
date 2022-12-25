@@ -85,6 +85,26 @@ inline UINT GetCoord(float value)
 inline UINT GetLuma(float value)
 { return static_cast<UINT>(value * 10000.0f); }
 
+//-----------------------------------------------------------------------------
+//      DXGI_SWAP_EFFECT_FLIP_XXXX が使用可能かチェックします.
+//-----------------------------------------------------------------------------
+inline bool IsFlipEffect(DXGI_FORMAT format)
+{
+    switch(format)
+    {
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+        return true;
+
+    default:
+        break;
+    }
+
+    return false;
+}
+
 } // namespace /* anonymous */
 
 
@@ -299,7 +319,7 @@ bool Application::InitWnd()
     { m_hIcon = LoadIcon( hInst, IDI_APPLICATION ); }
 
     // 拡張ウィンドウクラスの設定.
-    WNDCLASSEXW wc;
+    WNDCLASSEXW wc = {};
     wc.cbSize           = sizeof( WNDCLASSEXW );
     wc.style            = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc      = MsgProc;
@@ -441,6 +461,8 @@ bool Application::InitD3D()
         m_MultiSampleQuality = 0;
     }
 
+    auto swapEffect = IsFlipEffect(m_SwapChainFormat) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
+
     // スワップチェインの構成設定.
     DXGI_SWAP_CHAIN_DESC1 sd = {};
     sd.Width                = w;
@@ -452,7 +474,7 @@ bool Application::InitD3D()
     sd.BufferUsage          = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
     sd.BufferCount          = m_SwapChainCount;
     sd.Scaling              = DXGI_SCALING_STRETCH;
-    sd.SwapEffect           = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    sd.SwapEffect           = swapEffect;
     sd.AlphaMode            = DXGI_ALPHA_MODE_UNSPECIFIED;
 
     hr = pDXGIFactory->CreateSwapChainForHwnd(m_pDevice, m_hWnd, &sd, nullptr, nullptr, m_pSwapChain.GetAddress());

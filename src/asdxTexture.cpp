@@ -720,7 +720,7 @@ void Texture2D::Release()
 bool Texture2D::Create( ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, const ResTexture& resource )
 {
     // フォーマットを設定.
-    m_Format = static_cast<DXGI_FORMAT>( resource.Format );
+    m_Format = DXGI_FORMAT((resource.Option & SUBRESOURCE_OPTION_SRGB) ? asdx::MakeSRGB(resource.Format) : resource.Format);
 
     // メモリを確保.
     D3D11_SUBRESOURCE_DATA* pSubRes = new D3D11_SUBRESOURCE_DATA[ resource.MipMapCount * resource.SurfaceCount ];
@@ -854,8 +854,8 @@ bool Texture3D::Create( ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceConte
         return false;
     }
 
-      // フォーマットを設定.
-    m_Format = static_cast<DXGI_FORMAT>( resource.Format );
+    // フォーマットを設定.
+    m_Format = DXGI_FORMAT((resource.Option & SUBRESOURCE_OPTION_SRGB) ? asdx::MakeSRGB(resource.Format) : resource.Format);
 
     // メモリを確保.
     D3D11_SUBRESOURCE_DATA* pSubRes = new D3D11_SUBRESOURCE_DATA[ resource.MipMapCount * resource.SurfaceCount ];

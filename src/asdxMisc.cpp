@@ -955,7 +955,7 @@ int GetBytePerPixel(int dxgiFormat)
 //-----------------------------------------------------------------------------
 //      SRGBフォーマットに変換します.
 //-----------------------------------------------------------------------------
-int MakeSRGB(int dxgiFormat)
+uint32_t MakeSRGB(uint32_t dxgiFormat)
 {
     switch( dxgiFormat )
     {
