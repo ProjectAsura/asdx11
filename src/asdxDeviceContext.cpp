@@ -275,6 +275,9 @@ void DeviceContext::Term()
     if (m_pContext.GetPtr() != nullptr)
     { m_pContext->Flush(); }
 
+    m_DisposerView.Clear();
+    m_DisposerResource.Clear();
+
     m_pInfoQueue    .Reset();
     m_DefaultBS     .Reset();
     m_DefaultDSS    .Reset();
@@ -458,5 +461,86 @@ ID3D12CommandQueue* DeviceContext::GetD3D12GraphicsQueue() const
 { return m_D3D12GraphicsQueue.GetPtr(); }
 
 #endif
+
+//-----------------------------------------------------------------------------
+//      シェーダリソースビューを破棄します.
+//-----------------------------------------------------------------------------
+void DeviceContext::Dispose(ID3D11ShaderResourceView*& item)
+{
+    m_DisposerView.Push(item);
+    item = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+//      アンオーダードアクセスビューを破棄します.
+//-----------------------------------------------------------------------------
+void DeviceContext::Dispose(ID3D11UnorderedAccessView*& item)
+{
+    m_DisposerView.Push(item);
+    item = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+//      レンダーターゲットビューを破棄します.
+//-----------------------------------------------------------------------------
+void DeviceContext::Dispose(ID3D11RenderTargetView*& item)
+{
+    m_DisposerView.Push(item);
+    item = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+//      深度ステンシルビューを破棄します.
+//-----------------------------------------------------------------------------
+void DeviceContext::Dispose(ID3D11DepthStencilView*& item)
+{
+    m_DisposerView.Push(item);
+    item = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+//      バッファを破棄します.
+//-----------------------------------------------------------------------------
+void DeviceContext::Dispose(ID3D11Buffer*& item)
+{
+    m_DisposerResource.Push(item);
+    item = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+//      1次元テクスチャを破棄します.
+//-----------------------------------------------------------------------------
+void DeviceContext::Dispose(ID3D11Texture1D*& item)
+{
+    m_DisposerResource.Push(item);
+    item = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+//      2次元テクスチャを破棄します.
+//-----------------------------------------------------------------------------
+void DeviceContext::Dispose(ID3D11Texture2D*& item)
+{
+    m_DisposerResource.Push(item);
+    item = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+//      3次元テクスチャを破棄します.
+//-----------------------------------------------------------------------------
+void DeviceContext::Dispose(ID3D11Texture3D*& item)
+{
+    m_DisposerResource.Push(item);
+    item = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+//      フレーム同期処理を行います.
+//-----------------------------------------------------------------------------
+void DeviceContext::FrameSync()
+{
+    m_DisposerView.FrameSync();
+    m_DisposerResource.FrameSync();
+}
 
 } // namespace asdx

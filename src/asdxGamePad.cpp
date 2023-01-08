@@ -89,8 +89,7 @@ bool GamePad::IsConnected() const
 //-------------------------------------------------------------------------------------------------
 void GamePad::UpdateState()
 {
-    XINPUT_STATE state;
-    ZeroMemory( &state, sizeof(state) );
+    XINPUT_STATE state = {};
 
     auto result = XInputGetState( m_PlayerIndex, &state );
     if ( result == ERROR_SUCCESS )

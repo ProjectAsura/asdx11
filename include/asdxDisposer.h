@@ -53,14 +53,14 @@ public:
     //! @param[in]      pObject     登録するオブジェクト.
     //! @param[in]      lifeTime    生存フレーム数.
     //-------------------------------------------------------------------------
-    void Push(T*& pObject, uint8_t lifeTime = kDefaultLifeTime)
+    void Push(T* pObject, uint8_t lifeTime = kDefaultLifeTime)
     {
         if (pObject == nullptr)
         { return; }
 
         ScopedLock locker(&m_SpinLock);
 
-        Item item;
+        Item item = {};
         item.pObject    = pObject;
         item.LifeTime   = lifeTime;
         m_List.push_back(item);

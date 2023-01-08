@@ -509,6 +509,10 @@ bool ColorTarget2D::Create( ID3D11Device* pDevice, const TargetDesc2D& desc )
 //-------------------------------------------------------------------------------------------------
 bool ColorTarget2D::Resize(ID3D11Device* pDevice, uint32_t width, uint32_t height)
 {
+    // サイズが同じ場合は変更せずに成功扱いにする.
+    if (m_Desc.Width == width && m_Desc.Height == height)
+    { return true; }
+
     m_pRTV.Reset();
     m_pSRV.Reset();
     m_pTexture.Reset();
@@ -671,6 +675,10 @@ bool ColorTarget3D::Create( ID3D11Device* pDevice, const TargetDesc3D& desc )
 //-------------------------------------------------------------------------------------------------
 bool ColorTarget3D::Resize(ID3D11Device* pDevice, uint32_t width, uint32_t height, uint32_t depth)
 {
+    // サイズが同じ場合は変更せずに成功扱いにする.
+    if (m_Desc.Width == width && m_Desc.Height == height && m_Desc.Depth == depth)
+    { return true; }
+
     m_pSRV.Reset();
     m_pRTV.Reset();
     m_pTexture.Reset();
@@ -907,6 +915,10 @@ bool DepthTarget2D::Create( ID3D11Device* pDevice, const TargetDesc2D& desc )
 //-------------------------------------------------------------------------------------------------
 bool DepthTarget2D::Resize(ID3D11Device* pDevice, uint32_t width, uint32_t height)
 {
+    // サイズが同じ場合は変更せずに成功扱いにする.
+    if (m_Desc.Width == width && m_Desc.Height == height)
+    { return true; }
+
     m_pSRV.Reset();
     m_pDSV.Reset();
     m_pTexture.Reset();

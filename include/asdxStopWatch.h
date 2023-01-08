@@ -9,7 +9,7 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <cstdint>
-#include <profileapi.h>
+#include <Windows.h>
 
 
 namespace asdx {

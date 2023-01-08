@@ -28,6 +28,7 @@
     <ClInclude Include="..\src\GlyphJapanese.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\nautilus\asdx11\external\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\external\imgui\imgui.cpp" />
     <ClCompile Include="..\external\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
