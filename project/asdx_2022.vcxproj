@@ -179,6 +179,7 @@
     <ClCompile Include="..\src\asdxResTexture.cpp" />
     <ClCompile Include="..\src\asdxSky.cpp" />
     <ClCompile Include="..\src\asdxSound.cpp" />
+    <ClCompile Include="..\src\asdxSpriteSystem.cpp" />
     <ClCompile Include="..\src\asdxTarget.cpp" />
     <ClCompile Include="..\src\asdxTexture.cpp" />
   </ItemGroup>
@@ -204,6 +205,7 @@
     <ClInclude Include="..\include\asdxSky.h" />
     <ClInclude Include="..\include\asdxSound.h" />
     <ClInclude Include="..\include\asdxSpinLock.h" />
+    <ClInclude Include="..\include\asdxSpriteSystem.h" />
     <ClInclude Include="..\include\asdxStopWatch.h" />
     <ClInclude Include="..\include\asdxStringView.h" />
     <ClInclude Include="..\include\asdxTarget.h" />
@@ -253,6 +255,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\SpritePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\SpriteVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug12|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release12|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
